@@ -24,7 +24,7 @@ struct DevComposeInviteCard: View {
                 .buttonStyle(.plain)
 
                 if isExpanded {
-                    Text("Send a live invite by handle. This shortcut goes away once Discovery is built.")
+                    Text("In the real app, invites are a single tap on someone's profile in Discover. This shortcut goes away once Discovery ships.")
                         .font(GATypography.footnote)
                         .foregroundStyle(GAColors.textSecondary)
 
@@ -33,12 +33,6 @@ struct DevComposeInviteCard: View {
                                 placeholder: "their_handle",
                                 systemImage: "at",
                                 autocapitalization: .never)
-
-                    GATextField(title: "Message",
-                                text: $vm.composeMessage,
-                                placeholder: "Optional. Up to a sentence.",
-                                systemImage: "text.alignleft",
-                                autocapitalization: .sentences)
 
                     if let err = vm.composeError {
                         GAErrorBanner(message: err,

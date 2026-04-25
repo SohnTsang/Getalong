@@ -20,10 +20,9 @@ struct SignInView: View {
 
             VStack(alignment: .leading, spacing: 0) {
 
-                wordmark
-                    .padding(.top, GASpacing.xl)
-
-                Spacer(minLength: GASpacing.xl)
+                centeredWordmark
+                    .padding(.top, GASpacing.lg)
+                    .padding(.bottom, GASpacing.xxl)
 
                 hero
 
@@ -49,21 +48,27 @@ struct SignInView: View {
 
     // MARK: - Wordmark
 
-    private var wordmark: some View {
-        HStack(spacing: 8) {
+    /// Centered, prominent brand block. The "signal dot" (concentric
+    /// circle + filled core) is the brand mark; the wordmark sits below.
+    private var centeredWordmark: some View {
+        VStack(spacing: GASpacing.md) {
             ZStack {
                 Circle()
-                    .stroke(GAColors.accent.opacity(0.30), lineWidth: 4)
-                    .frame(width: 14, height: 14)
+                    .stroke(GAColors.accent.opacity(0.18), lineWidth: 1.5)
+                    .frame(width: 56, height: 56)
+                Circle()
+                    .stroke(GAColors.accent.opacity(0.32), lineWidth: 6)
+                    .frame(width: 38, height: 38)
                 Circle()
                     .fill(GAColors.accent)
-                    .frame(width: 6, height: 6)
+                    .frame(width: 14, height: 14)
             }
             Text("GETALONG")
-                .font(GATypography.micro)
-                .tracking(2.4)
-                .foregroundStyle(GAColors.textSecondary)
+                .font(.system(size: 16, weight: .semibold, design: .rounded))
+                .tracking(3.6)
+                .foregroundStyle(GAColors.textPrimary)
         }
+        .frame(maxWidth: .infinity)
     }
 
     // MARK: - Hero
@@ -78,23 +83,29 @@ struct SignInView: View {
         }
     }
 
+    /// The teaser shows what a recipient sees when someone taps their
+    /// one-line profile in Discover: the sender's identity + their
+    /// one-line intro + a 15-second ring. There is no typed message —
+    /// invites in Getalong are a single tap.
     private var inviteTeaser: some View {
         VStack(alignment: .leading, spacing: GASpacing.lg) {
-            // Header row: who & live indicator
-            HStack(alignment: .center, spacing: GASpacing.sm) {
+            HStack(alignment: .center, spacing: GASpacing.md) {
                 avatarBubble(letter: "A")
-                VStack(alignment: .leading, spacing: 1) {
-                    HStack(spacing: 4) {
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 6) {
                         Text("@aria")
                             .font(GATypography.callout.weight(.semibold))
                             .foregroundStyle(GAColors.textPrimary)
+                        Text("·")
+                            .font(GATypography.caption)
+                            .foregroundStyle(GAColors.textTertiary)
                         liveDot
                         Text("LIVE INVITE")
                             .font(GATypography.micro)
-                            .tracking(1.4)
+                            .tracking(1.6)
                             .foregroundStyle(GAColors.accent)
                     }
-                    Text("now")
+                    Text("Brooklyn, NY")
                         .font(GATypography.caption)
                         .foregroundStyle(GAColors.textTertiary)
                 }
@@ -102,8 +113,8 @@ struct SignInView: View {
                 PulsingCountdownRing(total: 15, size: 56, lineWidth: 3)
             }
 
-            // The message — editorial serif quote
-            Text("\u{201C}Saw your post about late-night coffee. Tonight?\u{201D}")
+            // Aria's one-line intro — this is the "words first" surface.
+            Text("\u{201C}Late-night writer. Coffee shops, long walks, quiet conversations.\u{201D}")
                 .font(GATypography.editorialQuote)
                 .foregroundStyle(GAColors.textPrimary)
                 .lineSpacing(2)
@@ -141,18 +152,21 @@ struct SignInView: View {
 
     private var editorialLines: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("Words first.")
+            Text("One tap.")
                 .font(GATypography.editorial)
                 .foregroundStyle(GAColors.textPrimary)
                 .lineSpacing(-4)
                 .kerning(-0.4)
             HStack(spacing: 0) {
-                Text("Reply in ")
+                Text("Then ")
                     .font(GATypography.editorial)
                     .foregroundStyle(GAColors.textPrimary)
-                Text("15 seconds.")
+                Text("15 seconds")
                     .font(GATypography.editorial)
                     .foregroundStyle(GAColors.accent)
+                Text(".")
+                    .font(GATypography.editorial)
+                    .foregroundStyle(GAColors.textPrimary)
             }
             .lineSpacing(-4)
             .kerning(-0.4)

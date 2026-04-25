@@ -24,9 +24,8 @@ final class InvitesViewModel: ObservableObject {
     @Published var lastChatRoomId: UUID?
     @Published var lastChatPartner: String?
 
-    // Dev compose form
+    // Dev compose form (handle only — invites are a single tap)
     @Published var composeHandle: String = ""
-    @Published var composeMessage: String = ""
     @Published var composeIsSending: Bool = false
     @Published var composeError: String?
 
@@ -145,12 +144,8 @@ final class InvitesViewModel: ObservableObject {
         composeIsSending = true
         defer { composeIsSending = false }
         do {
-            _ = try await InviteService.shared.sendLiveInvite(
-                receiverHandle: handle,
-                message: composeMessage.isEmpty ? nil : composeMessage
-            )
+            _ = try await InviteService.shared.sendLiveInvite(receiverHandle: handle)
             composeHandle = ""
-            composeMessage = ""
             await refresh()
             Haptics.success()
         } catch {

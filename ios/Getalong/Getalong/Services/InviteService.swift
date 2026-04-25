@@ -106,13 +106,18 @@ final class InviteService {
 
     // MARK: - Mutations (via Edge Functions)
 
-    func sendLiveInvite(receiverHandle: String, message: String?) async throws -> SendLiveInviteResponse {
+    func sendLiveInvite(receiverHandle: String) async throws -> SendLiveInviteResponse {
         try await invoke(
             "sendLiveInvite",
-            body: [
-                "receiver_handle": .string(receiverHandle),
-                "message":         .string(message ?? "")
-            ].nilling("message", when: { ($0 as? String)?.isEmpty == true })
+            body: ["receiver_handle": .string(receiverHandle)]
+        )
+    }
+
+    /// Tap-to-invite from a profile id (used from Discovery once it ships).
+    func sendLiveInvite(receiverId: UUID) async throws -> SendLiveInviteResponse {
+        try await invoke(
+            "sendLiveInvite",
+            body: ["receiver_id": .string(receiverId.uuidString)]
         )
     }
 
@@ -264,13 +269,3 @@ private extension JSONDecoder.DateDecodingStrategy {
     }
 }
 
-private extension Dictionary where Key == String, Value == AnyJSON {
-    /// Drops a key whose underlying value matches a predicate.
-    func nilling(_ key: String, when predicate: (Any) -> Bool) -> [String: AnyJSON] {
-        var copy = self
-        if case .string(let s)? = copy[key], predicate(s) {
-            copy.removeValue(forKey: key)
-        }
-        return copy
-    }
-}
