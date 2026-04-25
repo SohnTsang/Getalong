@@ -38,8 +38,17 @@ final class SessionManager: ObservableObject {
                 guard let self else { return }
                 switch change.event {
                 case .signedIn, .tokenRefreshed, .userUpdated, .initialSession:
-                    if let user = change.session?.user {
-                        await self.resolve(userId: user.id)
+                    if let session = change.session {
+                        // With emitLocalSessionAsInitialSession=true the
+                        // cached session may be expired; ignore it and let
+                        // tokenRefreshed (or signedOut) fire.
+                        if session.isExpired {
+                            break
+                        }
+                        await self.resolve(userId: session.user.id)
+                    } else if change.event != .initialSession {
+                        // Treat a nil non-initial session as signed out.
+                        self.state = .unauthenticated
                     }
                 case .signedOut:
                     self.state = .unauthenticated

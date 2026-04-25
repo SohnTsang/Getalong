@@ -27,10 +27,13 @@ struct SignInView: View {
 
                 fineprint
             }
+            .frame(maxWidth: 460)
+            .frame(maxWidth: .infinity)
             .padding(.horizontal, GASpacing.lg)
-            .padding(.vertical, GASpacing.xxxl)
+            .padding(.vertical, GASpacing.xxl)
         }
-        .background(GAColors.background.ignoresSafeArea())
+        .scrollBounceBehavior(.basedOnSize)
+        .background(GAColors.background)
     }
 
     // MARK: - Sections

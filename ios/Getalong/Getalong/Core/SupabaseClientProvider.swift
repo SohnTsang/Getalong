@@ -41,7 +41,18 @@ enum Supa {
     static let client: SupabaseClient = {
         SupabaseClient(
             supabaseURL: SupabaseConfig.url,
-            supabaseKey: SupabaseConfig.anonKey
+            supabaseKey: SupabaseConfig.anonKey,
+            options: SupabaseClientOptions(
+                auth: SupabaseClientOptions.AuthOptions(
+                    // Opt in to the upcoming default: emit the locally
+                    // cached session immediately on launch so we don't
+                    // briefly flash the SignInView while the SDK refreshes.
+                    // The SessionManager listener already filters by event
+                    // type, and we re-resolve on `tokenRefreshed`.
+                    // See https://github.com/supabase/supabase-swift/pull/822
+                    emitLocalSessionAsInitialSession: true
+                )
+            )
         )
     }()
 

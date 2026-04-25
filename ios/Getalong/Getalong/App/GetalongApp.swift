@@ -16,6 +16,8 @@ struct GetalongApp: App {
                 .environmentObject(session)
                 .preferredColorScheme(appearance.colorScheme)
                 .tint(GAColors.accent)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(GAColors.background.ignoresSafeArea())
                 .task { await session.bootstrap() }
                 .onOpenURL { url in
                     // Fallback for when an OAuth provider redirects via the
