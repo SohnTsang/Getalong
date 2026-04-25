@@ -83,31 +83,6 @@ final class ProfileService {
         }
     }
 
-    func setTopics(profileId: UUID, topicIds: [UUID]) async throws {
-        // Replace strategy: clear then insert. RLS allows both for own row.
-        do {
-            try await Supa.client
-                .from("profile_topics")
-                .delete()
-                .eq("profile_id", value: profileId)
-                .execute()
-
-            guard !topicIds.isEmpty else { return }
-
-            struct Row: Encodable {
-                let profile_id: UUID
-                let topic_id: UUID
-            }
-            let rows = topicIds.map { Row(profile_id: profileId, topic_id: $0) }
-            try await Supa.client
-                .from("profile_topics")
-                .insert(rows)
-                .execute()
-        } catch {
-            throw ProfileError.underlying((error as NSError).localizedDescription)
-        }
-    }
-
     func softDelete(userId: UUID) async throws {
         struct DeletePatch: Encodable { let deleted_at: Date }
         try await Supa.client

@@ -15,7 +15,7 @@
 - Display name
 - Unique public handle
 - Short bio
-- Topics/interests
+- User-created tags (optional, edited from Profile — not required at sign-up)
 - Optional gender
 - Optional gender visibility
 - Language/city/country
@@ -24,7 +24,7 @@
 ### Discovery
 
 - Short text posts
-- Topic tags
+- User-created tags
 - Feed
 - Basic filtering
 - Profile preview

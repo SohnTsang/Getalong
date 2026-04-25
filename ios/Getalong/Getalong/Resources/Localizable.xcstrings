@@ -787,24 +787,23 @@
       }
     },
     "discovery.empty.subtitle" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "When people start sharing, you’ll see their small signals here."
+            "value" : "Discover will help you find people through signals and tags."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "誰かが一言を投稿すると、ここに表示されます。"
+            "value" : "Discoverでは今後、きっかけやタグから気が合いそうな人を見つけられるようになります。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "當有人開始分享時，他們的小訊號會出現在這裡。"
+            "value" : "Discover 之後會透過小訊號和標籤，幫你找到可能合得來的人。"
           }
         }
       }
@@ -1501,98 +1500,56 @@
         }
       }
     },
-    "profile.click.action" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Add tags"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "タグを追加"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "新增標籤"
-          }
-        }
-      }
-    },
-    "profile.click.placeholder" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pick a few — music, late-night, books, anything that helps people find your wavelength."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "音楽、夜更かし、本など、気の合う人が見つかりやすくなるものを選んでみてください。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "挑幾個你在意的小事，例如音樂、深夜、書本，幫助合拍的人找到你。"
-          }
-        }
-      }
-    },
-    "profile.click.subtitle" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Topics, moods, small things you care about."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "話題、気分、ちょっと気になること。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "話題、心情、你在意的小事。"
-          }
-        }
-      }
-    },
-    "profile.click.title" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "What helps you click"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "気が合うきっかけ"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "你會跟誰合拍"
-          }
-        }
-      }
-    },
+    "profile.tags" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Tags" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "タグ" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "標籤" }}
+    }},
+    "profile.tags.subtitle" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Add small hints about what you get along over." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "気が合うきっかけになりそうなことを追加できます。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "加入一些可能讓你與別人合得來的小提示。" }}
+    }},
+    "profile.tags.empty" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "No tags yet" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "まだタグはありません" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "目前沒有標籤" }}
+    }},
+    "profile.tags.add" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Add tags" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "タグを追加" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "新增標籤" }}
+    }},
+    "profile.tags.edit" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Edit tags" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "タグを編集" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "編輯標籤" }}
+    }},
+    "profile.tags.placeholder" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "coffee, travel, deep talks…" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "カフェ、旅行、ゆっくり話すこと…" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "咖啡、旅行、深度聊天⋯" }}
+    }},
+    "profile.tags.duplicate" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "This tag is already added." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "このタグはすでに追加されています。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "這個標籤已經加入。" }}
+    }},
+    "profile.tags.tooLong" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Tags must be 30 characters or less." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "タグは30文字以内で入力してください。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "標籤不可超過 30 個字元。" }}
+    }},
+    "profile.tags.limitReached" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "You can add up to 10 tags." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "タグは10個まで追加できます。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "最多可加入 10 個標籤。" }}
+    }},
+    "profile.tags.remove" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Remove tag" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "タグを削除" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "移除標籤" }}
+    }},
     "profile.deleteAccount" : {
       "localizations" : {
         "en" : {

@@ -2,12 +2,12 @@
 
 Getalong is an iOS-first, text-first social discovery app.
 
-The app helps people connect through words, topics, intentional invitations, and private one-to-one chat. It is similar in category to Heymandi, but the goal is not to clone it. Getalong should be positioned as a cleaner, safer, more premium, business-grade product with better trust, moderation, and one-time-view media.
+The app helps people connect through small signals, user-created tags, intentional invitations, and private one-to-one chat. It is similar in category to Heymandi, but the goal is not to clone it. Getalong should be positioned as a cleaner, safer, more premium, business-grade product with better trust, moderation, and one-time-view media.
 
 ## Core Product Direction
 
 - Words before appearance
-- Topic-based discovery
+- Tag-based discovery
 - Intentional invitations instead of random matching
 - Private chat after invite acceptance
 - One-time-view image/GIF/video messages

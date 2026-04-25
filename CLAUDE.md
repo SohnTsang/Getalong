@@ -12,7 +12,7 @@ Use a custom Getalong design system with full light mode and dark mode support f
 
 Getalong is a text-first social discovery app where users connect through:
 - short text posts
-- topic tags
+- user-created tags
 - 15-second live invitations
 - missed invitation recovery
 - private one-to-one chat

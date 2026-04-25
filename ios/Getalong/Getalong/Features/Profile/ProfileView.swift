@@ -3,6 +3,7 @@ import SwiftUI
 struct ProfileView: View {
     @EnvironmentObject private var session: SessionManager
     @StateObject private var vm = ProfileViewModel()
+    @State private var isTagEditorPresented: Bool = false
     @AppStorage("ga.appearance") private var appearanceRaw: String = GAAppearance.system.rawValue
 
     private var appearance: Binding<GAAppearance> {
@@ -24,7 +25,7 @@ struct ProfileView: View {
                     VStack(alignment: .leading, spacing: GASpacing.sectionGap) {
                         header(profile)
                         signalSection(profile)
-                        topicsSection
+                        tagsSection
                         preferencesSection(profile)
                         appearanceSection
                         signOutSection
@@ -36,7 +37,15 @@ struct ProfileView: View {
             }
             .navigationTitle("")
             .toolbar(.hidden, for: .navigationBar)
-            .task { if let p = profile { await vm.loadTopics(for: p.id) } }
+            .task { if let p = profile { await vm.loadTags(for: p.id) } }
+            .sheet(isPresented: $isTagEditorPresented) {
+                if let p = profile {
+                    TagEditorSheet(profileId: p.id,
+                                   initialTags: vm.tags) { updated in
+                        vm.tags = updated
+                    }
+                }
+            }
         }
     }
 
@@ -134,21 +143,27 @@ struct ProfileView: View {
         }
     }
 
-    private var topicsSection: some View {
+    private var tagsSection: some View {
         VStack(alignment: .leading, spacing: GASpacing.sm) {
-            GASectionHeader(title: String(localized: "profile.click.title"),
-                            subtitle: String(localized: "profile.click.subtitle"),
-                            actionTitle: String(localized: "common.manage")) { /* TODO */ }
+            GASectionHeader(title: String(localized: "profile.tags"),
+                            subtitle: String(localized: "profile.tags.subtitle"),
+                            actionTitle: String(localized: vm.tags.isEmpty
+                                                 ? "profile.tags.add"
+                                                 : "profile.tags.edit")) {
+                isTagEditorPresented = true
+            }
             GACard {
-                if vm.isLoadingTopics {
+                if vm.isLoadingTags {
                     HStack { Spacer(); ProgressView(); Spacer() }
                         .padding(.vertical, GASpacing.sm)
-                } else if vm.topics.isEmpty {
-                    placeholderRow(text: String(localized: "profile.click.placeholder"),
-                                   actionTitle: String(localized: "profile.click.action")) { /* TODO */ }
+                } else if vm.tags.isEmpty {
+                    placeholderRow(text: String(localized: "profile.tags.empty"),
+                                   actionTitle: String(localized: "profile.tags.add")) {
+                        isTagEditorPresented = true
+                    }
                 } else {
                     FlowLayout(spacing: GASpacing.sm) {
-                        ForEach(vm.topics) { GAChip(label: $0.nameEn) }
+                        ForEach(vm.tags) { GAChip(label: $0.tag) }
                     }
                 }
             }
@@ -254,7 +269,7 @@ struct ProfileView: View {
 
 // MARK: - Simple flow layout (chips wrap)
 
-private struct FlowLayout: Layout {
+struct FlowLayout: Layout {
     var spacing: CGFloat = GASpacing.sm
 
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {

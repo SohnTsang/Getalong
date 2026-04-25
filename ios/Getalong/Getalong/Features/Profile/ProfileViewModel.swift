@@ -3,16 +3,16 @@ import SwiftUI
 
 @MainActor
 final class ProfileViewModel: ObservableObject {
-    @Published var topics: [Topic] = []
-    @Published var isLoadingTopics = false
+    @Published var tags: [ProfileTag] = []
+    @Published var isLoadingTags = false
 
-    func loadTopics(for profileId: UUID) async {
-        isLoadingTopics = true
-        defer { isLoadingTopics = false }
+    func loadTags(for profileId: UUID) async {
+        isLoadingTags = true
+        defer { isLoadingTags = false }
         do {
-            topics = try await TopicService.shared.fetchTopicsForProfile(profileId)
+            tags = try await ProfileTagService.shared.fetchTags(for: profileId)
         } catch {
-            GALog.app.error("loadTopics: \(error.localizedDescription)")
+            GALog.app.error("loadTags: \(error.localizedDescription)")
         }
     }
 }
