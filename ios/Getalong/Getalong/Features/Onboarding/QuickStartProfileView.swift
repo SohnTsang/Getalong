@@ -28,12 +28,12 @@ struct QuickStartProfileView: View {
                                     placeholder: "What should we call you?",
                                     systemImage: "person",
                                     autocapitalization: .words)
-                        GATextField(title: "One-line intro",
+                        GATextField(title: "Your signal",
                                     text: $vm.oneLineIntro,
-                                    placeholder: "Optional. Up to a sentence.",
+                                    placeholder: "I'm always looking for quiet cafés.",
                                     systemImage: "text.alignleft",
                                     autocapitalization: .sentences,
-                                    helperText: "This is the first thing people see.")
+                                    helperText: "One line about what helps you click with someone.")
                     }
                 }
 
@@ -92,12 +92,12 @@ struct QuickStartProfileView: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: GASpacing.lg) {
-            Text("One sentence\nis enough.")
+            Text("Start with one\nsmall signal.")
                 .font(GATypography.editorial)
                 .foregroundStyle(GAColors.textPrimary)
                 .lineSpacing(-2)
                 .kerning(-0.4)
-            Text("Pick a handle, say something true, and you're in.\nYou can change all of this later.")
+            Text("Write one line that helps the right people feel they might get along with you.")
                 .font(GATypography.body)
                 .foregroundStyle(GAColors.textSecondary)
                 .lineSpacing(2)

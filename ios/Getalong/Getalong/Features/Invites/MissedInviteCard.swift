@@ -26,18 +26,18 @@ struct MissedInviteCard: View {
                         .foregroundStyle(GAColors.textPrimary)
                         .lineLimit(3)
                 } else {
-                    Text("They reached out.")
+                    Text("They thought you two might click.")
                         .font(GATypography.body)
                         .foregroundStyle(GAColors.textSecondary)
                 }
 
-                Text("You can still respond.")
+                Text("No pressure — start chatting if it still feels right.")
                     .font(GATypography.footnote)
                     .foregroundStyle(GAColors.textTertiary)
 
                 HStack(spacing: GASpacing.md) {
-                    GAButton(title: "Ignore",      kind: .ghost,   size: .compact) { onDecline() }
-                    GAButton(title: "Start chat",  kind: .primary, size: .compact) { onAccept() }
+                    GAButton(title: "Not now",       kind: .ghost,   size: .compact) { onDecline() }
+                    GAButton(title: "Start chatting", kind: .primary, size: .compact) { onAccept() }
                 }
             }
         }

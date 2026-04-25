@@ -119,7 +119,7 @@ struct ProfileView: View {
     private func signalSection(_ p: Profile) -> some View {
         VStack(alignment: .leading, spacing: GASpacing.sm) {
             GASectionHeader(title: "Your signal",
-                            subtitle: "The first thing people see.",
+                            subtitle: "One line that helps the right people click with you.",
                             actionTitle: "Edit") { /* TODO */ }
             GACard {
                 if let bio = p.bio, !bio.isEmpty {
@@ -127,8 +127,8 @@ struct ProfileView: View {
                         .font(GATypography.body)
                         .foregroundStyle(GAColors.textPrimary)
                 } else {
-                    placeholderRow(text: "Add a one-line intro so others know what you're about.",
-                                   actionTitle: "Add intro") { /* TODO */ }
+                    placeholderRow(text: "Add one line so others can feel whether they'll get along with you.",
+                                   actionTitle: "Add signal") { /* TODO */ }
                 }
             }
         }
@@ -136,15 +136,15 @@ struct ProfileView: View {
 
     private var topicsSection: some View {
         VStack(alignment: .leading, spacing: GASpacing.sm) {
-            GASectionHeader(title: "Topics",
-                            subtitle: "Help people find you.",
+            GASectionHeader(title: "What helps you click",
+                            subtitle: "Topics, moods, small things you care about.",
                             actionTitle: "Manage") { /* TODO */ }
             GACard {
                 if vm.isLoadingTopics {
                     HStack { Spacer(); ProgressView(); Spacer() }
                         .padding(.vertical, GASpacing.sm)
                 } else if vm.topics.isEmpty {
-                    placeholderRow(text: "Pick a few tags later — music, late-night, books, anything.",
+                    placeholderRow(text: "Pick a few — music, late-night, books, anything that helps people find your wavelength.",
                                    actionTitle: "Add tags") { /* TODO */ }
                 } else {
                     FlowLayout(spacing: GASpacing.sm) {

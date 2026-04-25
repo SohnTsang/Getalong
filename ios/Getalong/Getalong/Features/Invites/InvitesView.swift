@@ -67,7 +67,7 @@ struct InvitesView: View {
             Text("Signals")
                 .font(GATypography.screenTitle)
                 .foregroundStyle(GAColors.textPrimary)
-            Text("Small signals from real people. Live ones last 15 seconds.")
+            Text("Live signals are quick, mutual moments. No pressure if it isn't yours.")
                 .font(GATypography.callout)
                 .foregroundStyle(GAColors.textSecondary)
         }
@@ -86,7 +86,7 @@ struct InvitesView: View {
             GACard(kind: .standard) {
                 GAEmptyState(
                     title: "No live signals",
-                    message: "When something you said catches someone, you'll see it here.",
+                    message: "When someone clicks with what you said, you'll feel it here.",
                     systemImage: "dot.radiowaves.left.and.right"
                 )
             }
@@ -101,7 +101,7 @@ struct InvitesView: View {
             GACard(kind: .standard) {
                 GAEmptyState(
                     title: "No missed signals",
-                    message: "Signals you didn't catch in time will land here.",
+                    message: "If you miss a live signal, it lands here so you can still respond.",
                     systemImage: "tray"
                 )
             }

@@ -120,7 +120,7 @@ struct SignInView: View {
             }
 
             // Aria's signal — a small thought, not a bio.
-            Text("\u{201C}Late-night coffee somehow makes better conversations.\u{201D}")
+            Text("\u{201C}I get along best with people who don't take life too seriously.\u{201D}")
                 .font(GATypography.editorialQuote)
                 .foregroundStyle(GAColors.textPrimary)
                 .lineSpacing(2)
@@ -159,18 +159,18 @@ struct SignInView: View {
     private var editorialLines: some View {
         VStack(alignment: .leading, spacing: GASpacing.md) {
             VStack(alignment: .leading, spacing: 0) {
-                Text("Small signals.")
+                Text("Find someone you")
                     .font(GATypography.editorial)
                     .foregroundStyle(GAColors.textPrimary)
                     .lineSpacing(-4)
                     .kerning(-0.4)
-                Text("Real conversations.")
+                Text("just get along with.")
                     .font(GATypography.editorial)
                     .foregroundStyle(GAColors.accent)
                     .lineSpacing(-4)
                     .kerning(-0.4)
             }
-            Text("Find people through what they say, not how they pose.")
+            Text("Start with a small signal. If it clicks, talk live.")
                 .font(GATypography.body)
                 .foregroundStyle(GAColors.textSecondary)
                 .lineSpacing(2)

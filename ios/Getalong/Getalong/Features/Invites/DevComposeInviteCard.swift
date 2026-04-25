@@ -24,7 +24,7 @@ struct DevComposeInviteCard: View {
                 .buttonStyle(.plain)
 
                 if isExpanded {
-                    Text("In the real app, signals are a single tap on someone's one-line profile in Discover. This shortcut goes away once Discovery ships.")
+                    Text("In the real app, signals are sent from someone's profile or post in Discover. This shortcut goes away once Discovery ships.")
                         .font(GATypography.footnote)
                         .foregroundStyle(GAColors.textSecondary)
 

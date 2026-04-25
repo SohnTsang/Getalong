@@ -37,8 +37,8 @@ struct GALiveInviteCard: View {
                             .lineLimit(3)
                     } else {
                         Text(role == .incoming
-                             ? "Sent you a signal."
-                             : "Waiting for a response\u{2026}")
+                             ? "Thinks you might get along."
+                             : "Waiting to see if it clicks\u{2026}")
                             .font(GATypography.body)
                             .foregroundStyle(GAColors.textSecondary)
                     }
