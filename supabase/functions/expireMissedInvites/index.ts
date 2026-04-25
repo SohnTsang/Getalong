@@ -1,13 +1,14 @@
-// expireMissedInvites — Getalong Edge Function (placeholder).
-// See docs/EDGE_FUNCTIONS.md for the full contract.
-//
-// Sensitive logic (RLS bypass via service role) goes here.
-// Replace this stub with the real implementation.
+// expireMissedInvites — Getalong Edge Function (cron).
 
-import { preflight, notImplemented } from "../_shared/response.ts";
+import { ok, fail, preflight } from "../_shared/response.ts";
+import { admin, mapPgError } from "../_shared/auth.ts";
 
-Deno.serve((req) => {
-  const pre = preflight(req);
-  if (pre) return pre;
-  return notImplemented("expireMissedInvites");
+Deno.serve(async (req) => {
+  const pre = preflight(req); if (pre) return pre;
+  const { data, error } = await admin().rpc("expire_missed_invites");
+  if (error) {
+    const m = mapPgError(error);
+    return fail(m.code, m.message, 500);
+  }
+  return ok({ expired_count: data ?? 0 });
 });

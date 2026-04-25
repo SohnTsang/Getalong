@@ -44,4 +44,23 @@ enum Supa {
             supabaseKey: SupabaseConfig.anonKey
         )
     }()
+
+    /// JSON decoder used wherever we hand-decode bytes (e.g. Edge Function
+    /// envelopes). Tolerant to ISO-8601 with or without fractional seconds.
+    static let jsonDecoder: JSONDecoder = {
+        let d = JSONDecoder()
+        d.dateDecodingStrategy = .custom { decoder in
+            let s = try decoder.singleValueContainer().decode(String.self)
+            let f = ISO8601DateFormatter()
+            f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            if let d = f.date(from: s) { return d }
+            f.formatOptions = [.withInternetDateTime]
+            if let d = f.date(from: s) { return d }
+            throw DecodingError.dataCorrupted(.init(
+                codingPath: decoder.codingPath,
+                debugDescription: "Invalid ISO-8601 date: \(s)"
+            ))
+        }
+        return d
+    }()
 }

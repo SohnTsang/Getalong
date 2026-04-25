@@ -19,7 +19,8 @@ export type GAErrorCode =
   | "CHAT_ALREADY_EXISTS"
   | "INVALID_INPUT"
   | "NOT_IMPLEMENTED"
-  | "INTERNAL_ERROR";
+  | "INTERNAL_ERROR"
+  | "RECEIVER_NOT_FOUND";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
