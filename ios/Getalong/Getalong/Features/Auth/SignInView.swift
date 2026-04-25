@@ -32,7 +32,6 @@ struct SignInView: View {
             .padding(.horizontal, GASpacing.lg)
             .padding(.vertical, GASpacing.xxl)
         }
-        .scrollBounceBehavior(.basedOnSize)
         .background(GAColors.background)
     }
 

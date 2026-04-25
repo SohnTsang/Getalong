@@ -2,7 +2,8 @@ import Foundation
 import Supabase
 
 /// Subscribes to Supabase Realtime postgres-changes for the current user's
-/// incoming invites. Fires a closure on any change so callers can refetch.
+/// invites (both as receiver and sender) and fires a closure on any
+/// change. Callers refetch via PostgREST in response.
 @MainActor
 final class RealtimeInviteManager {
     static let shared = RealtimeInviteManager()
@@ -15,42 +16,48 @@ final class RealtimeInviteManager {
     func start(userId: UUID, onInviteChange: @escaping () -> Void) async {
         await stop()
 
-        let ch = await Supa.client.realtimeV2.channel("invites:receiver=\(userId.uuidString)")
-        let inserts = ch.postgresChange(
+        let uid = userId.uuidString.lowercased()
+        let ch = Supa.client.realtimeV2.channel("invites:user=\(uid)")
+
+        let receiverInserts = ch.postgresChange(
             InsertAction.self,
             schema: "public",
             table: "invites",
-            filter: "receiver_id=eq.\(userId.uuidString)"
+            filter: .eq("receiver_id", value: uid)
         )
-        let updates = ch.postgresChange(
+        let receiverUpdates = ch.postgresChange(
             UpdateAction.self,
             schema: "public",
             table: "invites",
-            filter: "receiver_id=eq.\(userId.uuidString)"
+            filter: .eq("receiver_id", value: uid)
         )
-        let outgoingInserts = ch.postgresChange(
+        let senderInserts = ch.postgresChange(
             InsertAction.self,
             schema: "public",
             table: "invites",
-            filter: "sender_id=eq.\(userId.uuidString)"
+            filter: .eq("sender_id", value: uid)
         )
-        let outgoingUpdates = ch.postgresChange(
+        let senderUpdates = ch.postgresChange(
             UpdateAction.self,
             schema: "public",
             table: "invites",
-            filter: "sender_id=eq.\(userId.uuidString)"
+            filter: .eq("sender_id", value: uid)
         )
 
-        await ch.subscribe()
+        do {
+            try await ch.subscribeWithError()
+        } catch {
+            GALog.invite.error("realtime subscribe failed: \(error.localizedDescription)")
+            return
+        }
         channel = ch
 
-        task = Task { [weak self] in
+        task = Task {
             await withTaskGroup(of: Void.self) { group in
-                group.addTask { for await _ in inserts          { await MainActor.run { onInviteChange() } } }
-                group.addTask { for await _ in updates          { await MainActor.run { onInviteChange() } } }
-                group.addTask { for await _ in outgoingInserts  { await MainActor.run { onInviteChange() } } }
-                group.addTask { for await _ in outgoingUpdates  { await MainActor.run { onInviteChange() } } }
-                _ = self
+                group.addTask { for await _ in receiverInserts { await MainActor.run { onInviteChange() } } }
+                group.addTask { for await _ in receiverUpdates { await MainActor.run { onInviteChange() } } }
+                group.addTask { for await _ in senderInserts   { await MainActor.run { onInviteChange() } } }
+                group.addTask { for await _ in senderUpdates   { await MainActor.run { onInviteChange() } } }
             }
         }
     }
