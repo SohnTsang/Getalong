@@ -1,6 +1,7 @@
 import SwiftUI
 import AuthenticationServices
 import CryptoKit
+import UIKit
 
 struct SignInView: View {
     @StateObject private var vm = AuthViewModel()
@@ -12,13 +13,11 @@ struct SignInView: View {
 
                 header
 
-                modePicker
-
-                fieldsCard
-
-                if let info = vm.infoMessage {
-                    GAErrorBanner(message: info)
-                        .tint(GAColors.success)
+                VStack(spacing: GASpacing.md) {
+                    appleButton
+                    socialButton(.google,   systemImage: "g.circle.fill")
+                    socialButton(.facebook, systemImage: "f.circle.fill")
+                    socialButton(.twitter,  systemImage: "xmark.app.fill")
                 }
 
                 if let error = vm.errorMessage {
@@ -26,19 +25,10 @@ struct SignInView: View {
                                   onDismiss: { vm.errorMessage = nil })
                 }
 
-                GAButton(title: vm.submitTitle,
-                         kind: .primary,
-                         isLoading: vm.isWorking,
-                         isDisabled: !vm.canSubmit) {
-                    Task { await vm.submit() }
-                }
-
-                appleButton
-
-                toggleRow
+                fineprint
             }
             .padding(.horizontal, GASpacing.lg)
-            .padding(.vertical, GASpacing.xxl)
+            .padding(.vertical, GASpacing.xxxl)
         }
         .background(GAColors.background.ignoresSafeArea())
     }
@@ -54,95 +44,85 @@ struct SignInView: View {
                 .font(GATypography.body)
                 .foregroundStyle(GAColors.textSecondary)
         }
-    }
-
-    private var modePicker: some View {
-        Picker("", selection: $vm.mode) {
-            ForEach(AuthViewModel.Mode.allCases) { m in Text(m.rawValue).tag(m) }
-        }
-        .pickerStyle(.segmented)
-    }
-
-    private var fieldsCard: some View {
-        GACard {
-            VStack(spacing: GASpacing.md) {
-                GATextField(title: "Email",
-                            text: $vm.email,
-                            placeholder: "you@example.com",
-                            systemImage: "envelope",
-                            keyboard: .emailAddress,
-                            autocapitalization: .never)
-                GATextField(title: "Password",
-                            text: $vm.password,
-                            placeholder: "At least 8 characters",
-                            systemImage: "lock",
-                            isSecure: true,
-                            autocapitalization: .never)
-            }
-        }
+        .padding(.bottom, GASpacing.lg)
     }
 
     private var appleButton: some View {
-        SignInWithAppleButton(.signIn) { request in
+        SignInWithAppleButton(.continue) { request in
             let nonce = Self.makeNonce()
             appleNonce = nonce
             request.requestedScopes = [.fullName, .email]
             request.nonce = Self.sha256(nonce)
         } onCompletion: { result in
-            handleAppleResult(result)
+            guard let nonce = appleNonce else { return }
+            Task { await vm.handleAppleResult(result, rawNonce: nonce) }
         }
         .signInWithAppleButtonStyle(.black)
         .frame(height: 52)
         .clipShape(RoundedRectangle(cornerRadius: GACornerRadius.md, style: .continuous))
+        .overlay(busyOverlay(for: .apple))
     }
 
-    private var toggleRow: some View {
-        HStack {
-            Spacer()
-            Button(action: vm.toggleMode) {
-                Text(vm.mode == .signIn
-                     ? "New here? Create an account"
-                     : "Already have an account? Sign in")
-                    .font(GATypography.footnote)
-                    .foregroundStyle(GAColors.textSecondary)
+    @ViewBuilder
+    private func socialButton(_ provider: AuthProvider, systemImage: String) -> some View {
+        Button {
+            guard let anchor = activeAnchor() else { return }
+            Task { await vm.signInWithOAuth(provider, anchor: anchor) }
+        } label: {
+            HStack(spacing: GASpacing.sm) {
+                Image(systemName: systemImage)
+                    .imageScale(.large)
+                Text("Continue with \(provider.displayName)")
+                    .font(GATypography.button)
             }
-            Spacer()
+            .frame(maxWidth: .infinity, minHeight: 52)
+            .background(GAColors.surfaceMuted)
+            .foregroundStyle(GAColors.textPrimary)
+            .clipShape(RoundedRectangle(cornerRadius: GACornerRadius.md, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: GACornerRadius.md, style: .continuous)
+                    .stroke(GAColors.border, lineWidth: 1)
+            )
+            .overlay(busyOverlay(for: provider))
+        }
+        .buttonStyle(.plain)
+        .disabled(vm.isWorking)
+        .opacity(vm.isWorking && vm.workingProvider != provider ? 0.5 : 1)
+    }
+
+    @ViewBuilder
+    private func busyOverlay(for provider: AuthProvider) -> some View {
+        if vm.workingProvider == provider {
+            ZStack {
+                RoundedRectangle(cornerRadius: GACornerRadius.md, style: .continuous)
+                    .fill(GAColors.background.opacity(0.6))
+                ProgressView().tint(GAColors.accent)
+            }
         }
     }
 
-    // MARK: - Apple sign-in
-
-    private func handleAppleResult(_ result: Result<ASAuthorization, Error>) {
-        switch result {
-        case .success(let auth):
-            guard let credential = auth.credential as? ASAuthorizationAppleIDCredential,
-                  let tokenData = credential.identityToken,
-                  let token = String(data: tokenData, encoding: .utf8),
-                  let nonce = appleNonce
-            else {
-                vm.errorMessage = AuthError.missingAppleIdentityToken.localizedDescription
-                return
-            }
-            Task {
-                vm.errorMessage = nil
-                vm.isWorking = true
-                defer { vm.isWorking = false }
-                do {
-                    try await AuthService.shared.signInWithApple(
-                        idTokenJWT: token,
-                        rawNonce: nonce
-                    )
-                } catch {
-                    vm.errorMessage = error.localizedDescription
-                }
-            }
-        case .failure(let error):
-            // User-cancelled is not an error worth surfacing.
-            if (error as NSError).code != ASAuthorizationError.canceled.rawValue {
-                vm.errorMessage = error.localizedDescription
-            }
-        }
+    private var fineprint: some View {
+        Text("By continuing you agree that you are 18+ and accept Getalong's terms.")
+            .font(GATypography.footnote)
+            .foregroundStyle(GAColors.textTertiary)
+            .multilineTextAlignment(.center)
+            .frame(maxWidth: .infinity)
+            .padding(.top, GASpacing.lg)
     }
+
+    // MARK: - Window resolution
+
+    private func activeAnchor() -> ASPresentationAnchor? {
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap(\.windows)
+            .first { $0.isKeyWindow } ?? UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap(\.windows)
+            .first
+    }
+
+    // MARK: - Apple nonce helpers
 
     private static func makeNonce(length: Int = 32) -> String {
         let charset: [Character] = Array("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-._")

@@ -1,59 +1,57 @@
 import Foundation
 import SwiftUI
+import AuthenticationServices
 
 @MainActor
 final class AuthViewModel: ObservableObject {
 
-    enum Mode: String, CaseIterable, Identifiable {
-        case signIn = "Sign in"
-        case signUp = "Create account"
-        var id: String { rawValue }
-    }
-
-    @Published var mode: Mode = .signIn
-    @Published var email: String = ""
-    @Published var password: String = ""
-    @Published var isWorking: Bool = false
+    @Published var workingProvider: AuthProvider?
     @Published var errorMessage: String?
-    /// Set when sign-up returns a session that requires email verification.
-    @Published var infoMessage: String?
 
-    func toggleMode() {
-        mode = (mode == .signIn) ? .signUp : .signIn
-        errorMessage = nil
-        infoMessage = nil
-    }
+    var isWorking: Bool { workingProvider != nil }
 
-    var canSubmit: Bool {
-        !email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        && password.count >= 8
-        && !isWorking
-    }
-
-    var submitTitle: String {
-        mode == .signIn ? "Sign in" : "Create account"
-    }
-
-    func submit() async {
-        errorMessage = nil
-        infoMessage = nil
-        isWorking = true
-        defer { isWorking = false }
-
-        do {
-            switch mode {
-            case .signIn:
-                try await AuthService.shared.signIn(email: email, password: password)
-            case .signUp:
-                try await AuthService.shared.signUp(email: email, password: password)
-                // If the project has email confirmation on, the auth state
-                // listener won't fire until the user confirms. Surface a
-                // hint so they know to check their inbox.
-                if (try? await Supa.client.auth.session) == nil {
-                    infoMessage = "Check your email to confirm your account, then sign in."
-                    mode = .signIn
-                }
+    func handleAppleResult(
+        _ result: Result<ASAuthorization, Error>,
+        rawNonce: String
+    ) async {
+        switch result {
+        case .success(let auth):
+            guard let credential = auth.credential as? ASAuthorizationAppleIDCredential,
+                  let tokenData = credential.identityToken,
+                  let token = String(data: tokenData, encoding: .utf8)
+            else {
+                errorMessage = AuthError.missingAppleIdentityToken.localizedDescription
+                return
             }
+            workingProvider = .apple
+            defer { workingProvider = nil }
+            do {
+                try await AuthService.shared.signInWithApple(
+                    idTokenJWT: token,
+                    rawNonce: rawNonce
+                )
+            } catch {
+                errorMessage = error.localizedDescription
+            }
+        case .failure(let error):
+            if (error as NSError).code != ASAuthorizationError.canceled.rawValue {
+                errorMessage = error.localizedDescription
+            }
+        }
+    }
+
+    func signInWithOAuth(_ provider: AuthProvider,
+                         anchor: ASPresentationAnchor) async {
+        errorMessage = nil
+        workingProvider = provider
+        defer { workingProvider = nil }
+        do {
+            try await AuthService.shared.signInWithOAuth(
+                provider: provider,
+                presentationAnchor: anchor
+            )
+        } catch AuthError.userCancelled {
+            // silent
         } catch {
             errorMessage = error.localizedDescription
         }

@@ -98,7 +98,6 @@ struct QuickStartProfileView: View {
         }
         .background(GAColors.background.ignoresSafeArea())
     }
-}
 
     /// Optional segmented picker with a leading "Skip" tile.
     @ViewBuilder

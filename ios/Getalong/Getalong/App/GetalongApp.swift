@@ -1,4 +1,5 @@
 import SwiftUI
+import Supabase
 
 @main
 struct GetalongApp: App {
@@ -16,6 +17,15 @@ struct GetalongApp: App {
                 .preferredColorScheme(appearance.colorScheme)
                 .tint(GAColors.accent)
                 .task { await session.bootstrap() }
+                .onOpenURL { url in
+                    // Fallback for when an OAuth provider redirects via the
+                    // system browser instead of completing inside
+                    // ASWebAuthenticationSession (e.g. Facebook returning
+                    // through Safari).
+                    Task {
+                        try? await Supa.client.auth.session(from: url)
+                    }
+                }
         }
     }
 }

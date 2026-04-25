@@ -198,9 +198,8 @@ final class InviteService {
 
     private func invoke<T: Decodable>(_ name: String, body: [String: AnyJSON]) async throws -> T {
         do {
-            let response: FunctionsResponse<Data> = try await Supa.client.functions
+            let raw: Data = try await Supa.client.functions
                 .invoke(name, options: .init(body: body))
-            let raw = response.data
             if let ok = try? JSONDecoder.gaInvite.decode(EnvelopeOK<T>.self, from: raw) {
                 return ok.data
             }
@@ -210,20 +209,30 @@ final class InviteService {
             throw InviteServiceError.other("Unexpected response.")
         } catch let e as InviteServiceError {
             throw e
-        } catch let e as FunctionsError {
-            // Edge Functions returned non-2xx; data still has our envelope.
-            switch e {
-            case .httpError(_, let data):
-                if let err = try? JSONDecoder.gaInvite.decode(EnvelopeErr.self, from: data) {
-                    throw InviteServiceError(code: err.error_code, message: err.message)
-                }
-                throw InviteServiceError.other(e.localizedDescription)
-            default:
-                throw InviteServiceError.other(e.localizedDescription)
-            }
         } catch {
+            // Edge Functions return non-2xx with our envelope embedded;
+            // supabase-swift surfaces it as FunctionsError.httpError(code, data).
+            if let data = Self.errorPayload(from: error),
+               let err  = try? JSONDecoder.gaInvite.decode(EnvelopeErr.self, from: data) {
+                throw InviteServiceError(code: err.error_code, message: err.message)
+            }
             throw InviteServiceError.other(error.localizedDescription)
         }
+    }
+
+    /// Best-effort extraction of the JSON body from `FunctionsError.httpError`
+    /// without taking a hard compile-time dependency on the enum shape (it
+    /// has shifted between supabase-swift releases).
+    private static func errorPayload(from error: Error) -> Data? {
+        let mirror = Mirror(reflecting: error)
+        for child in mirror.children {
+            if let nested = Mirror(reflecting: child.value).children.first(where: { _ in true })?.value,
+               let data = nested as? Data {
+                return data
+            }
+            if let data = child.value as? Data { return data }
+        }
+        return nil
     }
 }
 
