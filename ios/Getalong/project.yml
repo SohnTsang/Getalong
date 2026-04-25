@@ -20,7 +20,10 @@ settings:
 packages:
   Supabase:
     url: https://github.com/supabase/supabase-swift
-    from: "2.5.1"
+    from: "2.44.1"
+  RevenueCat:
+    url: https://github.com/RevenueCat/purchases-ios
+    from: "5.69.0"
 
 targets:
   Getalong:
@@ -42,3 +45,5 @@ targets:
     dependencies:
       - package: Supabase
         product: Supabase
+      - package: RevenueCat
+        product: RevenueCat

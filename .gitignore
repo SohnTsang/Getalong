@@ -19,8 +19,13 @@ ios/**/Secrets.plist
 # Supabase local dev
 supabase/.branches/
 supabase/.temp/
+supabase/.env
+supabase/.env.*
 .env
 .env.*
+
+# APNs auth key — never commit
+**/AuthKey_*.p8
 
 # Deno / Edge Function caches
 **/deno.lock
@@ -28,3 +33,7 @@ supabase/.temp/
 # Editor
 .vscode/
 .idea/
+
+# Stray IDE/Node artifacts (no package.json in this repo)
+package-lock.json
+node_modules/

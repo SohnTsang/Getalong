@@ -46,3 +46,40 @@ Each folder currently contains an `index.ts` stub that returns
 supabase start
 supabase functions serve sendLiveInvite --no-verify-jwt # for testing
 ```
+
+## Secrets
+
+The Supabase platform auto-injects these into every Edge Function and
+they cannot (and should not) be set manually:
+
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `SUPABASE_DB_URL`
+
+Names with the prefixes `SUPABASE_`, `SB_`, or `STRIPE_` are reserved and
+will be ignored by `supabase secrets set`.
+
+For your own secrets (APNs, RevenueCat, etc.), put them in
+`supabase/.env` (gitignored) and push:
+
+```bash
+cat > supabase/.env <<'EOF'
+APNS_KEY_ID=ABCDE12345
+APNS_TEAM_ID=XYZ9876543
+APNS_BUNDLE_ID=com.getalong.app
+APNS_AUTH_KEY_P8="-----BEGIN PRIVATE KEY-----
+...your .p8 contents...
+-----END PRIVATE KEY-----"
+REVENUECAT_WEBHOOK_SECRET=...
+EOF
+
+supabase secrets set --env-file supabase/.env
+supabase secrets list
+```
+
+Inside a function:
+
+```ts
+const keyId = Deno.env.get("APNS_KEY_ID");
+```
