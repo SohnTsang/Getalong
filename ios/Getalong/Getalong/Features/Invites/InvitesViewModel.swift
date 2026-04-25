@@ -4,10 +4,9 @@ import SwiftUI
 @MainActor
 final class InvitesViewModel: ObservableObject {
 
-    enum Tab: String, CaseIterable, Identifiable {
-        case live = "Live"
-        case missed = "Missed"
-        var id: String { rawValue }
+    enum Tab: CaseIterable, Identifiable, Hashable {
+        case live, missed
+        var id: Self { self }
 
         var localizedTitle: String {
             switch self {

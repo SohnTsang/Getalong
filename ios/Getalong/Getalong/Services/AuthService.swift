@@ -5,6 +5,10 @@ import AuthenticationServices
 enum AuthError: LocalizedError {
     case missingAppleIdentityToken
     case userCancelled
+    case network
+    case notSignedIn
+    /// Generic auth failure. The associated string is for logs only;
+    /// the user always sees a localized message.
     case oauthFailed(String)
     case underlying(String)
 
@@ -12,8 +16,9 @@ enum AuthError: LocalizedError {
         switch self {
         case .missingAppleIdentityToken:  return String(localized: "error.appleNoToken")
         case .userCancelled:              return String(localized: "error.authCancelled")
-        case .oauthFailed(let m):         return m
-        case .underlying(let m):          return m
+        case .network:                    return String(localized: "error.network")
+        case .notSignedIn:                return String(localized: "error.notSignedIn")
+        case .oauthFailed, .underlying:   return String(localized: "error.generic")
         }
     }
 }
@@ -70,7 +75,8 @@ final class AuthService {
                 )
             )
         } catch {
-            throw AuthError.underlying(Self.message(from: error))
+            GALog.auth.error("auth call failed: \(error.localizedDescription)")
+            throw Self.classify(error)
         }
     }
 
@@ -96,7 +102,8 @@ final class AuthService {
                 redirectTo: Self.redirectURL
             )
         } catch {
-            throw AuthError.oauthFailed(Self.message(from: error))
+            GALog.auth.error("oauth failed: \(error.localizedDescription)")
+            throw Self.classify(error)
         }
 
         // 2. Open the system browser sheet, wait for the redirect.
@@ -110,7 +117,8 @@ final class AuthService {
         } catch ASWebAuthenticationSessionError.canceledLogin {
             throw AuthError.userCancelled
         } catch {
-            throw AuthError.oauthFailed(Self.message(from: error))
+            GALog.auth.error("oauth failed: \(error.localizedDescription)")
+            throw Self.classify(error)
         }
 
         // 3. Hand the redirect URL to supabase-swift; it parses the code
@@ -118,7 +126,8 @@ final class AuthService {
         do {
             try await Supa.client.auth.session(from: callbackURL)
         } catch {
-            throw AuthError.oauthFailed(Self.message(from: error))
+            GALog.auth.error("oauth failed: \(error.localizedDescription)")
+            throw Self.classify(error)
         }
     }
 
@@ -132,7 +141,7 @@ final class AuthService {
     /// an Edge Function with the service role; not built yet.
     func deleteAccount() async throws {
         guard let userId = try? await Supa.client.auth.session.user.id else {
-            throw AuthError.underlying(String(localized: "error.notSignedIn"))
+            throw AuthError.notSignedIn
         }
         try await ProfileService.shared.softDelete(userId: userId)
         try await Supa.client.auth.signOut()
@@ -166,9 +175,15 @@ final class AuthService {
 
     private static var presenterKey: UInt8 = 0
 
-    private static func message(from error: Error) -> String {
-        let raw = (error as NSError).localizedDescription
-        return raw.isEmpty ? "Something went wrong. Please try again." : raw
+    /// Classifies an unknown error into a typed AuthError so the user
+    /// always sees a localized message. The original error text is kept
+    /// only for logs (associated value of `.oauthFailed`).
+    private static func classify(_ error: Error) -> AuthError {
+        let ns = error as NSError
+        if ns.domain == NSURLErrorDomain {
+            return .network
+        }
+        return .oauthFailed(ns.localizedDescription)
     }
 }
 

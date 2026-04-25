@@ -63,7 +63,7 @@ enum InviteServiceError: LocalizedError, Equatable {
         case .chatAlreadyExists:          return String(localized: "error.chatAlreadyExists")
         case .receiverNotFound:           return String(localized: "error.receiverNotFound")
         case .invalidInput:               return String(localized: "error.invalidInput")
-        case .other(let m):               return m
+        case .other:                      return String(localized: "error.generic")
         }
     }
 }
