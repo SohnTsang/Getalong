@@ -5,10 +5,11 @@ import UIKit
 
 /// Auth landing.
 ///
-/// Design intent: editorial. Type carries the brand. The only colored
-/// element is the primary action. No motifs, no frames, no gradients.
-/// The four providers form a hairline-divided list below the primary,
-/// not four boxed buttons.
+/// The hero **shows** the product mechanic instead of describing it: a
+/// realistic mock live-invite card with a ticking 15-second ring + a
+/// quoted message. Below it, two editorial lines land the takeaway. The
+/// auth list lives at the bottom — primary Apple, then a hairline list
+/// for the other providers.
 struct SignInView: View {
     @StateObject private var vm = AuthViewModel()
     @State private var appleNonce: String?
@@ -19,11 +20,14 @@ struct SignInView: View {
 
             VStack(alignment: .leading, spacing: 0) {
 
-                Spacer(minLength: GASpacing.xxl)
+                wordmark
+                    .padding(.top, GASpacing.xl)
+
+                Spacer(minLength: GASpacing.xl)
 
                 hero
 
-                Spacer(minLength: 0)
+                Spacer(minLength: GASpacing.xl)
 
                 providers
 
@@ -43,24 +47,7 @@ struct SignInView: View {
         }
     }
 
-    // MARK: - Hero
-
-    private var hero: some View {
-        VStack(alignment: .leading, spacing: GASpacing.xxl) {
-            wordmark
-            VStack(alignment: .leading, spacing: GASpacing.lg) {
-                Text("Words\nthat travel.")
-                    .font(GATypography.editorial)
-                    .foregroundStyle(GAColors.textPrimary)
-                    .lineSpacing(-2)
-                    .kerning(-0.4)
-                Text("A quieter way to meet — start with one sentence,\nsend a 15-second invite when something clicks.")
-                    .font(GATypography.body)
-                    .foregroundStyle(GAColors.textSecondary)
-                    .lineSpacing(2)
-            }
-        }
-    }
+    // MARK: - Wordmark
 
     private var wordmark: some View {
         HStack(spacing: 8) {
@@ -76,6 +63,99 @@ struct SignInView: View {
                 .font(GATypography.micro)
                 .tracking(2.4)
                 .foregroundStyle(GAColors.textSecondary)
+        }
+    }
+
+    // MARK: - Hero
+
+    /// Product moment as the hero. Two stacked beats:
+    /// 1. A teaser card that *looks like* a real incoming invite.
+    /// 2. Two editorial lines naming the value.
+    private var hero: some View {
+        VStack(alignment: .leading, spacing: GASpacing.xl) {
+            inviteTeaser
+            editorialLines
+        }
+    }
+
+    private var inviteTeaser: some View {
+        VStack(alignment: .leading, spacing: GASpacing.lg) {
+            // Header row: who & live indicator
+            HStack(alignment: .center, spacing: GASpacing.sm) {
+                avatarBubble(letter: "A")
+                VStack(alignment: .leading, spacing: 1) {
+                    HStack(spacing: 4) {
+                        Text("@aria")
+                            .font(GATypography.callout.weight(.semibold))
+                            .foregroundStyle(GAColors.textPrimary)
+                        liveDot
+                        Text("LIVE INVITE")
+                            .font(GATypography.micro)
+                            .tracking(1.4)
+                            .foregroundStyle(GAColors.accent)
+                    }
+                    Text("now")
+                        .font(GATypography.caption)
+                        .foregroundStyle(GAColors.textTertiary)
+                }
+                Spacer(minLength: 0)
+                PulsingCountdownRing(total: 15, size: 56, lineWidth: 3)
+            }
+
+            // The message — editorial serif quote
+            Text("\u{201C}Saw your post about late-night coffee. Tonight?\u{201D}")
+                .font(GATypography.editorialQuote)
+                .foregroundStyle(GAColors.textPrimary)
+                .lineSpacing(2)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(GASpacing.lg)
+        .background(GAColors.surface)
+        .clipShape(RoundedRectangle(cornerRadius: GACornerRadius.large,
+                                    style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: GACornerRadius.large,
+                             style: .continuous)
+                .strokeBorder(GAColors.border, lineWidth: 0.75)
+        )
+        .shadow(color: Color.black.opacity(0.05), radius: 18, x: 0, y: 6)
+    }
+
+    private func avatarBubble(letter: String) -> some View {
+        ZStack {
+            Circle().fill(GAColors.accentSoft)
+            Text(letter)
+                .font(.system(size: 13, weight: .bold, design: .rounded))
+                .foregroundStyle(GAColors.accent)
+        }
+        .frame(width: 28, height: 28)
+        .overlay(Circle().strokeBorder(GAColors.border, lineWidth: 0.75))
+    }
+
+    private var liveDot: some View {
+        Circle()
+            .fill(GAColors.accent)
+            .frame(width: 6, height: 6)
+            .padding(.horizontal, 4)
+    }
+
+    private var editorialLines: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text("Words first.")
+                .font(GATypography.editorial)
+                .foregroundStyle(GAColors.textPrimary)
+                .lineSpacing(-4)
+                .kerning(-0.4)
+            HStack(spacing: 0) {
+                Text("Reply in ")
+                    .font(GATypography.editorial)
+                    .foregroundStyle(GAColors.textPrimary)
+                Text("15 seconds.")
+                    .font(GATypography.editorial)
+                    .foregroundStyle(GAColors.accent)
+            }
+            .lineSpacing(-4)
+            .kerning(-0.4)
         }
     }
 
@@ -101,7 +181,7 @@ struct SignInView: View {
                             systemImage: "xmark",
                             tint: GAColors.textPrimary)
             }
-            .padding(.top, GASpacing.lg)
+            .padding(.top, GASpacing.sm)
         }
     }
 
@@ -134,7 +214,6 @@ struct SignInView: View {
     }
 
     private var appleStyle: SignInWithAppleButton.Style {
-        // Black on light, white on dark — Apple HIG-correct.
         UITraitCollection.current.userInterfaceStyle == .dark ? .white : .black
     }
 
