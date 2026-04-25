@@ -83,10 +83,10 @@ struct SignInView: View {
         }
     }
 
-    /// The teaser shows what a recipient sees when someone taps their
-    /// one-line profile in Discover: the sender's identity + their
-    /// one-line intro + a 15-second ring. There is no typed message —
-    /// invites in Getalong are a single tap.
+    /// The teaser shows the core unit of Getalong: a *signal* — a small
+    /// thought someone shares, plus the option to respond live. The
+    /// countdown ring is tucked into the corner as a status indicator,
+    /// not the headline.
     private var inviteTeaser: some View {
         VStack(alignment: .leading, spacing: GASpacing.lg) {
             HStack(alignment: .center, spacing: GASpacing.md) {
@@ -100,7 +100,7 @@ struct SignInView: View {
                             .font(GATypography.caption)
                             .foregroundStyle(GAColors.textTertiary)
                         liveDot
-                        Text("LIVE INVITE")
+                        Text("SIGNAL")
                             .font(GATypography.micro)
                             .tracking(1.6)
                             .foregroundStyle(GAColors.accent)
@@ -110,11 +110,17 @@ struct SignInView: View {
                         .foregroundStyle(GAColors.textTertiary)
                 }
                 Spacer(minLength: 0)
-                PulsingCountdownRing(total: 15, size: 56, lineWidth: 3)
+                VStack(spacing: 4) {
+                    PulsingCountdownRing(total: 15, size: 44, lineWidth: 2.5)
+                    Text("Live")
+                        .font(GATypography.micro)
+                        .tracking(1.4)
+                        .foregroundStyle(GAColors.textTertiary)
+                }
             }
 
-            // Aria's one-line intro — this is the "words first" surface.
-            Text("\u{201C}Late-night writer. Coffee shops, long walks, quiet conversations.\u{201D}")
+            // Aria's signal — a small thought, not a bio.
+            Text("\u{201C}Late-night coffee somehow makes better conversations.\u{201D}")
                 .font(GATypography.editorialQuote)
                 .foregroundStyle(GAColors.textPrimary)
                 .lineSpacing(2)
@@ -151,25 +157,23 @@ struct SignInView: View {
     }
 
     private var editorialLines: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text("One tap.")
-                .font(GATypography.editorial)
-                .foregroundStyle(GAColors.textPrimary)
-                .lineSpacing(-4)
-                .kerning(-0.4)
-            HStack(spacing: 0) {
-                Text("Then ")
+        VStack(alignment: .leading, spacing: GASpacing.md) {
+            VStack(alignment: .leading, spacing: 0) {
+                Text("Small signals.")
                     .font(GATypography.editorial)
                     .foregroundStyle(GAColors.textPrimary)
-                Text("15 seconds")
+                    .lineSpacing(-4)
+                    .kerning(-0.4)
+                Text("Real conversations.")
                     .font(GATypography.editorial)
                     .foregroundStyle(GAColors.accent)
-                Text(".")
-                    .font(GATypography.editorial)
-                    .foregroundStyle(GAColors.textPrimary)
+                    .lineSpacing(-4)
+                    .kerning(-0.4)
             }
-            .lineSpacing(-4)
-            .kerning(-0.4)
+            Text("Find people through what they say, not how they pose.")
+                .font(GATypography.body)
+                .foregroundStyle(GAColors.textSecondary)
+                .lineSpacing(2)
         }
     }
 

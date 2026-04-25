@@ -17,7 +17,7 @@ struct IncomingLiveInviteView: View {
             role: .incoming,
             totalSeconds: 15,
             secondsLeft: secondsLeft,
-            senderTitle: "Live invite",
+            senderTitle: "Live signal",
             preview: invite.message,
             onAccept: onAccept,
             onDecline: onDecline

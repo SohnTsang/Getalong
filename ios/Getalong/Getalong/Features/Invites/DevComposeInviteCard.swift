@@ -24,7 +24,7 @@ struct DevComposeInviteCard: View {
                 .buttonStyle(.plain)
 
                 if isExpanded {
-                    Text("In the real app, invites are a single tap on someone's profile in Discover. This shortcut goes away once Discovery ships.")
+                    Text("In the real app, signals are a single tap on someone's one-line profile in Discover. This shortcut goes away once Discovery ships.")
                         .font(GATypography.footnote)
                         .foregroundStyle(GAColors.textSecondary)
 
@@ -39,7 +39,7 @@ struct DevComposeInviteCard: View {
                                       onDismiss: { vm.composeError = nil })
                     }
 
-                    GAButton(title: "Send live invite",
+                    GAButton(title: "Send signal",
                              kind: .secondary,
                              size: .compact,
                              isLoading: vm.composeIsSending,

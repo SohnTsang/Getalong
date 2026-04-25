@@ -50,7 +50,7 @@ struct InvitesView: View {
                 if let uid = currentUserId { await vm.attach(userId: uid) }
             }
             .onDisappear { Task { await vm.detach() } }
-            .alert("Chat created", isPresented: chatCreatedBinding) {
+            .alert("Chat started", isPresented: chatCreatedBinding) {
                 Button("OK", role: .cancel) { vm.clearLastChat() }
             } message: {
                 if let id = vm.lastChatRoomId {
@@ -64,10 +64,10 @@ struct InvitesView: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: GASpacing.xs) {
-            Text("Invites")
+            Text("Signals")
                 .font(GATypography.screenTitle)
                 .foregroundStyle(GAColors.textPrimary)
-            Text("Live invites last 15 seconds. Missed ones wait for you.")
+            Text("Small signals from real people. Live ones last 15 seconds.")
                 .font(GATypography.callout)
                 .foregroundStyle(GAColors.textSecondary)
         }
@@ -85,9 +85,9 @@ struct InvitesView: View {
         if vm.incomingLive == nil && vm.outgoingLive == nil {
             GACard(kind: .standard) {
                 GAEmptyState(
-                    title: "No live invites",
-                    message: "When someone sends a 15-second invite, it'll appear here.",
-                    systemImage: "bolt.heart"
+                    title: "No live signals",
+                    message: "When something you said catches someone, you'll see it here.",
+                    systemImage: "dot.radiowaves.left.and.right"
                 )
             }
         } else {
@@ -100,8 +100,8 @@ struct InvitesView: View {
         if vm.missed.isEmpty {
             GACard(kind: .standard) {
                 GAEmptyState(
-                    title: "No missed invites",
-                    message: "Invites you didn't catch in time will land here.",
+                    title: "No missed signals",
+                    message: "Signals you didn't catch in time will land here.",
                     systemImage: "tray"
                 )
             }

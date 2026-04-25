@@ -9,8 +9,8 @@ struct MissedInviteCard: View {
         GACard(kind: .standard, padding: GASpacing.lg) {
             VStack(alignment: .leading, spacing: GASpacing.md) {
                 HStack(spacing: GASpacing.sm) {
-                    GAStatusPill(label: "Missed",
-                                 systemImage: "tray",
+                    GAStatusPill(label: "Missed signal",
+                                 systemImage: "dot.radiowaves.left.and.right",
                                  tint: GAColors.inviteMissed)
                     Spacer()
                     if let exp = invite.missedExpiresAt {
@@ -26,18 +26,18 @@ struct MissedInviteCard: View {
                         .foregroundStyle(GAColors.textPrimary)
                         .lineLimit(3)
                 } else {
-                    Text("They wanted to chat.")
+                    Text("They reached out.")
                         .font(GATypography.body)
                         .foregroundStyle(GAColors.textSecondary)
                 }
 
-                Text("You can still accept this.")
+                Text("You can still respond.")
                     .font(GATypography.footnote)
                     .foregroundStyle(GAColors.textTertiary)
 
                 HStack(spacing: GASpacing.md) {
-                    GAButton(title: "Ignore", kind: .ghost, size: .compact) { onDecline() }
-                    GAButton(title: "Accept", kind: .primary, size: .compact) { onAccept() }
+                    GAButton(title: "Ignore",      kind: .ghost,   size: .compact) { onDecline() }
+                    GAButton(title: "Start chat",  kind: .primary, size: .compact) { onAccept() }
                 }
             }
         }

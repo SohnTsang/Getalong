@@ -72,7 +72,7 @@ struct MainTabView: View {
                 .tag(Tab.discover)
 
             InvitesView()
-                .tabItem { Label("Invites", systemImage: "bolt.heart") }
+                .tabItem { Label("Signals", systemImage: "dot.radiowaves.left.and.right") }
                 .tag(Tab.invites)
 
             ChatsView()

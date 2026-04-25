@@ -37,8 +37,8 @@ struct GALiveInviteCard: View {
                             .lineLimit(3)
                     } else {
                         Text(role == .incoming
-                             ? "Wants to start a conversation."
-                             : "Waiting for them to accept\u{2026}")
+                             ? "Sent you a signal."
+                             : "Waiting for a response\u{2026}")
                             .font(GATypography.body)
                             .foregroundStyle(GAColors.textSecondary)
                     }
@@ -55,8 +55,8 @@ struct GALiveInviteCard: View {
 
     private var header: some View {
         HStack {
-            GAStatusPill(label: role == .incoming ? "Live invite" : "Sent live",
-                         systemImage: "bolt.heart.fill",
+            GAStatusPill(label: role == .incoming ? "Live signal" : "Signal sent",
+                         systemImage: "dot.radiowaves.left.and.right",
                          tint: GAColors.inviteLive)
             Spacer()
             Text("\(displaySeconds)s left")
