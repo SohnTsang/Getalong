@@ -28,7 +28,7 @@ Getalong/
 
   Models/
     Profile.swift
-    Topic.swift
+    ProfileTag.swift
     Post.swift
     Invite.swift
     ChatRoom.swift
@@ -39,6 +39,7 @@ Getalong/
   Services/
     AuthService.swift
     ProfileService.swift
+    ProfileTagService.swift
     DiscoveryService.swift
     InviteService.swift
     ChatService.swift

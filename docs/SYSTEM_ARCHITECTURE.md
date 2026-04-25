@@ -61,7 +61,7 @@ Used for:
 
 Used for:
 - profiles
-- topics
+- profile_tags
 - posts
 - invites
 - chat rooms

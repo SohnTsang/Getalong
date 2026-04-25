@@ -21,21 +21,27 @@ Important fields:
 - `is_banned`
 - `deleted_at`
 
-### topics
+### profile_tags
 
-Master list of topics.
+User-created tags. Replaces the old `topics` / `profile_topics` /
+`post_topics` taxonomy. Tags are optional, edited from the Profile
+page only — never required during sign-up.
 
-### profile_topics
+Important fields:
+- `id`
+- `profile_id`
+- `tag` (display form, 1–30 chars)
+- `normalized_tag` (lowercase, whitespace-collapsed; 1–30 chars)
+- `created_at`
 
-Join table between profiles and topics.
+Constraints:
+- `unique (profile_id, normalized_tag)` — no duplicate tags per profile
+- length checks on `tag` and `normalized_tag`
+- 10-tag-per-profile cap enforced via a `before insert` trigger
 
 ### posts
 
 Short text posts used for discovery.
-
-### post_topics
-
-Join table between posts and topics.
 
 ### invites
 
@@ -137,20 +143,34 @@ create table public.profiles (
   updated_at timestamptz not null default now()
 );
 
-create table public.topics (
-  id uuid primary key default gen_random_uuid(),
-  slug text unique not null,
-  name_en text not null,
-  name_ja text,
-  name_zh text,
-  created_at timestamptz not null default now()
+create table public.profile_tags (
+  id              uuid primary key default gen_random_uuid(),
+  profile_id      uuid not null references public.profiles(id) on delete cascade,
+  tag             text not null,
+  normalized_tag  text not null,
+  created_at      timestamptz not null default now(),
+  unique (profile_id, normalized_tag),
+  check (char_length(tag)            between 1 and 30),
+  check (char_length(normalized_tag) between 1 and 30)
 );
 
-create table public.profile_topics (
-  profile_id uuid references public.profiles(id) on delete cascade,
-  topic_id uuid references public.topics(id) on delete cascade,
-  primary key (profile_id, topic_id)
-);
+-- 10-tag-per-profile cap enforced server-side
+create or replace function public._ga_check_profile_tag_limit()
+returns trigger language plpgsql as $$
+declare v_count int;
+begin
+  select count(*) into v_count
+    from public.profile_tags where profile_id = NEW.profile_id;
+  if v_count >= 10 then
+    raise exception 'TAG_LIMIT_REACHED' using errcode = 'P0001';
+  end if;
+  return NEW;
+end
+$$;
+
+create trigger profile_tags_limit
+  before insert on public.profile_tags
+  for each row execute function public._ga_check_profile_tag_limit();
 
 create table public.posts (
   id uuid primary key default gen_random_uuid(),
@@ -163,12 +183,6 @@ create table public.posts (
   is_hidden boolean not null default false,
   deleted_at timestamptz,
   created_at timestamptz not null default now()
-);
-
-create table public.post_topics (
-  post_id uuid references public.posts(id) on delete cascade,
-  topic_id uuid references public.topics(id) on delete cascade,
-  primary key (post_id, topic_id)
 );
 
 create table public.invites (
@@ -317,6 +331,9 @@ create index chat_rooms_user_b_idx on public.chat_rooms (user_b);
 create index messages_room_created_idx on public.messages (room_id, created_at desc);
 create index media_assets_room_idx on public.media_assets (room_id);
 create index reports_target_idx on public.reports (target_type, target_id);
+
+create index profile_tags_profile_id_idx     on public.profile_tags (profile_id);
+create index profile_tags_normalized_tag_idx on public.profile_tags (normalized_tag);
 ```
 
 ## RLS Requirement
@@ -325,10 +342,8 @@ Enable RLS on every table.
 
 ```sql
 alter table public.profiles enable row level security;
-alter table public.topics enable row level security;
-alter table public.profile_topics enable row level security;
+alter table public.profile_tags enable row level security;
 alter table public.posts enable row level security;
-alter table public.post_topics enable row level security;
 alter table public.invites enable row level security;
 alter table public.active_invite_locks enable row level security;
 alter table public.missed_invite_accept_usage enable row level security;

@@ -187,7 +187,8 @@ Filters:
 - not deleted
 - not banned author
 - not blocked relationship
-- optional topic/city/language filters
+- optional tag/city/language filters (tags are matched against
+  `profile_tags.normalized_tag`)
 
 ### createChatMessage
 

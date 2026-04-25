@@ -2,7 +2,7 @@
 
 ## Vision
 
-Getalong is a text-first social discovery app where people connect through words, shared topics, real-time invitations, missed invite recovery, and private conversations.
+Getalong is a text-first social discovery app where people connect through small signals, user-created tags, real-time invitations, missed invite recovery, and private conversations.
 
 The app should feel calmer and more intentional than swipe-based dating apps, less noisy than public social media, and safer than anonymous random chat.
 
@@ -13,7 +13,7 @@ Meet people through words, not photos.
 ## Product Pillars
 
 1. **Words first**  
-   Users express personality through short posts, topics, and conversation.
+   Users express personality through short signals, optional tags, and conversation.
 
 2. **Real-time intentional connection**  
    Users send 15-second live invitations instead of randomly matching or endlessly swiping.
@@ -50,10 +50,10 @@ Reasons:
 The MVP is successful if a user can:
 
 1. Create an account.
-2. Create a text-first profile.
-3. Select topics.
+2. Create a text-first profile (one-line signal).
+3. Optionally add tags from Profile.
 4. Post a short text card.
-5. Discover other users through text posts/topics.
+5. Discover other users through text posts and tags.
 6. Send a 15-second live invitation.
 7. Accept a live invitation within 15 seconds.
 8. Create a chat immediately after live acceptance.
@@ -94,20 +94,19 @@ The MVP is successful if a user can:
 
 ### Phase 1 — Auth & Onboarding
 
-- Sign in with Apple.
-- Email login.
-- Age gate.
-- Create profile.
-- Select topics.
+- Sign in with Apple / Google / Facebook / X.
+- Age gate (18+).
+- Create profile (handle, display name, one-line signal).
 - Account deletion.
+- Tags are not required at sign-up. They are added later from Profile.
 
 ### Phase 2 — Discovery
 
 - Create text post.
-- Topic tags.
+- User-created profile tags (managed from Profile, not at sign-up).
 - Discovery feed.
 - Profile preview.
-- Feed filtering.
+- Feed filtering by tag / city / language.
 
 ### Phase 3 — 15-Second Live Invitations
 
@@ -182,7 +181,7 @@ Social apps need active users. Start narrow:
 - one language community
 - one niche
 - seeded prompts
-- daily topics
+- daily writing prompts
 
 ### Live Invite Timing Risk
 
