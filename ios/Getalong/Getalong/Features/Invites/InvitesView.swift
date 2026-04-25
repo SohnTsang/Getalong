@@ -6,8 +6,10 @@ struct InvitesView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: GASpacing.lg) {
+            GAScreen(maxWidth: 560) {
+                VStack(alignment: .leading, spacing: GASpacing.sectionGap) {
+
+                    header
 
                     if let invite = vm.incomingLive {
                         IncomingLiveInviteView(
@@ -25,16 +27,11 @@ struct InvitesView: View {
                         )
                     }
 
-                    Picker("", selection: $vm.tab) {
-                        ForEach(InvitesViewModel.Tab.allCases) { Text($0.rawValue).tag($0) }
-                    }
-                    .pickerStyle(.segmented)
+                    segment
 
                     switch vm.tab {
-                    case .live:
-                        liveTab
-                    case .missed:
-                        missedTab
+                    case .live:   liveTabBody
+                    case .missed: missedTabBody
                     }
 
                     if let err = vm.errorMessage {
@@ -45,25 +42,19 @@ struct InvitesView: View {
                     DevComposeInviteCard(vm: vm)
                         .padding(.top, GASpacing.lg)
                 }
-                .padding(.horizontal, GASpacing.lg)
-                .padding(.vertical, GASpacing.lg)
             }
-            .background(GAColors.background.ignoresSafeArea())
-            .navigationTitle("Invites")
+            .navigationTitle("")
+            .toolbar(.hidden, for: .navigationBar)
             .refreshable { await vm.refresh() }
             .task {
-                if let uid = currentUserId {
-                    await vm.attach(userId: uid)
-                }
+                if let uid = currentUserId { await vm.attach(userId: uid) }
             }
-            .onDisappear {
-                Task { await vm.detach() }
-            }
+            .onDisappear { Task { await vm.detach() } }
             .alert("Chat created", isPresented: chatCreatedBinding) {
                 Button("OK", role: .cancel) { vm.clearLastChat() }
             } message: {
                 if let id = vm.lastChatRoomId {
-                    Text("Chat room \(id.uuidString.prefix(8))… is ready. Full chat UI is coming next.")
+                    Text("Room \(id.uuidString.prefix(8))… is ready. Full chat is coming next.")
                 }
             }
         }
@@ -71,39 +62,49 @@ struct InvitesView: View {
 
     // MARK: -
 
-    private var currentUserId: UUID? {
-        if case .authenticated(let p) = session.state { return p.id }
-        return nil
+    private var header: some View {
+        VStack(alignment: .leading, spacing: GASpacing.xs) {
+            Text("Invites")
+                .font(GATypography.screenTitle)
+                .foregroundStyle(GAColors.textPrimary)
+            Text("Live invites last 15 seconds. Missed ones wait for you.")
+                .font(GATypography.callout)
+                .foregroundStyle(GAColors.textSecondary)
+        }
     }
 
-    private var chatCreatedBinding: Binding<Bool> {
-        Binding(
-            get: { vm.lastChatRoomId != nil },
-            set: { if !$0 { vm.clearLastChat() } }
-        )
+    private var segment: some View {
+        Picker("", selection: $vm.tab) {
+            ForEach(InvitesViewModel.Tab.allCases) { Text($0.rawValue).tag($0) }
+        }
+        .pickerStyle(.segmented)
     }
 
     @ViewBuilder
-    private var liveTab: some View {
+    private var liveTabBody: some View {
         if vm.incomingLive == nil && vm.outgoingLive == nil {
-            GAEmptyState(
-                title: "No active live invites",
-                message: "Live invites last 15 seconds. When one comes in, you'll see it here.",
-                systemImage: "bolt.heart"
-            )
+            GACard(kind: .standard) {
+                GAEmptyState(
+                    title: "No live invites",
+                    message: "When someone sends a 15-second invite, it'll appear here.",
+                    systemImage: "bolt.heart"
+                )
+            }
         } else {
             EmptyView()
         }
     }
 
     @ViewBuilder
-    private var missedTab: some View {
+    private var missedTabBody: some View {
         if vm.missed.isEmpty {
-            GAEmptyState(
-                title: "No missed invites",
-                message: "Invites you didn't catch in time will land here.",
-                systemImage: "tray"
-            )
+            GACard(kind: .standard) {
+                GAEmptyState(
+                    title: "No missed invites",
+                    message: "Invites you didn't catch in time will land here.",
+                    systemImage: "tray"
+                )
+            }
         } else {
             VStack(spacing: GASpacing.md) {
                 ForEach(vm.missed) { invite in
@@ -116,9 +117,20 @@ struct InvitesView: View {
             }
         }
     }
+
+    private var currentUserId: UUID? {
+        if case .authenticated(let p) = session.state { return p.id }
+        return nil
+    }
+
+    private var chatCreatedBinding: Binding<Bool> {
+        Binding(
+            get: { vm.lastChatRoomId != nil },
+            set: { if !$0 { vm.clearLastChat() } }
+        )
+    }
 }
 
 #Preview {
-    InvitesView()
-        .environmentObject(SessionManager())
+    InvitesView().environmentObject(SessionManager())
 }

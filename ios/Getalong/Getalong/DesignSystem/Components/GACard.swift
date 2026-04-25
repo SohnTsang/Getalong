@@ -1,14 +1,15 @@
 import SwiftUI
 
-/// A reusable card container. Use for posts, invite previews, profile blocks.
+/// A reusable card container with semantic kinds.
 struct GACard<Content: View>: View {
-    var padding: CGFloat = GASpacing.lg
-    var radius: CGFloat = GACornerRadius.lg
+    var kind: GACardKind = .standard
+    var padding: CGFloat = GASpacing.cardPadding
+    var radius:  CGFloat = GACornerRadius.large
     @ViewBuilder var content: () -> Content
 
     var body: some View {
         content()
             .frame(maxWidth: .infinity, alignment: .leading)
-            .gaCard(padding: padding, radius: radius)
+            .gaCard(kind, padding: padding, radius: radius)
     }
 }

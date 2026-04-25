@@ -1,51 +1,72 @@
 import SwiftUI
 import UIKit
 
-/// Semantic color tokens for Getalong.
+/// Getalong "Quiet Signal" semantic colour tokens.
 ///
-/// Never reference raw hex values in feature views. Always use these
-/// tokens so light/dark mode and future re-skinning stay consistent.
+/// Light mode is a warm off-white with ink-coloured text.
+/// Dark mode is a deep ink with a hint of warm umber, never pure black.
+/// Never reference raw hex in feature code — always go through these tokens.
 enum GAColors {
 
-    // MARK: Brand
+    // MARK: - Surfaces
 
-    /// Warm coral accent — used for primary CTAs, send-invite, key actions.
-    static let accent       = dynamic(light: 0xFF6B57, dark: 0xFF8775)
-    static let accentSoft   = dynamic(light: 0xFFE7E1, dark: 0x3A1F1B)
+    /// Page background. Warm off-white in light, deep ink in dark.
+    static let background        = dyn(light: 0xF7F4EE, dark: 0x0E1014)
+    /// Slightly lifted surface used for the section beneath cards
+    /// (e.g. tab bar background, sheet header).
+    static let backgroundElevated = dyn(light: 0xFBF8F2, dark: 0x141821)
+    /// Standard card surface.
+    static let surface           = dyn(light: 0xFFFFFF, dark: 0x1A1F2A)
+    /// Card surface that sits ON another card / nested input fill.
+    static let surfaceRaised     = dyn(light: 0xF1ECE3, dark: 0x232936)
 
-    /// Calm secondary — invite countdown, secondary highlights.
-    static let secondary    = dynamic(light: 0x6E7BFF, dark: 0x8C97FF)
+    // MARK: - Text
 
-    // MARK: Backgrounds
+    static let textPrimary       = dyn(light: 0x141518, dark: 0xF1EFEA)
+    static let textSecondary     = dyn(light: 0x52555D, dark: 0xA7ABB5)
+    static let textTertiary      = dyn(light: 0x8C909A, dark: 0x6C7280)
+    static let textOnAccent      = dyn(light: 0xFFFFFF, dark: 0x0E1014)
 
-    /// Warm off-white in light mode, deep soft black in dark mode.
-    static let background       = dynamic(light: 0xFAF7F2, dark: 0x0F1012)
-    /// Card surface, slightly elevated from `background`.
-    static let surface          = dynamic(light: 0xFFFFFF, dark: 0x16181C)
-    /// Inset surface (e.g. inputs), one notch deeper than `surface`.
-    static let surfaceMuted     = dynamic(light: 0xF1ECE5, dark: 0x1D2025)
+    // MARK: - Lines
 
-    // MARK: Text
+    static let border            = dyn(light: 0xE7E2D6, dark: 0x2A3140)
+    static let borderStrong      = dyn(light: 0xCFC9BB, dark: 0x3A4258)
 
-    static let textPrimary      = dynamic(light: 0x141518, dark: 0xF2F1EE)
-    static let textSecondary    = dynamic(light: 0x595B62, dark: 0xA3A6AE)
-    static let textTertiary     = dynamic(light: 0x8A8C93, dark: 0x70747C)
-    static let textOnAccent     = dynamic(light: 0xFFFFFF, dark: 0x0F1012)
+    // MARK: - Accent (warm coral — Getalong's voice)
 
-    // MARK: Borders & dividers
+    static let accent            = dyn(light: 0xE5573D, dark: 0xFF7B62)
+    /// Pale wash of the accent for highlight backgrounds.
+    static let accentSoft        = dyn(light: 0xFCE9E2, dark: 0x351913)
+    /// Deeper accent for pressed state.
+    static let accentPressed     = dyn(light: 0xC23F27, dark: 0xE6664E)
+    /// Always pairs with `accent` background.
+    static let accentText        = dyn(light: 0xFFFFFF, dark: 0x0E1014)
 
-    static let border           = dynamic(light: 0xE5E0D8, dark: 0x2A2D33)
-    static let divider          = dynamic(light: 0xEEEAE2, dark: 0x23262B)
+    /// Secondary accent — a calmer indigo used for outgoing-invite,
+    /// progress, and "in flight" affordances. Coral is the verb; this
+    /// indigo is the meanwhile.
+    static let secondary         = dyn(light: 0x4F5BD5, dark: 0x8B95F2)
+    static let secondarySoft     = dyn(light: 0xE6E8FA, dark: 0x1B1E33)
 
-    // MARK: Status
+    // MARK: - Status
 
-    static let success          = dynamic(light: 0x2EA66B, dark: 0x4DC78A)
-    static let warning          = dynamic(light: 0xD9881E, dark: 0xF1A946)
-    static let danger           = dynamic(light: 0xD8453B, dark: 0xF06B61)
+    static let success           = dyn(light: 0x2E8E66, dark: 0x4DC78A)
+    static let warning           = dyn(light: 0xC0822B, dark: 0xE9B252)
+    static let danger            = dyn(light: 0xC8453B, dark: 0xEC6F65)
 
-    // MARK: Helpers
+    /// Live invite ring/glow tint.
+    static let inviteLive        = dyn(light: 0xE5573D, dark: 0xFF7B62)
+    /// Missed invite tone — softer, more amber.
+    static let inviteMissed      = dyn(light: 0xC0822B, dark: 0xE9B252)
 
-    private static func dynamic(light: UInt32, dark: UInt32) -> Color {
+    /// Subtle shadow colour. Use as `Color.black.opacity` directly for
+    /// shadows; this token is here for places where we need a tinted
+    /// shadow to hint at warmth.
+    static let shadow            = Color.black.opacity(0.05)
+
+    // MARK: - Helpers
+
+    private static func dyn(light: UInt32, dark: UInt32) -> Color {
         Color(uiColor: UIColor { trait in
             trait.userInterfaceStyle == .dark
                 ? UIColor(hex: dark)
@@ -57,8 +78,8 @@ enum GAColors {
 private extension UIColor {
     convenience init(hex: UInt32, alpha: CGFloat = 1) {
         let r = CGFloat((hex >> 16) & 0xFF) / 255
-        let g = CGFloat((hex >> 8) & 0xFF) / 255
-        let b = CGFloat(hex & 0xFF) / 255
+        let g = CGFloat((hex >>  8) & 0xFF) / 255
+        let b = CGFloat( hex        & 0xFF) / 255
         self.init(red: r, green: g, blue: b, alpha: alpha)
     }
 }

@@ -1,33 +1,50 @@
 import SwiftUI
 
-/// Typography tokens for Getalong.
+/// Getalong typography scale — full hierarchy. Every size is a token.
+/// Do not write `Font.system(size:)` inside feature views.
 ///
-/// Sizes use Dynamic Type via `relativeTo:` so accessibility text sizing
-/// works out of the box. Weight choices reflect the "calm, premium,
-/// text-first" direction — avoid heavy display weights elsewhere.
+/// Choices:
+/// * `largeTitle` / `screenTitle` use rounded design — adds the calm,
+///   slightly humanist character we want without going decorative.
+/// * Body and below stay default-design for readability.
+/// * All sizes scale with Dynamic Type via `.relativeTo:`.
 enum GATypography {
 
-    /// Big screen titles (Discover header, etc.).
-    static let display      = Font.system(size: 30, weight: .semibold, design: .rounded)
+    /// Hero text on auth/onboarding/empty-state-as-hero.
+    static let largeTitle = Font.system(size: 34, weight: .semibold, design: .rounded)
 
-    /// Section titles inside a screen.
-    static let title        = Font.system(size: 22, weight: .semibold, design: .rounded)
+    /// Top-of-screen title (e.g. nav title replacement).
+    static let screenTitle = Font.system(size: 28, weight: .semibold, design: .rounded)
 
-    /// Subheaders, list-row primary text.
-    static let headline     = Font.system(size: 17, weight: .semibold)
+    /// Strong card title.
+    static let title = Font.system(size: 22, weight: .semibold, design: .rounded)
 
-    /// Body text in cards, posts, chat bubbles.
-    static let body         = Font.system(size: 16, weight: .regular)
+    /// Card section header / list group label.
+    static let sectionTitle = Font.system(size: 13, weight: .semibold)
+        .smallCaps()
 
-    /// Smaller body, secondary metadata.
-    static let callout      = Font.system(size: 15, weight: .regular)
+    /// Standard reading text.
+    static let body = Font.system(size: 16, weight: .regular)
 
-    /// Footnotes, timestamps.
-    static let footnote     = Font.system(size: 13, weight: .regular)
+    /// Same body, but bold/semibold to mark a key sentence.
+    static let bodyEmphasized = Font.system(size: 16, weight: .semibold)
 
-    /// Tiny labels (chip text, system messages).
-    static let caption      = Font.system(size: 12, weight: .medium)
+    /// Slightly smaller body for secondary copy.
+    static let callout = Font.system(size: 15, weight: .regular)
 
-    /// Buttons (consistent across the app).
-    static let button       = Font.system(size: 16, weight: .semibold, design: .rounded)
+    /// Footnotes, helper text, error text.
+    static let footnote = Font.system(size: 13, weight: .regular)
+
+    /// Captions on chips/pills/timestamps.
+    static let caption = Font.system(size: 12, weight: .medium)
+
+    /// Tiny micro-label (kbd, count badges).
+    static let micro = Font.system(size: 11, weight: .semibold)
+
+    /// All buttons share this. Consistent weight/letter form across the app.
+    static let button = Font.system(size: 16, weight: .semibold, design: .rounded)
+
+    /// Big, monospaced countdown number (Live invite).
+    static let countdown = Font.system(size: 44, weight: .semibold, design: .rounded)
+        .monospacedDigit()
 }

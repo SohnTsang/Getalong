@@ -1,12 +1,8 @@
 import SwiftUI
 
 /// User-selectable appearance preference.
-/// Persisted via `@AppStorage("ga.appearance")`.
 enum GAAppearance: String, CaseIterable, Identifiable {
-    case system
-    case light
-    case dark
-
+    case system, light, dark
     var id: String { rawValue }
 
     var label: String {
@@ -26,35 +22,77 @@ enum GAAppearance: String, CaseIterable, Identifiable {
     }
 }
 
-/// Elevation / shadow tokens.
-enum GAElevation {
-    /// Soft card shadow — kept subtle to feel premium, not floaty.
-    static func cardShadow() -> some View {
-        EmptyView()
-    }
+// MARK: - Card chrome
+
+enum GACardKind {
+    /// Default surface, subtle border, very light shadow.
+    case standard
+    /// Slightly raised surface with a stronger shadow.
+    case elevated
+    /// Card that responds to a tap (slight press dim).
+    case interactive
+    /// Card highlighted by the accent (used for the live invite hero).
+    case highlight
 }
 
-/// View modifier that applies the standard Getalong card chrome.
 struct GACardStyle: ViewModifier {
-    var padding: CGFloat = GASpacing.lg
-    var radius: CGFloat = GACornerRadius.lg
+    var kind: GACardKind = .standard
+    var padding: CGFloat = GASpacing.cardPadding
+    var radius:  CGFloat = GACornerRadius.large
 
     func body(content: Content) -> some View {
         content
             .padding(padding)
-            .background(GAColors.surface)
+            .background(fill)
             .clipShape(RoundedRectangle(cornerRadius: radius, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: radius, style: .continuous)
-                    .stroke(GAColors.border, lineWidth: 0.5)
+                    .strokeBorder(stroke, lineWidth: strokeWidth)
             )
-            .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 2)
+            .shadow(color: shadowColor, radius: shadowRadius, x: 0, y: shadowY)
+    }
+
+    private var fill: Color {
+        switch kind {
+        case .standard, .interactive: return GAColors.surface
+        case .elevated:               return GAColors.surface
+        case .highlight:              return GAColors.accentSoft
+        }
+    }
+    private var stroke: Color {
+        switch kind {
+        case .highlight: return GAColors.accent.opacity(0.35)
+        default:         return GAColors.border
+        }
+    }
+    private var strokeWidth: CGFloat {
+        kind == .highlight ? 1 : 0.75
+    }
+    private var shadowColor: Color {
+        switch kind {
+        case .elevated, .highlight: return Color.black.opacity(0.08)
+        default:                    return Color.black.opacity(0.04)
+        }
+    }
+    private var shadowRadius: CGFloat {
+        switch kind {
+        case .elevated, .highlight: return 18
+        default:                    return 10
+        }
+    }
+    private var shadowY: CGFloat {
+        switch kind {
+        case .elevated, .highlight: return 6
+        default:                    return 3
+        }
     }
 }
 
 extension View {
-    func gaCard(padding: CGFloat = GASpacing.lg,
-                radius: CGFloat = GACornerRadius.lg) -> some View {
-        modifier(GACardStyle(padding: padding, radius: radius))
+    /// Apply Getalong card chrome.
+    func gaCard(_ kind: GACardKind = .standard,
+                padding: CGFloat = GASpacing.cardPadding,
+                radius:  CGFloat = GACornerRadius.large) -> some View {
+        modifier(GACardStyle(kind: kind, padding: padding, radius: radius))
     }
 }

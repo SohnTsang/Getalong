@@ -9,25 +9,19 @@ struct QuickStartProfileView: View {
     }
 
     var body: some View {
-        ScrollView {
+        GAScreen(maxWidth: 520) {
             VStack(alignment: .leading, spacing: GASpacing.xl) {
 
-                VStack(alignment: .leading, spacing: GASpacing.sm) {
-                    Text("Say one thing about you")
-                        .font(GATypography.display)
-                        .foregroundStyle(GAColors.textPrimary)
-                    Text("Getalong starts with words. You can edit this anytime.")
-                        .font(GATypography.body)
-                        .foregroundStyle(GAColors.textSecondary)
-                }
+                header
 
-                GACard {
-                    VStack(spacing: GASpacing.md) {
+                GACard(kind: .standard, padding: GASpacing.xl) {
+                    VStack(spacing: GASpacing.lg) {
                         GATextField(title: "Handle",
                                     text: $vm.getalongId,
                                     placeholder: "your_handle",
                                     systemImage: "at",
                                     autocapitalization: .never,
+                                    helperText: "Lowercase letters, numbers, underscores. 3–20 chars.",
                                     errorMessage: vm.handleHint)
                         GATextField(title: "Display name",
                                     text: $vm.displayName,
@@ -38,12 +32,13 @@ struct QuickStartProfileView: View {
                                     text: $vm.oneLineIntro,
                                     placeholder: "Optional. Up to a sentence.",
                                     systemImage: "text.alignleft",
-                                    autocapitalization: .sentences)
+                                    autocapitalization: .sentences,
+                                    helperText: "This is the first thing people see.")
                     }
                 }
 
                 GACard {
-                    VStack(alignment: .leading, spacing: GASpacing.md) {
+                    VStack(alignment: .leading, spacing: GASpacing.lg) {
                         pickerSection(title: "I am",
                                       hint: "Optional",
                                       options: Gender.allCases,
@@ -57,11 +52,11 @@ struct QuickStartProfileView: View {
                     }
                 }
 
-                GACard {
+                GACard(kind: vm.is18Confirmed ? .highlight : .standard) {
                     Toggle(isOn: $vm.is18Confirmed) {
                         VStack(alignment: .leading, spacing: GASpacing.xs) {
                             Text("I confirm I am 18 or older.")
-                                .font(GATypography.body)
+                                .font(GATypography.bodyEmphasized)
                                 .foregroundStyle(GAColors.textPrimary)
                             Text("Getalong is an 18+ app.")
                                 .font(GATypography.footnote)
@@ -83,23 +78,35 @@ struct QuickStartProfileView: View {
                     Task { await vm.submit(into: session) }
                 }
 
-                Button {
-                    Task { await session.signOut() }
-                } label: {
+                Button { Task { await session.signOut() } } label: {
                     Text("Sign out")
-                        .font(GATypography.footnote)
+                        .font(GATypography.footnote.weight(.medium))
                         .foregroundStyle(GAColors.textSecondary)
                         .frame(maxWidth: .infinity)
+                        .padding(.top, GASpacing.sm)
                 }
-                .padding(.top, GASpacing.sm)
+                .buttonStyle(.plain)
             }
-            .padding(.horizontal, GASpacing.lg)
-            .padding(.vertical, GASpacing.xxl)
         }
-        .background(GAColors.background.ignoresSafeArea())
     }
 
-    /// Optional segmented picker with a leading "Skip" tile.
+    private var header: some View {
+        VStack(alignment: .leading, spacing: GASpacing.sm) {
+            Text("Step 1 of 1")
+                .font(GATypography.micro)
+                .tracking(1.4)
+                .foregroundStyle(GAColors.textTertiary)
+            Text("Say one thing about you.")
+                .font(GATypography.largeTitle)
+                .foregroundStyle(GAColors.textPrimary)
+            Text("Getalong starts with words. You can change this anytime.")
+                .font(GATypography.body)
+                .foregroundStyle(GAColors.textSecondary)
+        }
+    }
+
+    // MARK: - Pickers
+
     @ViewBuilder
     private func pickerSection<T: CaseIterable & Identifiable & Hashable>(
         title: String,
@@ -110,9 +117,10 @@ struct QuickStartProfileView: View {
     ) -> some View {
         VStack(alignment: .leading, spacing: GASpacing.xs) {
             HStack {
-                Text(title)
-                    .font(GATypography.caption)
-                    .foregroundStyle(GAColors.textSecondary)
+                Text(title.uppercased())
+                    .font(GATypography.sectionTitle)
+                    .tracking(0.6)
+                    .foregroundStyle(GAColors.textTertiary)
                 Spacer()
                 if let hint {
                     Text(hint)
@@ -135,24 +143,24 @@ struct QuickStartProfileView: View {
         }
     }
 
-    @ViewBuilder
     private func pickerTile(title: String,
                             isSelected: Bool,
                             action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(title)
-                .font(GATypography.callout)
+                .font(GATypography.callout.weight(.medium))
                 .frame(maxWidth: .infinity, minHeight: 40)
                 .padding(.horizontal, GASpacing.md)
-                .background(isSelected ? GAColors.accentSoft : GAColors.surfaceMuted)
+                .background(isSelected ? GAColors.accentSoft : GAColors.surfaceRaised)
                 .foregroundStyle(isSelected ? GAColors.accent : GAColors.textPrimary)
-                .clipShape(RoundedRectangle(cornerRadius: GACornerRadius.sm,
+                .clipShape(RoundedRectangle(cornerRadius: GACornerRadius.medium,
                                             style: .continuous))
                 .overlay(
-                    RoundedRectangle(cornerRadius: GACornerRadius.sm,
+                    RoundedRectangle(cornerRadius: GACornerRadius.medium,
                                      style: .continuous)
-                        .stroke(isSelected ? GAColors.accent : GAColors.border,
-                                lineWidth: 1)
+                        .strokeBorder(isSelected ? GAColors.accent.opacity(0.6)
+                                                 : GAColors.border,
+                                      lineWidth: 1)
                 )
         }
         .buttonStyle(.plain)

@@ -6,12 +6,12 @@ struct MissedInviteCard: View {
     let onDecline: () -> Void
 
     var body: some View {
-        GACard {
-            VStack(alignment: .leading, spacing: GASpacing.sm) {
-                HStack {
-                    Label("Missed", systemImage: "tray")
-                        .font(GATypography.caption)
-                        .foregroundStyle(GAColors.textSecondary)
+        GACard(kind: .standard, padding: GASpacing.lg) {
+            VStack(alignment: .leading, spacing: GASpacing.md) {
+                HStack(spacing: GASpacing.sm) {
+                    GAStatusPill(label: "Missed",
+                                 systemImage: "tray",
+                                 tint: GAColors.inviteMissed)
                     Spacer()
                     if let exp = invite.missedExpiresAt {
                         Text("Expires \(exp, format: .relative(presentation: .named))")
@@ -21,20 +21,24 @@ struct MissedInviteCard: View {
                 }
 
                 if let m = invite.message, !m.isEmpty {
-                    Text(m)
+                    Text("\u{201C}\(m)\u{201D}")
                         .font(GATypography.body)
                         .foregroundStyle(GAColors.textPrimary)
+                        .lineLimit(3)
                 } else {
                     Text("They wanted to chat.")
                         .font(GATypography.body)
                         .foregroundStyle(GAColors.textSecondary)
                 }
 
+                Text("You can still accept this.")
+                    .font(GATypography.footnote)
+                    .foregroundStyle(GAColors.textTertiary)
+
                 HStack(spacing: GASpacing.md) {
-                    GAButton(title: "Decline", kind: .ghost,    size: .compact) { onDecline() }
-                    GAButton(title: "Accept",  kind: .primary,  size: .compact) { onAccept() }
+                    GAButton(title: "Ignore", kind: .ghost, size: .compact) { onDecline() }
+                    GAButton(title: "Accept", kind: .primary, size: .compact) { onAccept() }
                 }
-                .padding(.top, GASpacing.xs)
             }
         }
     }

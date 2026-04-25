@@ -9,13 +9,18 @@ struct GAEmptyState: View {
 
     var body: some View {
         VStack(spacing: GASpacing.md) {
-            Image(systemName: systemImage)
-                .font(.system(size: 36, weight: .regular))
-                .foregroundStyle(GAColors.textTertiary)
-                .padding(.bottom, GASpacing.xs)
+            ZStack {
+                Circle()
+                    .fill(GAColors.surfaceRaised)
+                    .frame(width: 64, height: 64)
+                Image(systemName: systemImage)
+                    .font(.system(size: 24, weight: .regular))
+                    .foregroundStyle(GAColors.textSecondary)
+            }
+            .padding(.bottom, GASpacing.xs)
 
             Text(title)
-                .font(GATypography.headline)
+                .font(GATypography.title)
                 .foregroundStyle(GAColors.textPrimary)
                 .multilineTextAlignment(.center)
 
@@ -27,11 +32,16 @@ struct GAEmptyState: View {
             }
 
             if let actionTitle, let action {
-                GAButton(title: actionTitle, kind: .secondary, size: .compact, action: action)
+                GAButton(title: actionTitle,
+                         kind: .secondary,
+                         size: .compact,
+                         fillsWidth: false,
+                         action: action)
                     .padding(.top, GASpacing.sm)
             }
         }
-        .padding(GASpacing.xl)
+        .padding(.vertical, GASpacing.xxl)
+        .padding(.horizontal, GASpacing.lg)
         .frame(maxWidth: .infinity)
     }
 }

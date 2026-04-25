@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct AppRouter: View {
     @EnvironmentObject private var session: SessionManager
@@ -15,50 +16,42 @@ struct AppRouter: View {
             case .authenticated:
                 MainTabView()
             case .banned:
-                GAEmptyState(
-                    title: "Account unavailable",
-                    message: "This account has been suspended.",
-                    systemImage: "exclamationmark.shield",
-                    actionTitle: "Sign out",
-                    action: { Task { await session.signOut() } }
-                )
-                .padding(GASpacing.lg)
-                .background(GAColors.background.ignoresSafeArea())
+                statusScreen(title: "Account unavailable",
+                             message: "This account has been suspended.",
+                             systemImage: "exclamationmark.shield")
             case .deleted:
-                GAEmptyState(
-                    title: "Account deleted",
-                    message: "This account is scheduled for deletion.",
-                    systemImage: "trash",
-                    actionTitle: "Sign out",
-                    action: { Task { await session.signOut() } }
-                )
-                .padding(GASpacing.lg)
-                .background(GAColors.background.ignoresSafeArea())
+                statusScreen(title: "Account deleted",
+                             message: "This account is scheduled for deletion.",
+                             systemImage: "trash")
             case .error(let message):
-                GAEmptyState(
-                    title: "Something went wrong",
-                    message: message,
-                    systemImage: "wifi.exclamationmark",
-                    actionTitle: "Sign out",
-                    action: { Task { await session.signOut() } }
-                )
-                .padding(GASpacing.lg)
-                .background(GAColors.background.ignoresSafeArea())
+                statusScreen(title: "Something went wrong",
+                             message: message,
+                             systemImage: "wifi.exclamationmark")
             }
         }
         .animation(.snappy, value: stateToken)
     }
 
-    /// String token used purely to drive the SwiftUI animation between states.
+    private func statusScreen(title: String, message: String, systemImage: String) -> some View {
+        GAScreen {
+            GAEmptyState(title: title,
+                         message: message,
+                         systemImage: systemImage,
+                         actionTitle: "Sign out") {
+                Task { await session.signOut() }
+            }
+        }
+    }
+
     private var stateToken: String {
         switch session.state {
-        case .loading:                    return "loading"
-        case .unauthenticated:            return "unauth"
-        case .profileSetupRequired:       return "setup"
-        case .authenticated:              return "auth"
-        case .banned:                     return "banned"
-        case .deleted:                    return "deleted"
-        case .error:                      return "error"
+        case .loading:               return "loading"
+        case .unauthenticated:       return "unauth"
+        case .profileSetupRequired:  return "setup"
+        case .authenticated:         return "auth"
+        case .banned:                return "banned"
+        case .deleted:               return "deleted"
+        case .error:                 return "error"
         }
     }
 }
@@ -67,6 +60,10 @@ struct MainTabView: View {
     enum Tab: Hashable { case discover, invites, chats, profile }
 
     @State private var selection: Tab = .discover
+
+    init() {
+        Self.applyTabBarAppearance()
+    }
 
     var body: some View {
         TabView(selection: $selection) {
@@ -86,5 +83,22 @@ struct MainTabView: View {
                 .tabItem { Label("Profile", systemImage: "person.crop.circle") }
                 .tag(Tab.profile)
         }
+        .tint(GAColors.accent)
+    }
+
+    /// Tab bar gets a slightly raised, blurred surface that matches our
+    /// background tokens — avoids the default chrome looking heavy in
+    /// dark mode.
+    private static func applyTabBarAppearance() {
+        let appearance = UITabBarAppearance()
+        appearance.configureWithDefaultBackground()
+        appearance.backgroundColor = UIColor { trait in
+            trait.userInterfaceStyle == .dark
+                ? UIColor(red: 0.078, green: 0.094, blue: 0.129, alpha: 0.92)
+                : UIColor(red: 0.984, green: 0.973, blue: 0.949, alpha: 0.92)
+        }
+        appearance.shadowColor = UIColor.separator.withAlphaComponent(0.18)
+        UITabBar.appearance().standardAppearance = appearance
+        UITabBar.appearance().scrollEdgeAppearance = appearance
     }
 }

@@ -19,162 +19,268 @@ struct ProfileView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: GASpacing.lg) {
-                    if let profile {
-                        identityCard(profile)
-                        introCard(profile)
-                        tagsCard
-                        regionCard(profile)
-                        genderCard(profile)
-                        appearanceCard
-                        signOutCard
-                    } else {
-                        GAEmptyState(title: "No profile loaded",
-                                     systemImage: "person.crop.circle.badge.questionmark")
+            GAScreen(maxWidth: 560) {
+                if let profile {
+                    VStack(alignment: .leading, spacing: GASpacing.sectionGap) {
+                        header(profile)
+                        signalSection(profile)
+                        topicsSection
+                        preferencesSection(profile)
+                        appearanceSection
+                        signOutSection
                     }
+                } else {
+                    GAEmptyState(title: "No profile loaded",
+                                 systemImage: "person.crop.circle.badge.questionmark")
                 }
-                .padding(GASpacing.lg)
             }
-            .background(GAColors.background.ignoresSafeArea())
-            .navigationTitle("Profile")
+            .navigationTitle("")
+            .toolbar(.hidden, for: .navigationBar)
             .task { if let p = profile { await vm.loadTopics(for: p.id) } }
         }
     }
 
-    // MARK: - Cards
+    // MARK: - Header
 
-    private func identityCard(_ profile: Profile) -> some View {
-        GACard {
-            VStack(alignment: .leading, spacing: GASpacing.xs) {
-                Text(profile.displayName)
-                    .font(GATypography.title)
-                    .foregroundStyle(GAColors.textPrimary)
-                Text("@\(profile.getalongId)")
-                    .font(GATypography.callout)
-                    .foregroundStyle(GAColors.textSecondary)
+    private func header(_ p: Profile) -> some View {
+        GACard(kind: .elevated, padding: GASpacing.xl) {
+            VStack(alignment: .leading, spacing: GASpacing.lg) {
+                HStack(alignment: .top, spacing: GASpacing.lg) {
+                    avatar(p)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(p.displayName)
+                            .font(GATypography.title)
+                            .foregroundStyle(GAColors.textPrimary)
+                        Text("@\(p.getalongId)")
+                            .font(GATypography.callout)
+                            .foregroundStyle(GAColors.textSecondary)
+                    }
+                    Spacer()
+                }
+
+                if let bio = p.bio, !bio.isEmpty {
+                    Text(bio)
+                        .font(GATypography.body)
+                        .foregroundStyle(GAColors.textPrimary)
+                        .lineLimit(3)
+                }
+
                 HStack(spacing: GASpacing.sm) {
-                    GAChip(label: profile.plan.displayName.uppercased())
-                    if profile.trustScore > 0 {
-                        GAChip(label: "Trust \(profile.trustScore)")
+                    GAStatusPill(label: p.plan.displayName,
+                                 systemImage: planIcon(p.plan),
+                                 tint: planTint(p.plan))
+                    if p.trustScore > 0 {
+                        GAStatusPill(label: "Trust \(p.trustScore)",
+                                     systemImage: "checkmark.seal.fill",
+                                     tint: GAColors.success)
                     }
                 }
-                .padding(.top, GASpacing.sm)
             }
         }
     }
 
-    private func introCard(_ profile: Profile) -> some View {
-        GACard {
-            sectionHeader(title: "One-line intro", actionTitle: "Edit") { }
-            if let bio = profile.bio, !bio.isEmpty {
-                Text(bio)
-                    .font(GATypography.body)
-                    .foregroundStyle(GAColors.textPrimary)
-                    .padding(.top, GASpacing.xs)
-            } else {
-                placeholderRow("Add a one-line intro so others know what you're about.")
-            }
+    private func avatar(_ p: Profile) -> some View {
+        ZStack {
+            Circle()
+                .fill(LinearGradient(
+                    colors: [GAColors.accentSoft, GAColors.surfaceRaised],
+                    startPoint: .topLeading, endPoint: .bottomTrailing))
+            Text(initials(for: p))
+                .font(GATypography.title.weight(.bold))
+                .foregroundStyle(GAColors.accent)
+        }
+        .frame(width: 64, height: 64)
+        .overlay(Circle().strokeBorder(GAColors.border, lineWidth: 1))
+    }
+
+    private func initials(for p: Profile) -> String {
+        let letters = p.displayName
+            .split(separator: " ")
+            .prefix(2)
+            .compactMap { $0.first.map(String.init) }
+        let result = letters.joined().uppercased()
+        if !result.isEmpty { return result }
+        return p.getalongId.prefix(2).uppercased()
+    }
+
+    private func planIcon(_ plan: SubscriptionPlan) -> String {
+        switch plan { case .gold: return "crown.fill"; case .silver: return "star.fill"; case .free: return "circle" }
+    }
+    private func planTint(_ plan: SubscriptionPlan) -> Color {
+        switch plan {
+        case .gold:   return GAColors.warning
+        case .silver: return GAColors.secondary
+        case .free:   return GAColors.textSecondary
         }
     }
 
-    private var tagsCard: some View {
-        GACard {
-            sectionHeader(title: "Tags", actionTitle: "Add tags") { /* TODO */ }
-            if vm.isLoadingTopics {
-                ProgressView().padding(.vertical, GASpacing.sm)
-            } else if vm.topics.isEmpty {
-                placeholderRow("Pick a few tags later to help people find you.")
-            } else {
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 96), spacing: GASpacing.sm)],
-                          alignment: .leading,
-                          spacing: GASpacing.sm) {
-                    ForEach(vm.topics) { GAChip(label: $0.nameEn) }
+    // MARK: - Sections
+
+    private func signalSection(_ p: Profile) -> some View {
+        VStack(alignment: .leading, spacing: GASpacing.sm) {
+            GASectionHeader(title: "Your signal",
+                            subtitle: "The first thing people see.",
+                            actionTitle: "Edit") { /* TODO */ }
+            GACard {
+                if let bio = p.bio, !bio.isEmpty {
+                    Text(bio)
+                        .font(GATypography.body)
+                        .foregroundStyle(GAColors.textPrimary)
+                } else {
+                    placeholderRow(text: "Add a one-line intro so others know what you're about.",
+                                   actionTitle: "Add intro") { /* TODO */ }
                 }
-                .padding(.top, GASpacing.sm)
             }
         }
     }
 
-    private func regionCard(_ profile: Profile) -> some View {
-        GACard {
-            sectionHeader(title: "Region", actionTitle: "Edit") { /* TODO */ }
-            VStack(alignment: .leading, spacing: GASpacing.xs) {
-                row("City",     value: profile.city)
-                row("Country",  value: profile.country)
-                row("Language", value: profile.languageCodes.first?.uppercased())
+    private var topicsSection: some View {
+        VStack(alignment: .leading, spacing: GASpacing.sm) {
+            GASectionHeader(title: "Topics",
+                            subtitle: "Help people find you.",
+                            actionTitle: "Manage") { /* TODO */ }
+            GACard {
+                if vm.isLoadingTopics {
+                    HStack { Spacer(); ProgressView(); Spacer() }
+                        .padding(.vertical, GASpacing.sm)
+                } else if vm.topics.isEmpty {
+                    placeholderRow(text: "Pick a few tags later — music, late-night, books, anything.",
+                                   actionTitle: "Add tags") { /* TODO */ }
+                } else {
+                    FlowLayout(spacing: GASpacing.sm) {
+                        ForEach(vm.topics) { GAChip(label: $0.nameEn) }
+                    }
+                }
             }
-            .padding(.top, GASpacing.xs)
         }
     }
 
-    private func genderCard(_ profile: Profile) -> some View {
-        GACard {
-            sectionHeader(title: "Gender", actionTitle: "Edit") { /* TODO */ }
-            VStack(alignment: .leading, spacing: GASpacing.xs) {
-                row("I am", value: profile.gender?.capitalized)
-                row("Visible on profile",
-                    value: profile.gender == nil ? nil
-                                                 : (profile.genderVisible ? "Yes" : "No"))
-                row("Want to see", value: profile.interestedInGender?.capitalized)
+    private func preferencesSection(_ p: Profile) -> some View {
+        VStack(alignment: .leading, spacing: GASpacing.sm) {
+            GASectionHeader(title: "Preferences",
+                            actionTitle: "Edit") { /* TODO */ }
+            GACard {
+                VStack(spacing: 0) {
+                    detailRow(label: "Region",
+                              value: [p.city, p.country].compactMap { $0 }.joined(separator: ", "))
+                    divider
+                    detailRow(label: "Language",
+                              value: p.languageCodes.first?.uppercased())
+                    divider
+                    detailRow(label: "I am", value: p.gender?.capitalized)
+                    divider
+                    detailRow(label: "Visible on profile",
+                              value: p.gender == nil ? nil
+                                    : (p.genderVisible ? "Yes" : "No"))
+                    divider
+                    detailRow(label: "I want to see",
+                              value: p.interestedInGender?.capitalized)
+                }
             }
-            .padding(.top, GASpacing.xs)
         }
     }
 
-    private var appearanceCard: some View {
-        GACard {
-            sectionHeader(title: "Appearance", actionTitle: nil) { }
-            Picker("Appearance", selection: appearance) {
-                ForEach(GAAppearance.allCases) { Text($0.label).tag($0) }
+    private var appearanceSection: some View {
+        VStack(alignment: .leading, spacing: GASpacing.sm) {
+            GASectionHeader(title: "Appearance")
+            GACard {
+                Picker("Appearance", selection: appearance) {
+                    ForEach(GAAppearance.allCases) { Text($0.label).tag($0) }
+                }
+                .pickerStyle(.segmented)
             }
-            .pickerStyle(.segmented)
-            .padding(.top, GASpacing.sm)
         }
     }
 
-    private var signOutCard: some View {
-        GAButton(title: "Sign out", kind: .ghost) {
-            Task { await session.signOut() }
+    private var signOutSection: some View {
+        VStack(spacing: GASpacing.md) {
+            GAButton(title: "Sign out",
+                     kind: .ghost) {
+                Task { await session.signOut() }
+            }
+            Button { /* TODO: confirm + delete */ } label: {
+                Text("Delete account")
+                    .font(GATypography.footnote)
+                    .foregroundStyle(GAColors.textTertiary)
+            }
+            .buttonStyle(.plain)
         }
+        .padding(.top, GASpacing.sm)
     }
 
     // MARK: - Pieces
 
     @ViewBuilder
-    private func sectionHeader(title: String,
-                               actionTitle: String?,
-                               action: @escaping () -> Void) -> some View {
-        HStack {
-            Text(title)
-                .font(GATypography.headline)
-                .foregroundStyle(GAColors.textPrimary)
-            Spacer()
-            if let actionTitle {
-                Button(actionTitle, action: action)
-                    .font(GATypography.footnote)
-                    .foregroundStyle(GAColors.accent)
-            }
-        }
-    }
-
-    private func placeholderRow(_ text: String) -> some View {
-        Text(text)
-            .font(GATypography.callout)
-            .foregroundStyle(GAColors.textSecondary)
-            .padding(.top, GASpacing.xs)
-    }
-
-    @ViewBuilder
-    private func row(_ label: String, value: String?) -> some View {
+    private func detailRow(label: String, value: String?) -> some View {
+        let isEmpty = (value ?? "").isEmpty
         HStack(alignment: .firstTextBaseline) {
             Text(label)
                 .font(GATypography.footnote)
                 .foregroundStyle(GAColors.textSecondary)
             Spacer()
-            Text(value?.isEmpty == false ? value! : "Not set")
+            Text(isEmpty ? "Not set" : value!)
                 .font(GATypography.body)
-                .foregroundStyle(value?.isEmpty == false ? GAColors.textPrimary : GAColors.textTertiary)
+                .foregroundStyle(isEmpty ? GAColors.textTertiary : GAColors.textPrimary)
+        }
+        .padding(.vertical, GASpacing.sm)
+    }
+
+    private var divider: some View {
+        Rectangle()
+            .fill(GAColors.border)
+            .frame(height: 0.75)
+    }
+
+    private func placeholderRow(text: String,
+                                actionTitle: String,
+                                action: @escaping () -> Void) -> some View {
+        HStack(alignment: .top, spacing: GASpacing.md) {
+            Text(text)
+                .font(GATypography.callout)
+                .foregroundStyle(GAColors.textSecondary)
+            Spacer(minLength: GASpacing.sm)
+            Button(action: action) {
+                Text(actionTitle)
+                    .font(GATypography.footnote.weight(.semibold))
+                    .foregroundStyle(GAColors.accent)
+            }
+            .buttonStyle(.plain)
+        }
+    }
+}
+
+// MARK: - Simple flow layout (chips wrap)
+
+private struct FlowLayout: Layout {
+    var spacing: CGFloat = GASpacing.sm
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let maxWidth = proposal.width ?? .infinity
+        var x: CGFloat = 0, y: CGFloat = 0, lineH: CGFloat = 0, totalH: CGFloat = 0
+        for sv in subviews {
+            let s = sv.sizeThatFits(.unspecified)
+            if x + s.width > maxWidth { x = 0; y += lineH + spacing; lineH = 0 }
+            x += s.width + spacing
+            lineH = max(lineH, s.height)
+            totalH = y + lineH
+        }
+        return CGSize(width: maxWidth.isFinite ? maxWidth : x, height: totalH)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize,
+                       subviews: Subviews, cache: inout ()) {
+        var x: CGFloat = bounds.minX
+        var y: CGFloat = bounds.minY
+        var lineH: CGFloat = 0
+        for sv in subviews {
+            let s = sv.sizeThatFits(.unspecified)
+            if x + s.width > bounds.maxX {
+                x = bounds.minX; y += lineH + spacing; lineH = 0
+            }
+            sv.place(at: CGPoint(x: x, y: y), anchor: .topLeading,
+                     proposal: ProposedViewSize(s))
+            x += s.width + spacing
+            lineH = max(lineH, s.height)
         }
     }
 }
