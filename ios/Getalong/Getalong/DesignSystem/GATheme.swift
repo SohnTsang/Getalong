@@ -70,20 +70,21 @@ struct GACardStyle: ViewModifier {
     }
     private var shadowColor: Color {
         switch kind {
-        case .elevated, .highlight: return Color.black.opacity(0.08)
-        default:                    return Color.black.opacity(0.04)
+        case .elevated:  return Color.black.opacity(0.06)
+        case .highlight: return Color.black.opacity(0.05)
+        default:         return Color.clear // standard cards: hairline only
         }
     }
     private var shadowRadius: CGFloat {
         switch kind {
         case .elevated, .highlight: return 18
-        default:                    return 10
+        default:                    return 0
         }
     }
     private var shadowY: CGFloat {
         switch kind {
         case .elevated, .highlight: return 6
-        default:                    return 3
+        default:                    return 0
         }
     }
 }

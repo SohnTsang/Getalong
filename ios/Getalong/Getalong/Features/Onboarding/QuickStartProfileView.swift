@@ -91,17 +91,16 @@ struct QuickStartProfileView: View {
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: GASpacing.sm) {
-            Text("Step 1 of 1")
-                .font(GATypography.micro)
-                .tracking(1.4)
-                .foregroundStyle(GAColors.textTertiary)
-            Text("Say one thing about you.")
-                .font(GATypography.largeTitle)
+        VStack(alignment: .leading, spacing: GASpacing.lg) {
+            Text("One sentence\nis enough.")
+                .font(GATypography.editorial)
                 .foregroundStyle(GAColors.textPrimary)
-            Text("Getalong starts with words. You can change this anytime.")
+                .lineSpacing(-2)
+                .kerning(-0.4)
+            Text("Pick a handle, say something true, and you're in.\nYou can change all of this later.")
                 .font(GATypography.body)
                 .foregroundStyle(GAColors.textSecondary)
+                .lineSpacing(2)
         }
     }
 

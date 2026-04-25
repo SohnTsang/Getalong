@@ -3,136 +3,109 @@ import AuthenticationServices
 import CryptoKit
 import UIKit
 
+/// Auth landing.
+///
+/// Design intent: editorial. Type carries the brand. The only colored
+/// element is the primary action. No motifs, no frames, no gradients.
+/// The four providers form a hairline-divided list below the primary,
+/// not four boxed buttons.
 struct SignInView: View {
     @StateObject private var vm = AuthViewModel()
     @State private var appleNonce: String?
 
     var body: some View {
-        GAScreen(layout: .fixed,
-                 maxWidth: 480,
-                 horizontalPadding: GASpacing.screenHorizontal,
-                 topPadding: GASpacing.xxxl,
-                 bottomPadding: GASpacing.xxl) {
+        ZStack {
+            GAColors.background.ignoresSafeArea()
 
-            VStack(alignment: .leading, spacing: GASpacing.xxl) {
-                heroBlock
+            VStack(alignment: .leading, spacing: 0) {
+
+                Spacer(minLength: GASpacing.xxl)
+
                 hero
+
                 Spacer(minLength: 0)
-                authButtons
+
+                providers
+
                 if let error = vm.errorMessage {
                     GAErrorBanner(message: error,
                                   onDismiss: { vm.errorMessage = nil })
+                        .padding(.top, GASpacing.lg)
                 }
+
                 fineprint
+                    .padding(.top, GASpacing.lg)
             }
-            .frame(maxHeight: .infinity, alignment: .top)
+            .frame(maxWidth: 460)
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, GASpacing.xl)
+            .padding(.bottom, GASpacing.xl)
         }
     }
 
     // MARK: - Hero
 
-    private var heroBlock: some View {
-        VStack(alignment: .leading, spacing: GASpacing.sm) {
-            HStack(spacing: 6) {
-                signalDot
-                Text("GETALONG")
-                    .font(GATypography.micro)
-                    .tracking(2.0)
-                    .foregroundStyle(GAColors.textTertiary)
+    private var hero: some View {
+        VStack(alignment: .leading, spacing: GASpacing.xxl) {
+            wordmark
+            VStack(alignment: .leading, spacing: GASpacing.lg) {
+                Text("Words\nthat travel.")
+                    .font(GATypography.editorial)
+                    .foregroundStyle(GAColors.textPrimary)
+                    .lineSpacing(-2)
+                    .kerning(-0.4)
+                Text("A quieter way to meet — start with one sentence,\nsend a 15-second invite when something clicks.")
+                    .font(GATypography.body)
+                    .foregroundStyle(GAColors.textSecondary)
+                    .lineSpacing(2)
             }
-            .padding(.bottom, GASpacing.xs)
+        }
+    }
 
-            Text("Meet through\nwords first.")
-                .font(GATypography.largeTitle)
-                .foregroundStyle(GAColors.textPrimary)
-                .lineSpacing(2)
-
-            Text("Send a 15-second invite when something clicks.")
-                .font(GATypography.body)
+    private var wordmark: some View {
+        HStack(spacing: 8) {
+            ZStack {
+                Circle()
+                    .stroke(GAColors.accent.opacity(0.30), lineWidth: 4)
+                    .frame(width: 14, height: 14)
+                Circle()
+                    .fill(GAColors.accent)
+                    .frame(width: 6, height: 6)
+            }
+            Text("GETALONG")
+                .font(GATypography.micro)
+                .tracking(2.4)
                 .foregroundStyle(GAColors.textSecondary)
         }
     }
 
-    /// Abstract "two voices" motif — two overlapping word bubbles built
-    /// from primitive shapes. No image assets, no gradient noise.
-    private var hero: some View {
-        ZStack(alignment: .bottomTrailing) {
-            RoundedRectangle(cornerRadius: GACornerRadius.xlarge, style: .continuous)
-                .fill(GAColors.accentSoft)
-                .frame(height: 132)
-                .overlay(
-                    RoundedRectangle(cornerRadius: GACornerRadius.xlarge,
-                                     style: .continuous)
-                        .strokeBorder(GAColors.accent.opacity(0.25), lineWidth: 1)
-                )
-                .overlay(
-                    HStack(alignment: .bottom, spacing: -22) {
-                        wordBubble(text: "Saw your post.",
-                                   tint: GAColors.accent,
-                                   fill: GAColors.surface)
-                            .rotationEffect(.degrees(-3))
-                        wordBubble(text: "Coffee tomorrow?",
-                                   tint: GAColors.secondary,
-                                   fill: GAColors.surface)
-                            .rotationEffect(.degrees(3))
-                            .padding(.top, 18)
-                    }
-                    .padding(.horizontal, GASpacing.lg),
-                    alignment: .leading
-                )
+    // MARK: - Providers
+
+    private var providers: some View {
+        VStack(alignment: .leading, spacing: GASpacing.md) {
+            primaryAppleButton
+
+            VStack(spacing: 0) {
+                providerRow(.google,
+                            title: "Continue with Google",
+                            systemImage: "g.circle.fill",
+                            tint: Color(red: 0.93, green: 0.27, blue: 0.21))
+                GAHairline()
+                providerRow(.facebook,
+                            title: "Continue with Facebook",
+                            systemImage: "f.circle.fill",
+                            tint: Color(red: 0.10, green: 0.36, blue: 0.78))
+                GAHairline()
+                providerRow(.twitter,
+                            title: "Continue with X",
+                            systemImage: "xmark",
+                            tint: GAColors.textPrimary)
+            }
+            .padding(.top, GASpacing.lg)
         }
     }
 
-    private func wordBubble(text: String, tint: Color, fill: Color) -> some View {
-        Text(text)
-            .font(GATypography.callout)
-            .foregroundStyle(GAColors.textPrimary)
-            .padding(.horizontal, GASpacing.md)
-            .padding(.vertical, GASpacing.sm)
-            .background(fill)
-            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .strokeBorder(tint.opacity(0.30), lineWidth: 1)
-            )
-            .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 1)
-    }
-
-    private var signalDot: some View {
-        Circle()
-            .fill(GAColors.accent)
-            .frame(width: 6, height: 6)
-            .overlay(
-                Circle()
-                    .stroke(GAColors.accent.opacity(0.35), lineWidth: 4)
-                    .frame(width: 14, height: 14)
-            )
-    }
-
-    // MARK: - Auth buttons
-
-    private var authButtons: some View {
-        VStack(spacing: GASpacing.md) {
-            appleButton
-            GASocialButton(brand: .google,
-                           isLoading: vm.workingProvider == .google,
-                           isDisabled: vm.isWorking && vm.workingProvider != .google) {
-                triggerOAuth(.google)
-            }
-            GASocialButton(brand: .facebook,
-                           isLoading: vm.workingProvider == .facebook,
-                           isDisabled: vm.isWorking && vm.workingProvider != .facebook) {
-                triggerOAuth(.facebook)
-            }
-            GASocialButton(brand: .twitter,
-                           isLoading: vm.workingProvider == .twitter,
-                           isDisabled: vm.isWorking && vm.workingProvider != .twitter) {
-                triggerOAuth(.twitter)
-            }
-        }
-    }
-
-    private var appleButton: some View {
+    private var primaryAppleButton: some View {
         SignInWithAppleButton(.continue) { request in
             let nonce = Self.makeNonce()
             appleNonce = nonce
@@ -142,26 +115,44 @@ struct SignInView: View {
             guard let nonce = appleNonce else { return }
             Task { await vm.handleAppleResult(result, rawNonce: nonce) }
         }
-        .signInWithAppleButtonStyle(.black)
+        .signInWithAppleButtonStyle(appleStyle)
         .frame(height: GASpacing.controlHeight)
-        .clipShape(RoundedRectangle(cornerRadius: GACornerRadius.medium, style: .continuous))
-        .overlay(applePressOverlay)
+        .clipShape(RoundedRectangle(cornerRadius: GACornerRadius.medium,
+                                    style: .continuous))
+        .overlay(
+            Group {
+                if vm.workingProvider == .apple {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: GACornerRadius.medium,
+                                         style: .continuous)
+                            .fill(GAColors.background.opacity(0.6))
+                        ProgressView().tint(GAColors.accent)
+                    }
+                }
+            }
+        )
+    }
+
+    private var appleStyle: SignInWithAppleButton.Style {
+        // Black on light, white on dark — Apple HIG-correct.
+        UITraitCollection.current.userInterfaceStyle == .dark ? .white : .black
     }
 
     @ViewBuilder
-    private var applePressOverlay: some View {
-        if vm.workingProvider == .apple {
-            ZStack {
-                RoundedRectangle(cornerRadius: GACornerRadius.medium, style: .continuous)
-                    .fill(GAColors.background.opacity(0.6))
-                ProgressView().tint(GAColors.accent)
-            }
+    private func providerRow(_ provider: AuthProvider,
+                             title: String,
+                             systemImage: String,
+                             tint: Color) -> some View {
+        GAProviderRow(
+            title: title,
+            systemImage: systemImage,
+            iconTint: tint,
+            isLoading: vm.workingProvider == provider,
+            isDisabled: vm.isWorking && vm.workingProvider != provider
+        ) {
+            guard let anchor = activeAnchor() else { return }
+            Task { await vm.signInWithOAuth(provider, anchor: anchor) }
         }
-    }
-
-    private func triggerOAuth(_ provider: AuthProvider) {
-        guard let anchor = activeAnchor() else { return }
-        Task { await vm.signInWithOAuth(provider, anchor: anchor) }
     }
 
     // MARK: - Fineprint
@@ -174,7 +165,7 @@ struct SignInView: View {
             .frame(maxWidth: .infinity)
     }
 
-    // MARK: - Helpers
+    // MARK: - Window
 
     private func activeAnchor() -> ASPresentationAnchor? {
         UIApplication.shared.connectedScenes
@@ -186,6 +177,8 @@ struct SignInView: View {
             .compactMap { $0 as? UIWindowScene }
             .flatMap(\.windows).first
     }
+
+    // MARK: - Apple nonce
 
     private static func makeNonce(length: Int = 32) -> String {
         let charset: [Character] = Array("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-._")

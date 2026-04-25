@@ -10,11 +10,15 @@ import SwiftUI
 /// * All sizes scale with Dynamic Type via `.relativeTo:`.
 enum GATypography {
 
-    /// Hero text on auth/onboarding/empty-state-as-hero.
-    static let largeTitle = Font.system(size: 34, weight: .semibold, design: .rounded)
+    /// Editorial hero — auth / first run / brand moments only.
+    /// Tighter line height, serif design for character.
+    static let editorial = Font.system(size: 44, weight: .regular, design: .serif)
+
+    /// Hero text on standard top-of-screen layouts.
+    static let largeTitle = Font.system(size: 32, weight: .semibold, design: .rounded)
 
     /// Top-of-screen title (e.g. nav title replacement).
-    static let screenTitle = Font.system(size: 28, weight: .semibold, design: .rounded)
+    static let screenTitle = Font.system(size: 26, weight: .semibold, design: .rounded)
 
     /// Strong card title.
     static let title = Font.system(size: 22, weight: .semibold, design: .rounded)

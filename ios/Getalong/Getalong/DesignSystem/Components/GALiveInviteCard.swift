@@ -48,7 +48,7 @@ struct GALiveInviteCard: View {
 
             actions
         }
-        .gaCard(.highlight, padding: GASpacing.xl, radius: GACornerRadius.xlarge)
+        .gaCard(.elevated, padding: GASpacing.xl, radius: GACornerRadius.xlarge)
     }
 
     // MARK: -

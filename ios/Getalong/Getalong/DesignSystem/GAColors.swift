@@ -10,37 +10,37 @@ enum GAColors {
 
     // MARK: - Surfaces
 
-    /// Page background. Warm off-white in light, deep ink in dark.
-    static let background        = dyn(light: 0xF7F4EE, dark: 0x0E1014)
+    /// Page background. Soft paper in light, deep ink in dark.
+    static let background        = dyn(light: 0xFAF8F3, dark: 0x0B0D11)
     /// Slightly lifted surface used for the section beneath cards
     /// (e.g. tab bar background, sheet header).
-    static let backgroundElevated = dyn(light: 0xFBF8F2, dark: 0x141821)
+    static let backgroundElevated = dyn(light: 0xFFFFFF, dark: 0x111319)
     /// Standard card surface.
-    static let surface           = dyn(light: 0xFFFFFF, dark: 0x1A1F2A)
+    static let surface           = dyn(light: 0xFFFFFF, dark: 0x16191F)
     /// Card surface that sits ON another card / nested input fill.
-    static let surfaceRaised     = dyn(light: 0xF1ECE3, dark: 0x232936)
+    static let surfaceRaised     = dyn(light: 0xF2EEE5, dark: 0x1F232B)
 
     // MARK: - Text
 
-    static let textPrimary       = dyn(light: 0x141518, dark: 0xF1EFEA)
-    static let textSecondary     = dyn(light: 0x52555D, dark: 0xA7ABB5)
-    static let textTertiary      = dyn(light: 0x8C909A, dark: 0x6C7280)
-    static let textOnAccent      = dyn(light: 0xFFFFFF, dark: 0x0E1014)
+    static let textPrimary       = dyn(light: 0x111114, dark: 0xF2F0EB)
+    static let textSecondary     = dyn(light: 0x5A5C63, dark: 0xA9ADB6)
+    static let textTertiary      = dyn(light: 0x9A9DA5, dark: 0x6B6E76)
+    static let textOnAccent      = dyn(light: 0xFFFFFF, dark: 0xFFFFFF)
 
     // MARK: - Lines
 
-    static let border            = dyn(light: 0xE7E2D6, dark: 0x2A3140)
-    static let borderStrong      = dyn(light: 0xCFC9BB, dark: 0x3A4258)
+    static let border            = dyn(light: 0xEDE7DA, dark: 0x232830)
+    static let borderStrong      = dyn(light: 0xCFC9BB, dark: 0x3A4055)
 
-    // MARK: - Accent (warm coral — Getalong's voice)
+    // MARK: - Accent (deep ember — confident, not candy)
 
-    static let accent            = dyn(light: 0xE5573D, dark: 0xFF7B62)
+    static let accent            = dyn(light: 0xCE3F26, dark: 0xFF7559)
     /// Pale wash of the accent for highlight backgrounds.
-    static let accentSoft        = dyn(light: 0xFCE9E2, dark: 0x351913)
+    static let accentSoft        = dyn(light: 0xFBE7DF, dark: 0x2B130E)
     /// Deeper accent for pressed state.
-    static let accentPressed     = dyn(light: 0xC23F27, dark: 0xE6664E)
+    static let accentPressed     = dyn(light: 0xA8311C, dark: 0xE6664E)
     /// Always pairs with `accent` background.
-    static let accentText        = dyn(light: 0xFFFFFF, dark: 0x0E1014)
+    static let accentText        = dyn(light: 0xFFFFFF, dark: 0xFFFFFF)
 
     /// Secondary accent — a calmer indigo used for outgoing-invite,
     /// progress, and "in flight" affordances. Coral is the verb; this
