@@ -1,9 +1,10 @@
 import Foundation
+import Supabase
 
 /// Centralised configuration for the Supabase client.
 ///
 /// Real values are read from `Secrets.plist` at runtime. The plist is
-/// gitignored. See `ios/Getalong/README.md` for setup.
+/// gitignored. See `ios/README.md` for setup.
 ///
 /// IMPORTANT: only the **anon** key may live in the app. The service role
 /// key must never ship in any client.
@@ -34,21 +35,13 @@ enum SupabaseConfig {
     }
 }
 
-/// Wraps the Supabase Swift client.
-///
-/// Currently a stub: the dependency is added once we wire the SPM package
-/// in Xcode. Until then, services should call this provider but no real
-/// network requests are made.
-final class SupabaseClientProvider {
-    static let shared = SupabaseClientProvider()
-    private init() {}
-
-    // TODO: replace with the real `SupabaseClient` once `supabase-swift`
-    // is added to the Xcode project as an SPM dependency.
-    //
-    //   import Supabase
-    //   let client = SupabaseClient(
-    //       supabaseURL: SupabaseConfig.url,
-    //       supabaseKey: SupabaseConfig.anonKey
-    //   )
+/// Single shared `SupabaseClient`. Services and `SessionManager` go
+/// through this. Built on first access.
+enum Supa {
+    static let client: SupabaseClient = {
+        SupabaseClient(
+            supabaseURL: SupabaseConfig.url,
+            supabaseKey: SupabaseConfig.anonKey
+        )
+    }()
 }

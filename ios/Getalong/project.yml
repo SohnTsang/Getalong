@@ -33,6 +33,7 @@ targets:
       - path: Getalong
         excludes:
           - "Resources/Secrets.example.plist"
+          - "Getalong.entitlements"
     resources:
       - Getalong/Resources/Secrets.plist
     info:
@@ -42,6 +43,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.getalong.app
         TARGETED_DEVICE_FAMILY: "1,2"
         INFOPLIST_FILE: Getalong/Resources/Info.plist
+        CODE_SIGN_ENTITLEMENTS: Getalong/Getalong.entitlements
     dependencies:
       - package: Supabase
         product: Supabase
