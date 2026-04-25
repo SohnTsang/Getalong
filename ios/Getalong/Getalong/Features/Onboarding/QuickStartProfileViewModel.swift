@@ -37,9 +37,11 @@ final class QuickStartProfileViewModel: ObservableObject {
     var handleHint: String? {
         let raw = getalongId.trimmingCharacters(in: .whitespaces)
         guard !raw.isEmpty else { return nil }
-        if cleanedHandle.count < 3 { return "Handle must be at least 3 characters." }
-        if cleanedHandle.count > 20 { return "Handle must be at most 20 characters." }
-        if cleanedHandle != raw.lowercased() { return "Saved as @\(cleanedHandle)." }
+        if cleanedHandle.count < 3 { return String(localized: "quickstart.handle.error.short") }
+        if cleanedHandle.count > 20 { return String(localized: "quickstart.handle.error.long") }
+        if cleanedHandle != raw.lowercased() {
+            return String(format: NSLocalizedString("quickstart.handle.error.normalized %@", comment: ""), cleanedHandle)
+        }
         return nil
     }
 

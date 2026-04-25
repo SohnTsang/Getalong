@@ -13,6 +13,14 @@ enum GAAppearance: String, CaseIterable, Identifiable {
         }
     }
 
+    var localizedLabel: String {
+        switch self {
+        case .system: return String(localized: "profile.appearance.system")
+        case .light:  return String(localized: "profile.appearance.light")
+        case .dark:   return String(localized: "profile.appearance.dark")
+        }
+    }
+
     var colorScheme: ColorScheme? {
         switch self {
         case .system: return nil

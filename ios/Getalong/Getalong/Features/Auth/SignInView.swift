@@ -93,26 +93,26 @@ struct SignInView: View {
                 avatarBubble(letter: "A")
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 6) {
-                        Text("@aria")
+                        Text(verbatim: "@aria")
                             .font(GATypography.callout.weight(.semibold))
                             .foregroundStyle(GAColors.textPrimary)
-                        Text("·")
+                        Text(verbatim: "·")
                             .font(GATypography.caption)
                             .foregroundStyle(GAColors.textTertiary)
                         liveDot
-                        Text("SIGNAL")
+                        Text("auth.hero.teaser.label")
                             .font(GATypography.micro)
                             .tracking(1.6)
                             .foregroundStyle(GAColors.accent)
                     }
-                    Text("Brooklyn, NY")
+                    Text(verbatim: "Brooklyn, NY")
                         .font(GATypography.caption)
                         .foregroundStyle(GAColors.textTertiary)
                 }
                 Spacer(minLength: 0)
                 VStack(spacing: 4) {
                     PulsingCountdownRing(total: 15, size: 44, lineWidth: 2.5)
-                    Text("Live")
+                    Text("auth.hero.teaser.live")
                         .font(GATypography.micro)
                         .tracking(1.4)
                         .foregroundStyle(GAColors.textTertiary)
@@ -120,7 +120,7 @@ struct SignInView: View {
             }
 
             // Aria's signal — a small thought, not a bio.
-            Text("\u{201C}I get along best with people who don't take life too seriously.\u{201D}")
+            Text("\u{201C}\(String(localized: "auth.hero.teaser.message"))\u{201D}")
                 .font(GATypography.editorialQuote)
                 .foregroundStyle(GAColors.textPrimary)
                 .lineSpacing(2)
@@ -159,21 +159,22 @@ struct SignInView: View {
     private var editorialLines: some View {
         VStack(alignment: .leading, spacing: GASpacing.md) {
             VStack(alignment: .leading, spacing: 0) {
-                Text("Find someone you")
+                Text("auth.hero.title.line1")
                     .font(GATypography.editorial)
                     .foregroundStyle(GAColors.textPrimary)
                     .lineSpacing(-4)
                     .kerning(-0.4)
-                Text("just get along with.")
+                Text("auth.hero.title.line2")
                     .font(GATypography.editorial)
                     .foregroundStyle(GAColors.accent)
                     .lineSpacing(-4)
                     .kerning(-0.4)
             }
-            Text("Start with a small signal. If it clicks, talk live.")
+            Text("auth.hero.subtitle")
                 .font(GATypography.body)
                 .foregroundStyle(GAColors.textSecondary)
                 .lineSpacing(2)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
@@ -185,17 +186,17 @@ struct SignInView: View {
 
             VStack(spacing: 0) {
                 providerRow(.google,
-                            title: "Continue with Google",
+                            title: String(localized: "auth.cta.google"),
                             systemImage: "g.circle.fill",
                             tint: Color(red: 0.93, green: 0.27, blue: 0.21))
                 GAHairline()
                 providerRow(.facebook,
-                            title: "Continue with Facebook",
+                            title: String(localized: "auth.cta.facebook"),
                             systemImage: "f.circle.fill",
                             tint: Color(red: 0.10, green: 0.36, blue: 0.78))
                 GAHairline()
                 providerRow(.twitter,
-                            title: "Continue with X",
+                            title: String(localized: "auth.cta.x"),
                             systemImage: "xmark",
                             tint: GAColors.textPrimary)
             }
@@ -255,10 +256,11 @@ struct SignInView: View {
     // MARK: - Fineprint
 
     private var fineprint: some View {
-        Text("By continuing you confirm you are 18+ and accept Getalong's terms.")
+        Text("auth.terms.18plus")
             .font(GATypography.footnote)
             .foregroundStyle(GAColors.textTertiary)
             .multilineTextAlignment(.center)
+            .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity)
     }
 

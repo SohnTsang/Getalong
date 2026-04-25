@@ -30,7 +30,7 @@ struct ProfileView: View {
                         signOutSection
                     }
                 } else {
-                    GAEmptyState(title: "No profile loaded",
+                    GAEmptyState(title: String(localized: "profile.empty.title"),
                                  systemImage: "person.crop.circle.badge.questionmark")
                 }
             }
@@ -70,7 +70,7 @@ struct ProfileView: View {
                                  systemImage: planIcon(p.plan),
                                  tint: planTint(p.plan))
                     if p.trustScore > 0 {
-                        GAStatusPill(label: "Trust \(p.trustScore)",
+                        GAStatusPill(label: String(format: NSLocalizedString("profile.trust %lld", comment: ""), p.trustScore),
                                      systemImage: "checkmark.seal.fill",
                                      tint: GAColors.success)
                     }
@@ -118,17 +118,17 @@ struct ProfileView: View {
 
     private func signalSection(_ p: Profile) -> some View {
         VStack(alignment: .leading, spacing: GASpacing.sm) {
-            GASectionHeader(title: "Your signal",
-                            subtitle: "One line that helps the right people click with you.",
-                            actionTitle: "Edit") { /* TODO */ }
+            GASectionHeader(title: String(localized: "profile.yourSignal"),
+                            subtitle: String(localized: "profile.yourSignal.subtitle"),
+                            actionTitle: String(localized: "common.edit")) { /* TODO */ }
             GACard {
                 if let bio = p.bio, !bio.isEmpty {
                     Text(bio)
                         .font(GATypography.body)
                         .foregroundStyle(GAColors.textPrimary)
                 } else {
-                    placeholderRow(text: "Add one line so others can feel whether they'll get along with you.",
-                                   actionTitle: "Add signal") { /* TODO */ }
+                    placeholderRow(text: String(localized: "profile.yourSignal.placeholder"),
+                                   actionTitle: String(localized: "profile.yourSignal.add")) { /* TODO */ }
                 }
             }
         }
@@ -136,16 +136,16 @@ struct ProfileView: View {
 
     private var topicsSection: some View {
         VStack(alignment: .leading, spacing: GASpacing.sm) {
-            GASectionHeader(title: "What helps you click",
-                            subtitle: "Topics, moods, small things you care about.",
-                            actionTitle: "Manage") { /* TODO */ }
+            GASectionHeader(title: String(localized: "profile.click.title"),
+                            subtitle: String(localized: "profile.click.subtitle"),
+                            actionTitle: String(localized: "common.manage")) { /* TODO */ }
             GACard {
                 if vm.isLoadingTopics {
                     HStack { Spacer(); ProgressView(); Spacer() }
                         .padding(.vertical, GASpacing.sm)
                 } else if vm.topics.isEmpty {
-                    placeholderRow(text: "Pick a few — music, late-night, books, anything that helps people find your wavelength.",
-                                   actionTitle: "Add tags") { /* TODO */ }
+                    placeholderRow(text: String(localized: "profile.click.placeholder"),
+                                   actionTitle: String(localized: "profile.click.action")) { /* TODO */ }
                 } else {
                     FlowLayout(spacing: GASpacing.sm) {
                         ForEach(vm.topics) { GAChip(label: $0.nameEn) }
@@ -157,24 +157,25 @@ struct ProfileView: View {
 
     private func preferencesSection(_ p: Profile) -> some View {
         VStack(alignment: .leading, spacing: GASpacing.sm) {
-            GASectionHeader(title: "Preferences",
-                            actionTitle: "Edit") { /* TODO */ }
+            GASectionHeader(title: String(localized: "profile.preferences"),
+                            actionTitle: String(localized: "common.edit")) { /* TODO */ }
             GACard {
                 VStack(spacing: 0) {
-                    detailRow(label: "Region",
+                    detailRow(label: String(localized: "profile.region"),
                               value: [p.city, p.country].compactMap { $0 }.joined(separator: ", "))
                     divider
-                    detailRow(label: "Language",
+                    detailRow(label: String(localized: "profile.language"),
                               value: p.languageCodes.first?.uppercased())
                     divider
-                    detailRow(label: "I am", value: p.gender?.capitalized)
+                    detailRow(label: String(localized: "profile.gender.iAm"),
+                              value: p.gender.flatMap { Gender(rawValue: $0)?.localizedLabel })
                     divider
-                    detailRow(label: "Visible on profile",
+                    detailRow(label: String(localized: "profile.gender.visible"),
                               value: p.gender == nil ? nil
-                                    : (p.genderVisible ? "Yes" : "No"))
+                                    : String(localized: p.genderVisible ? "profile.gender.yes" : "profile.gender.no"))
                     divider
-                    detailRow(label: "I want to see",
-                              value: p.interestedInGender?.capitalized)
+                    detailRow(label: String(localized: "profile.gender.wantToSee"),
+                              value: p.interestedInGender.flatMap { InterestedInGender(rawValue: $0)?.localizedLabel })
                 }
             }
         }
@@ -182,10 +183,12 @@ struct ProfileView: View {
 
     private var appearanceSection: some View {
         VStack(alignment: .leading, spacing: GASpacing.sm) {
-            GASectionHeader(title: "Appearance")
+            GASectionHeader(title: String(localized: "profile.appearance"))
             GACard {
-                Picker("Appearance", selection: appearance) {
-                    ForEach(GAAppearance.allCases) { Text($0.label).tag($0) }
+                Picker("profile.appearance", selection: appearance) {
+                    ForEach(GAAppearance.allCases) { mode in
+                        Text(mode.localizedLabel).tag(mode)
+                    }
                 }
                 .pickerStyle(.segmented)
             }
@@ -194,12 +197,12 @@ struct ProfileView: View {
 
     private var signOutSection: some View {
         VStack(spacing: GASpacing.md) {
-            GAButton(title: "Sign out",
+            GAButton(title: String(localized: "profile.signOut"),
                      kind: .ghost) {
                 Task { await session.signOut() }
             }
             Button { /* TODO: confirm + delete */ } label: {
-                Text("Delete account")
+                Text("profile.deleteAccount")
                     .font(GATypography.footnote)
                     .foregroundStyle(GAColors.textTertiary)
             }
@@ -218,7 +221,7 @@ struct ProfileView: View {
                 .font(GATypography.footnote)
                 .foregroundStyle(GAColors.textSecondary)
             Spacer()
-            Text(isEmpty ? "Not set" : value!)
+            Text(isEmpty ? String(localized: "profile.gender.notSet") : value!)
                 .font(GATypography.body)
                 .foregroundStyle(isEmpty ? GAColors.textTertiary : GAColors.textPrimary)
         }

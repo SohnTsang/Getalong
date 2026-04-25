@@ -37,8 +37,8 @@ struct GALiveInviteCard: View {
                             .lineLimit(3)
                     } else {
                         Text(role == .incoming
-                             ? "Thinks you might get along."
-                             : "Waiting to see if it clicks\u{2026}")
+                             ? String(localized: "signals.incoming.fallback")
+                             : String(localized: "signals.outgoing.fallback"))
                             .font(GATypography.body)
                             .foregroundStyle(GAColors.textSecondary)
                     }
@@ -55,11 +55,13 @@ struct GALiveInviteCard: View {
 
     private var header: some View {
         HStack {
-            GAStatusPill(label: role == .incoming ? "Live signal" : "Signal sent",
+            GAStatusPill(label: role == .incoming
+                         ? String(localized: "signals.live.label")
+                         : String(localized: "signals.outgoing.label"),
                          systemImage: "dot.radiowaves.left.and.right",
                          tint: GAColors.inviteLive)
             Spacer()
-            Text("\(displaySeconds)s left")
+            Text(String(format: NSLocalizedString("signals.timeRemaining %lld", comment: ""), displaySeconds))
                 .font(GATypography.caption)
                 .foregroundStyle(GAColors.textSecondary)
         }
@@ -87,17 +89,17 @@ struct GALiveInviteCard: View {
         switch role {
         case .incoming:
             HStack(spacing: GASpacing.md) {
-                GAButton(title: "Decline",
+                GAButton(title: String(localized: "signals.decline.notNow"),
                          kind: .ghost,
                          size: .compact) { onDecline?() }
-                GAButton(title: "Accept",
+                GAButton(title: String(localized: "signals.accept.start"),
                          kind: .primary,
                          size: .compact) { onAccept?() }
             }
         case .outgoing:
             HStack {
                 Spacer()
-                GAButton(title: "Cancel",
+                GAButton(title: String(localized: "signals.cancel"),
                          kind: .ghost,
                          size: .compact,
                          fillsWidth: false) { onCancel?() }

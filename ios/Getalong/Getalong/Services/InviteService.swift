@@ -46,23 +46,23 @@ enum InviteServiceError: LocalizedError, Equatable {
 
     var errorDescription: String? {
         switch self {
-        case .authRequired:               return "Please sign in again."
-        case .profileNotFound:            return "Profile not found."
-        case .userBanned:                 return "Your account is restricted."
-        case .receiverBanned:             return "That person can't receive invites."
-        case .selfInviteNotAllowed:       return "You can't invite yourself."
-        case .blockedRelationship:        return "You can't invite this person."
-        case .liveInviteSlotFull:         return "You already have a live invite out. Wait for it to finish or cancel it."
-        case .duplicateLiveInvite:        return "You already sent them a live invite."
-        case .inviteNotFound:             return "Invite not found."
-        case .inviteNotActionable:        return "This invite can't be acted on right now."
-        case .liveInviteExpired:          return "This live invite expired."
-        case .missedInviteExpired:        return "This missed invite expired."
-        case .missedAcceptLimitReached:   return "You've used your free missed-invite accepts for today."
-        case .activeChatLimitReached:     return "You've reached your active chat limit."
-        case .chatAlreadyExists:          return "A chat already exists with this person."
-        case .receiverNotFound:           return "We couldn't find that handle."
-        case .invalidInput:               return "Invalid request."
+        case .authRequired:               return String(localized: "error.notSignedIn")
+        case .profileNotFound:            return String(localized: "error.profileNotFound")
+        case .userBanned:                 return String(localized: "error.userBanned")
+        case .receiverBanned:             return String(localized: "error.receiverBanned")
+        case .selfInviteNotAllowed:       return String(localized: "error.selfInviteNotAllowed")
+        case .blockedRelationship:        return String(localized: "error.blockedRelationship")
+        case .liveInviteSlotFull:         return String(localized: "error.liveSignalSlotFull")
+        case .duplicateLiveInvite:        return String(localized: "error.duplicateLiveSignal")
+        case .inviteNotFound:             return String(localized: "error.inviteNotFound")
+        case .inviteNotActionable:        return String(localized: "error.inviteNotActionable")
+        case .liveInviteExpired:          return String(localized: "error.liveInviteExpired")
+        case .missedInviteExpired:        return String(localized: "error.missedInviteExpired")
+        case .missedAcceptLimitReached:   return String(localized: "error.missedAcceptLimitReached")
+        case .activeChatLimitReached:     return String(localized: "error.activeChatLimitReached")
+        case .chatAlreadyExists:          return String(localized: "error.chatAlreadyExists")
+        case .receiverNotFound:           return String(localized: "error.receiverNotFound")
+        case .invalidInput:               return String(localized: "error.invalidInput")
         case .other(let m):               return m
         }
     }

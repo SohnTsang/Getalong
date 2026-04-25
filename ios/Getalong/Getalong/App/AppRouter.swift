@@ -16,15 +16,15 @@ struct AppRouter: View {
             case .authenticated:
                 MainTabView()
             case .banned:
-                statusScreen(title: "Account unavailable",
-                             message: "This account has been suspended.",
+                statusScreen(title: String(localized: "status.banned.title"),
+                             message: String(localized: "status.banned.message"),
                              systemImage: "exclamationmark.shield")
             case .deleted:
-                statusScreen(title: "Account deleted",
-                             message: "This account is scheduled for deletion.",
+                statusScreen(title: String(localized: "status.deleted.title"),
+                             message: String(localized: "status.deleted.message"),
                              systemImage: "trash")
             case .error(let message):
-                statusScreen(title: "Something went wrong",
+                statusScreen(title: String(localized: "status.error.title"),
                              message: message,
                              systemImage: "wifi.exclamationmark")
             }
@@ -37,7 +37,7 @@ struct AppRouter: View {
             GAEmptyState(title: title,
                          message: message,
                          systemImage: systemImage,
-                         actionTitle: "Sign out") {
+                         actionTitle: String(localized: "profile.signOut")) {
                 Task { await session.signOut() }
             }
         }
@@ -68,19 +68,19 @@ struct MainTabView: View {
     var body: some View {
         TabView(selection: $selection) {
             DiscoveryView()
-                .tabItem { Label("Discover", systemImage: "sparkles") }
+                .tabItem { Label("tab.discover", systemImage: "sparkles") }
                 .tag(Tab.discover)
 
             InvitesView()
-                .tabItem { Label("Signals", systemImage: "dot.radiowaves.left.and.right") }
+                .tabItem { Label("tab.signals", systemImage: "dot.radiowaves.left.and.right") }
                 .tag(Tab.invites)
 
             ChatsView()
-                .tabItem { Label("Chats", systemImage: "ellipsis.message") }
+                .tabItem { Label("tab.chats", systemImage: "ellipsis.message") }
                 .tag(Tab.chats)
 
             ProfileView()
-                .tabItem { Label("Profile", systemImage: "person.crop.circle") }
+                .tabItem { Label("tab.profile", systemImage: "person.crop.circle") }
                 .tag(Tab.profile)
         }
         .tint(GAColors.accent)

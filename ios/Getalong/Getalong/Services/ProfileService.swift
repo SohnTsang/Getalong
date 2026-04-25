@@ -7,7 +7,7 @@ enum ProfileError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .duplicateGetalongId: return "That handle is taken. Try another."
+        case .duplicateGetalongId: return String(localized: "error.duplicateHandle")
         case .underlying(let m):   return m
         }
     }

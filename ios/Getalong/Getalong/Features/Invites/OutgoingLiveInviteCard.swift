@@ -12,7 +12,7 @@ struct OutgoingLiveInviteCard: View {
             role: .outgoing,
             totalSeconds: 15,
             secondsLeft: secondsLeft,
-            senderTitle: "Signal sent",
+            senderTitle: String(localized: "signals.outgoing.label"),
             preview: invite.message,
             onCancel: onCancel
         )

@@ -7,25 +7,22 @@ struct DiscoveryView: View {
                 VStack(alignment: .leading, spacing: GASpacing.sectionGap) {
 
                     VStack(alignment: .leading, spacing: GASpacing.xs) {
-                        Text("Today's voices")
+                        Text("discovery.title")
                             .font(GATypography.screenTitle)
                             .foregroundStyle(GAColors.textPrimary)
-                        Text("Short notes from people open to a quick chat.")
+                        Text("discovery.subtitle")
                             .font(GATypography.callout)
                             .foregroundStyle(GAColors.textSecondary)
                     }
 
                     HStack(spacing: GASpacing.sm) {
-                        GAChip(label: "All", kind: .selected)
-                        GAChip(label: "Music")
-                        GAChip(label: "Travel")
-                        GAChip(label: "Late night")
+                        GAChip(label: String(localized: "discovery.filter.all"), kind: .selected)
                     }
 
                     GACard {
                         GAEmptyState(
-                            title: "No posts yet",
-                            message: "When people start sharing, you'll see their conversation starters here.",
+                            title: String(localized: "discovery.empty.title"),
+                            message: String(localized: "discovery.empty.subtitle"),
                             systemImage: "bubble.left.and.bubble.right"
                         )
                     }

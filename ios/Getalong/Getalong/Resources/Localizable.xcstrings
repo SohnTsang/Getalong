@@ -1,0 +1,757 @@
+{
+  "sourceLanguage" : "en",
+  "version" : "1.0",
+  "strings" : {
+
+    "auth.hero.title.line1" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Find someone you" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "気が合う人と、" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "找到一個" }}
+    }},
+    "auth.hero.title.line2" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "just get along with." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "自然につながる。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "與你合拍的人。" }}
+    }},
+    "auth.hero.subtitle" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Start with a small signal. If it clicks, talk live." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "ふとした一言から。合いそうなら、そのまま会話へ。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "從一個小訊號開始。合得來，就開始對話。" }}
+    }},
+    "auth.hero.teaser.label" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "SIGNAL" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "きっかけ" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "即時訊號" }}
+    }},
+    "auth.hero.teaser.message" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "I get along best with people who don’t take life too seriously." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "気を張らずに話せる人と出会いたい。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "想認識可以自然聊下去的人。" }}
+    }},
+    "auth.hero.teaser.live" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Live" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "ライブ" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "即時" }}
+    }},
+    "auth.editorial.line1" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Small signals." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "小さなきっかけから。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "一個小訊號。" }}
+    }},
+    "auth.editorial.line2" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Real connection." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "自然な会話へ。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "一段真實對話。" }}
+    }},
+    "auth.cta.apple" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Continue with Apple" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "Appleで続ける" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "使用 Apple 繼續" }}
+    }},
+    "auth.cta.google" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Continue with Google" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "Googleで続ける" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "使用 Google 繼續" }}
+    }},
+    "auth.cta.facebook" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Continue with Facebook" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "Facebookで続ける" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "使用 Facebook 繼續" }}
+    }},
+    "auth.cta.x" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Continue with X" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "Xで続ける" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "使用 X 繼續" }}
+    }},
+    "auth.terms.18plus" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "By continuing you confirm you are 18 or older and accept Getalong’s terms." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "続けることで、18歳以上であること、およびGetalongの利用規約に同意したものとみなされます。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "繼續使用即表示你已滿 18 歲，並同意 Getalong 的條款。" }}
+    }},
+
+    "quickstart.title.line1" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Start with one" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "まずは、" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "先寫下" }}
+    }},
+    "quickstart.title.line2" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "small signal." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "あなたらしい一言を。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "一句代表你的話。" }}
+    }},
+    "quickstart.subtitle" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Write one line that helps the right people feel they might get along with you." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "気が合いそうな人に届く、短いきっかけを書いてみましょう。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "用一句簡單的話，讓合得來的人更容易發現你。" }}
+    }},
+    "quickstart.handle.label" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Handle" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "ハンドル" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "Getalong ID" }}
+    }},
+    "quickstart.handle.placeholder" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "your_handle" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "your_handle" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "your_handle" }}
+    }},
+    "quickstart.handle.helper" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Lowercase letters, numbers, underscores. 3–20 chars." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "半角英数字とアンダースコア。3〜20文字。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "小寫英文、數字或底線，3 至 20 個字元。" }}
+    }},
+    "quickstart.handle.error.short" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Handle must be at least 3 characters." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "ハンドルは3文字以上にしてください。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "ID 至少需要 3 個字元。" }}
+    }},
+    "quickstart.handle.error.long" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Handle must be at most 20 characters." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "ハンドルは20文字以内にしてください。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "ID 最多只能 20 個字元。" }}
+    }},
+    "quickstart.handle.error.normalized %@" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Saved as @%@." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "@%@として保存します。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "將以 @%@ 儲存。" }}
+    }},
+    "quickstart.displayName.label" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Display name" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "表示名" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "顯示名稱" }}
+    }},
+    "quickstart.displayName.placeholder" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "What should we call you?" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "表示する名前" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "你的名稱" }}
+    }},
+    "quickstart.signal.label" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Your signal" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "あなたの一言" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "你的小訊號" }}
+    }},
+    "quickstart.signal.placeholder" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "I’m always looking for quiet cafés." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "気を張らずに話せる人と出会いたい。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "想認識可以自然聊下去的人。" }}
+    }},
+    "quickstart.signal.helper" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "One line about what helps you click with someone." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "気が合う人に届きそうな一言を。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "一句能讓合得來的人有共鳴的話。" }}
+    }},
+    "quickstart.gender.iAm" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "I am" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "あなたの性別" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "性別" }}
+    }},
+    "quickstart.gender.wantToSee" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "I want to see" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "見たい相手" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "想看到的對象" }}
+    }},
+    "quickstart.gender.male" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Male" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "男性" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "男性" }}
+    }},
+    "quickstart.gender.female" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Female" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "女性" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "女性" }}
+    }},
+    "quickstart.gender.everyone" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Everyone" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "すべての人" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "所有人" }}
+    }},
+    "quickstart.gender.skip" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Skip" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "スキップ" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "略過" }}
+    }},
+    "quickstart.optional" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Optional" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "任意" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "可不填" }}
+    }},
+    "quickstart.age.confirmation" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "I confirm I am 18 or older." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "18歳以上であることを確認します。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "我確認自己已滿 18 歲。" }}
+    }},
+    "quickstart.age.subtitle" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Getalong is an 18+ app." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "Getalongは18歳以上向けのアプリです。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "Getalong 為 18 歲以上適用。" }}
+    }},
+    "quickstart.continue" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Continue" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "続ける" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "繼續" }}
+    }},
+    "quickstart.signOut" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Sign out" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "サインアウト" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "登出" }}
+    }},
+
+    "signals.title" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Signals" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "きっかけ" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "訊號" }}
+    }},
+    "signals.subtitle" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Live signals are quick, mutual moments. No pressure if it isn’t yours." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "今この瞬間に届く、短いきっかけ。気になるときだけ反応して大丈夫です。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "即時訊號是一個短暫的互相回應時刻。沒感覺也沒關係。" }}
+    }},
+    "signals.tab.live" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Live" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "ライブ" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "即時" }}
+    }},
+    "signals.tab.missed" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Missed" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "あとで" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "錯過" }}
+    }},
+    "signals.live.empty.title" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "No live signals" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "今は届いていません" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "目前沒有即時訊號" }}
+    }},
+    "signals.live.empty.subtitle" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "When someone clicks with what you said, you’ll feel it here." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "あなたの一言に共感した人がいたら、ここに届きます。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "當有人對你的話有共鳴時，會在這裡看到。" }}
+    }},
+    "signals.missed.empty.title" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "No missed signals" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "見逃したきっかけはありません" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "目前沒有錯過的訊號" }}
+    }},
+    "signals.missed.empty.subtitle" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "If you miss a live signal, it lands here so you can still respond." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "ライブで見逃したきっかけは、ここから後で返せます。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "錯過的即時訊號會留在這裡，之後仍可回應。" }}
+    }},
+    "signals.live.label" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Live signal" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "ライブのきっかけ" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "即時訊號" }}
+    }},
+    "signals.outgoing.label" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Signal sent" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "送信しました" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "訊號已送出" }}
+    }},
+    "signals.missed.label" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Missed signal" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "見逃したきっかけ" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "錯過的訊號" }}
+    }},
+    "signals.incoming.fallback" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Thinks you might get along." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "気が合いそうだと感じています。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "覺得你們可能合得來。" }}
+    }},
+    "signals.outgoing.fallback" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Waiting to see if it clicks…" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "相手の反応を待っています…" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "等待對方回應⋯" }}
+    }},
+    "signals.missed.fallback" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "They thought you two might click." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "気が合うかもしれないと感じたようです。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "對方覺得你們可能合得來。" }}
+    }},
+    "signals.missed.support" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "No pressure — start chatting if it still feels right." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "気になるなら、今からでも会話をはじめられます。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "如果還想試試，現在就可以開始對話。" }}
+    }},
+    "signals.missed.expires %@" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Expires %@" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "期限：%@" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "%@ 到期" }}
+    }},
+    "signals.timeRemaining %lld" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "%lld s left" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "残り %lld 秒" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "剩餘 %lld 秒" }}
+    }},
+    "signals.accept.start" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Start chatting" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "会話をはじめる" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "開始對話" }}
+    }},
+    "signals.accept" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Accept" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "応える" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "回應" }}
+    }},
+    "signals.decline" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Decline" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "今はしない" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "暫時不要" }}
+    }},
+    "signals.decline.notNow" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Not now" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "今はしない" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "暫時不要" }}
+    }},
+    "signals.cancel" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Cancel" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "キャンセル" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "取消" }}
+    }},
+    "signals.send" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Send signal" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "送る" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "送出訊號" }}
+    }},
+    "signals.dev.title" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Developer test" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "開発用テスト" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "開發測試" }}
+    }},
+    "signals.dev.description" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "In the real app, signals are sent from someone’s profile or post in Discover." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "本番では、相手のプロフィールや投稿から送れるようになります。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "正式版會從對方的個人頁或動態送出訊號。" }}
+    }},
+    "signals.dev.recipient.label" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Recipient handle" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "送り先のハンドル" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "對方的 ID" }}
+    }},
+    "signals.dev.recipient.error" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Enter a handle to send a signal to." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "送り先のハンドルを入力してください。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "請輸入對方的 ID。" }}
+    }},
+
+    "chats.alert.title" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Chat started" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "会話がはじまりました" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "對話已開始" }}
+    }},
+    "chats.alert.body %@" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Room %@… is ready. Full chat is coming next." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "ルーム %@… が準備できました。会話画面はまもなく追加されます。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "聊天室 %@… 已準備好。完整對話畫面即將推出。" }}
+    }},
+
+    "profile.title" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Profile" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "プロフィール" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "個人頁" }}
+    }},
+    "profile.yourSignal" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Your signal" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "あなたの一言" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "你的小訊號" }}
+    }},
+    "profile.yourSignal.subtitle" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "One line that helps the right people click with you." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "気が合う人があなたを見つけやすくなる一言。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "讓合得來的人更容易發現你的一句話。" }}
+    }},
+    "profile.yourSignal.placeholder" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Add one line so others can feel whether they’ll get along with you." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "気が合うかどうかが伝わる一言を書いてみましょう。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "寫一句話，讓其他人感受得到你會不會合得來。" }}
+    }},
+    "profile.yourSignal.add" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Add signal" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "一言を追加" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "新增訊號" }}
+    }},
+    "profile.click.title" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "What helps you click" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "気が合うきっかけ" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "你會跟誰合拍" }}
+    }},
+    "profile.click.subtitle" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Topics, moods, small things you care about." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "話題、気分、ちょっと気になること。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "話題、心情、你在意的小事。" }}
+    }},
+    "profile.click.placeholder" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Pick a few — music, late-night, books, anything that helps people find your wavelength." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "音楽、夜更かし、本など、気の合う人が見つかりやすくなるものを選んでみてください。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "挑幾個你在意的小事，例如音樂、深夜、書本，幫助合拍的人找到你。" }}
+    }},
+    "profile.click.action" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Add tags" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "タグを追加" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "新增標籤" }}
+    }},
+    "profile.preferences" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Preferences" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "設定" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "偏好設定" }}
+    }},
+    "profile.region" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Region" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "地域" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "地區" }}
+    }},
+    "profile.language" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Language" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "言語" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "語言" }}
+    }},
+    "profile.gender.iAm" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "I am" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "あなたの性別" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "性別" }}
+    }},
+    "profile.gender.visible" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Visible on profile" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "プロフィールに表示" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "顯示於個人頁" }}
+    }},
+    "profile.gender.wantToSee" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Want to see" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "見たい相手" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "想看到的對象" }}
+    }},
+    "profile.gender.notSet" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Not set" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "未設定" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "尚未設定" }}
+    }},
+    "profile.gender.yes" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Yes" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "はい" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "是" }}
+    }},
+    "profile.gender.no" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "No" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "いいえ" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "否" }}
+    }},
+    "profile.appearance" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Appearance" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "表示" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "外觀" }}
+    }},
+    "profile.appearance.system" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "System" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "システム設定" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "跟隨系統" }}
+    }},
+    "profile.appearance.light" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Light" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "ライト" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "淺色" }}
+    }},
+    "profile.appearance.dark" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Dark" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "ダーク" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "深色" }}
+    }},
+    "profile.signOut" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Sign out" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "サインアウト" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "登出" }}
+    }},
+    "profile.deleteAccount" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Delete account" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "アカウントを削除" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "刪除帳戶" }}
+    }},
+    "profile.empty.title" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "No profile loaded" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "プロフィールを読み込めませんでした" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "尚未載入個人頁" }}
+    }},
+    "profile.trust %lld" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Trust %lld" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "信頼度 %lld" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "信任度 %lld" }}
+    }},
+
+    "discovery.title" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Today’s signals" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "今日のきっかけ" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "今天的訊號" }}
+    }},
+    "discovery.subtitle" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Small thoughts from people on your wavelength." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "気が合いそうな人たちの、ふとした一言。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "與你合拍的人，他們的小小想法。" }}
+    }},
+    "discovery.empty.title" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Nothing yet" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "まだ表示できるものがありません" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "目前還沒有內容" }}
+    }},
+    "discovery.empty.subtitle" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "When people start sharing, you’ll see their small signals here." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "誰かが一言を投稿すると、ここに表示されます。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "當有人開始分享時，他們的小訊號會出現在這裡。" }}
+    }},
+    "discovery.filter.all" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "All" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "すべて" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "全部" }}
+    }},
+
+    "chats.title" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Chats" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "チャット" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "對話" }}
+    }},
+    "chats.subtitle" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Private one-to-one conversations." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "1対1のプライベートな会話。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "一對一的私密對話。" }}
+    }},
+    "chats.empty.title" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "No conversations yet" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "まだ会話はありません" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "目前沒有對話" }}
+    }},
+    "chats.empty.subtitle" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "When a signal turns into a chat, it will appear here." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "きっかけが会話につながると、ここに表示されます。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "當訊號變成對話時，會顯示在這裡。" }}
+    }},
+
+    "tab.discover" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Discover" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "見つける" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "探索" }}
+    }},
+    "tab.signals" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Signals" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "きっかけ" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "訊號" }}
+    }},
+    "tab.chats" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Chats" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "チャット" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "對話" }}
+    }},
+    "tab.profile" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Profile" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "プロフィール" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "個人頁" }}
+    }},
+
+    "common.cancel" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Cancel" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "キャンセル" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "取消" }}
+    }},
+    "common.continue" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Continue" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "続ける" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "繼續" }}
+    }},
+    "common.accept" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Accept" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "承認" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "接受" }}
+    }},
+    "common.decline" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Decline" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "辞退" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "拒絕" }}
+    }},
+    "common.loading" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Loading" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "読み込み中" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "載入中" }}
+    }},
+    "common.error" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Something went wrong." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "うまくいきませんでした。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "發生問題。" }}
+    }},
+    "common.retry" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Try again" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "もう一度試す" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "再試一次" }}
+    }},
+    "common.dismiss" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Dismiss" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "閉じる" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "關閉" }}
+    }},
+    "common.done" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Done" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "完了" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "完成" }}
+    }},
+    "common.save" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Save" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "保存" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "儲存" }}
+    }},
+    "common.edit" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Edit" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "編集" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "編輯" }}
+    }},
+    "common.add" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Add" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "追加" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "新增" }}
+    }},
+    "common.notNow" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Not now" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "今はしない" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "暫時不要" }}
+    }},
+    "common.ok" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "OK" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "OK" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "好" }}
+    }},
+    "common.manage" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Manage" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "管理" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "管理" }}
+    }},
+
+    "status.banned.title" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Account unavailable" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "アカウントが使用できません" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "帳戶無法使用" }}
+    }},
+    "status.banned.message" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "This account has been suspended." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "このアカウントは利用停止されています。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "此帳戶已被暫停。" }}
+    }},
+    "status.deleted.title" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Account deleted" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "アカウントが削除されました" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "帳戶已刪除" }}
+    }},
+    "status.deleted.message" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "This account is scheduled for deletion." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "このアカウントは削除予定です。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "此帳戶已排定刪除。" }}
+    }},
+    "status.error.title" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Something went wrong" }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "問題が発生しました" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "發生問題" }}
+    }},
+
+    "error.generic" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Something went wrong. Please try again." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "うまくいきませんでした。もう一度お試しください。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "發生問題，請再試一次。" }}
+    }},
+    "error.duplicateHandle" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "That handle is already taken. Try another." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "このIDはすでに使われています。別のものをお試しください。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "這個 ID 已被使用，請換一個。" }}
+    }},
+    "error.liveSignalSlotFull" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "You already have a live signal out. Wait for it to finish or cancel it." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "ライブのきっかけはすでに送信中です。終わるまで待つか、キャンセルしてください。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "你已經有一個即時訊號正在進行中，請等候或取消後再試。" }}
+    }},
+    "error.duplicateLiveSignal" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "You already sent them a live signal." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "この相手にはすでにライブのきっかけを送っています。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "你已向對方送出即時訊號。" }}
+    }},
+    "error.network" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Please check your connection and try again." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "通信状況を確認して、もう一度お試しください。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "請檢查網絡連線後再試一次。" }}
+    }},
+    "error.authCancelled" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Sign-in was cancelled." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "サインインがキャンセルされました。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "登入已取消。" }}
+    }},
+    "error.profileNotFound" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Profile not found." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "プロフィールが見つかりません。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "找不到此個人頁。" }}
+    }},
+    "error.userBanned" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Your account is restricted." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "アカウントが制限されています。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "你的帳戶目前受到限制。" }}
+    }},
+    "error.receiverBanned" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "That person can’t receive signals right now." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "この相手は今、きっかけを受け取れません。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "對方目前無法接收訊號。" }}
+    }},
+    "error.selfInviteNotAllowed" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "You can’t send a signal to yourself." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "自分にきっかけは送れません。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "你不能對自己送出訊號。" }}
+    }},
+    "error.blockedRelationship" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "You can’t reach this person." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "この相手には届けられません。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "你無法聯絡此對象。" }}
+    }},
+    "error.inviteNotFound" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Signal not found." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "きっかけが見つかりません。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "找不到此訊號。" }}
+    }},
+    "error.inviteNotActionable" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "This signal can’t be acted on right now." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "このきっかけは今は操作できません。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "目前無法處理此訊號。" }}
+    }},
+    "error.liveInviteExpired" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "This live signal has ended." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "このライブのきっかけは終了しました。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "此即時訊號已結束。" }}
+    }},
+    "error.missedInviteExpired" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "This missed signal has expired." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "見逃したきっかけの期限が過ぎました。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "錯過的訊號已逾期。" }}
+    }},
+    "error.missedAcceptLimitReached" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "You’ve used today’s missed-signal responses." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "本日見逃したきっかけに応えられる回数を使い切りました。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "你今天回應錯過訊號的次數已用完。" }}
+    }},
+    "error.activeChatLimitReached" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "You’ve reached your active chat limit." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "進行中の会話の上限に達しました。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "你的進行中對話已達上限。" }}
+    }},
+    "error.chatAlreadyExists" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "A chat already exists with this person." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "この相手とはすでに会話があります。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "你與此對象已有對話。" }}
+    }},
+    "error.receiverNotFound" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "We couldn’t find that handle." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "そのハンドルは見つかりません。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "找不到這個 ID。" }}
+    }},
+    "error.invalidInput" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Invalid request." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "リクエストが不正です。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "請求無效。" }}
+    }},
+    "error.appleNoToken" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Apple sign-in didn’t return an identity token." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "Appleサインインからトークンが返されませんでした。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "Apple 登入未回傳識別權杖。" }}
+    }},
+    "error.notSignedIn" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Please sign in again." }},
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "もう一度サインインしてください。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "請重新登入。" }}
+    }}
+  }
+}

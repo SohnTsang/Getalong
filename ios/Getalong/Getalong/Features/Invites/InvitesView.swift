@@ -50,11 +50,12 @@ struct InvitesView: View {
                 if let uid = currentUserId { await vm.attach(userId: uid) }
             }
             .onDisappear { Task { await vm.detach() } }
-            .alert("Chat started", isPresented: chatCreatedBinding) {
-                Button("OK", role: .cancel) { vm.clearLastChat() }
+            .alert(String(localized: "chats.alert.title"), isPresented: chatCreatedBinding) {
+                Button(String(localized: "common.ok"), role: .cancel) { vm.clearLastChat() }
             } message: {
                 if let id = vm.lastChatRoomId {
-                    Text("Room \(id.uuidString.prefix(8))… is ready. Full chat is coming next.")
+                    Text(String(format: NSLocalizedString("chats.alert.body %@", comment: ""),
+                                String(id.uuidString.prefix(8))))
                 }
             }
         }
@@ -64,18 +65,21 @@ struct InvitesView: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: GASpacing.xs) {
-            Text("Signals")
+            Text("signals.title")
                 .font(GATypography.screenTitle)
                 .foregroundStyle(GAColors.textPrimary)
-            Text("Live signals are quick, mutual moments. No pressure if it isn't yours.")
+            Text("signals.subtitle")
                 .font(GATypography.callout)
                 .foregroundStyle(GAColors.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
     private var segment: some View {
         Picker("", selection: $vm.tab) {
-            ForEach(InvitesViewModel.Tab.allCases) { Text($0.rawValue).tag($0) }
+            ForEach(InvitesViewModel.Tab.allCases) { tab in
+                Text(tab.localizedTitle).tag(tab)
+            }
         }
         .pickerStyle(.segmented)
     }
@@ -85,8 +89,8 @@ struct InvitesView: View {
         if vm.incomingLive == nil && vm.outgoingLive == nil {
             GACard(kind: .standard) {
                 GAEmptyState(
-                    title: "No live signals",
-                    message: "When someone clicks with what you said, you'll feel it here.",
+                    title: String(localized: "signals.live.empty.title"),
+                    message: String(localized: "signals.live.empty.subtitle"),
                     systemImage: "dot.radiowaves.left.and.right"
                 )
             }
@@ -100,8 +104,8 @@ struct InvitesView: View {
         if vm.missed.isEmpty {
             GACard(kind: .standard) {
                 GAEmptyState(
-                    title: "No missed signals",
-                    message: "If you miss a live signal, it lands here so you can still respond.",
+                    title: String(localized: "signals.missed.empty.title"),
+                    message: String(localized: "signals.missed.empty.subtitle"),
                     systemImage: "tray"
                 )
             }

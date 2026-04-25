@@ -10,8 +10,8 @@ enum AuthError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .missingAppleIdentityToken:  return "Apple sign-in did not return an identity token."
-        case .userCancelled:              return "Sign-in was cancelled."
+        case .missingAppleIdentityToken:  return String(localized: "error.appleNoToken")
+        case .userCancelled:              return String(localized: "error.authCancelled")
         case .oauthFailed(let m):         return m
         case .underlying(let m):          return m
         }
@@ -132,7 +132,7 @@ final class AuthService {
     /// an Edge Function with the service role; not built yet.
     func deleteAccount() async throws {
         guard let userId = try? await Supa.client.auth.session.user.id else {
-            throw AuthError.underlying("Not signed in.")
+            throw AuthError.underlying(String(localized: "error.notSignedIn"))
         }
         try await ProfileService.shared.softDelete(userId: userId)
         try await Supa.client.auth.signOut()

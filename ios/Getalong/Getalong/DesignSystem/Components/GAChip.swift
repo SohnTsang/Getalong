@@ -16,16 +16,7 @@ struct GAChip: View {
     var action: (() -> Void)? = nil
 
     var body: some View {
-        if let action {
-            Button(action: action) { content }
-                .buttonStyle(.plain)
-        } else {
-            content
-        }
-    }
-
-    private var content: some View {
-        HStack(spacing: GASpacing.xs) {
+        let chipContent = HStack(spacing: GASpacing.xs) {
             if let systemImage {
                 Image(systemName: systemImage)
                     .font(.system(size: 11, weight: .semibold))
@@ -38,6 +29,13 @@ struct GAChip: View {
         .foregroundStyle(foreground)
         .clipShape(Capsule())
         .overlay(Capsule().strokeBorder(stroke, lineWidth: 1))
+
+        if let action {
+            Button(action: action) { chipContent }
+                .buttonStyle(.plain)
+        } else {
+            chipContent
+        }
     }
 
     private var fill: Color {

@@ -7,6 +7,16 @@ options:
   deploymentTarget:
     iOS: "16.0"
   createIntermediateGroups: true
+  developmentLanguage: en
+
+# Locales available in the String Catalog. Listed for the project root
+# so Xcode shows them in the Languages panel; runtime localizations are
+# generated from Localizable.xcstrings at build time.
+knownRegions:
+  - en
+  - ja
+  - zh-Hant
+  - Base
 
 settings:
   base:

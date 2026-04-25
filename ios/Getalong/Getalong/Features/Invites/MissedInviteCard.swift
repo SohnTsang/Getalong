@@ -9,12 +9,13 @@ struct MissedInviteCard: View {
         GACard(kind: .standard, padding: GASpacing.lg) {
             VStack(alignment: .leading, spacing: GASpacing.md) {
                 HStack(spacing: GASpacing.sm) {
-                    GAStatusPill(label: "Missed signal",
+                    GAStatusPill(label: String(localized: "signals.missed.label"),
                                  systemImage: "dot.radiowaves.left.and.right",
                                  tint: GAColors.inviteMissed)
                     Spacer()
                     if let exp = invite.missedExpiresAt {
-                        Text("Expires \(exp, format: .relative(presentation: .named))")
+                        Text(String(format: NSLocalizedString("signals.missed.expires %@", comment: ""),
+                                    exp.formatted(.relative(presentation: .named))))
                             .font(GATypography.caption)
                             .foregroundStyle(GAColors.textTertiary)
                     }
@@ -26,18 +27,20 @@ struct MissedInviteCard: View {
                         .foregroundStyle(GAColors.textPrimary)
                         .lineLimit(3)
                 } else {
-                    Text("They thought you two might click.")
+                    Text("signals.missed.fallback")
                         .font(GATypography.body)
                         .foregroundStyle(GAColors.textSecondary)
                 }
 
-                Text("No pressure — start chatting if it still feels right.")
+                Text("signals.missed.support")
                     .font(GATypography.footnote)
                     .foregroundStyle(GAColors.textTertiary)
 
                 HStack(spacing: GASpacing.md) {
-                    GAButton(title: "Not now",       kind: .ghost,   size: .compact) { onDecline() }
-                    GAButton(title: "Start chatting", kind: .primary, size: .compact) { onAccept() }
+                    GAButton(title: String(localized: "signals.decline.notNow"),
+                             kind: .ghost, size: .compact) { onDecline() }
+                    GAButton(title: String(localized: "signals.accept.start"),
+                             kind: .primary, size: .compact) { onAccept() }
                 }
             }
         }

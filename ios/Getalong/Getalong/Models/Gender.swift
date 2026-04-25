@@ -7,10 +7,18 @@ enum Gender: String, CaseIterable, Identifiable {
     case female
 
     var id: String { rawValue }
+    /// Raw English label kept for any non-localized callers.
     var label: String {
         switch self {
         case .male:   return "Male"
         case .female: return "Female"
+        }
+    }
+    /// Localized label for UI.
+    var localizedLabel: String {
+        switch self {
+        case .male:   return String(localized: "quickstart.gender.male")
+        case .female: return String(localized: "quickstart.gender.female")
         }
     }
 }
@@ -28,6 +36,13 @@ enum InterestedInGender: String, CaseIterable, Identifiable {
         case .male:     return "Male"
         case .female:   return "Female"
         case .everyone: return "Everyone"
+        }
+    }
+    var localizedLabel: String {
+        switch self {
+        case .male:     return String(localized: "quickstart.gender.male")
+        case .female:   return String(localized: "quickstart.gender.female")
+        case .everyone: return String(localized: "quickstart.gender.everyone")
         }
     }
 }

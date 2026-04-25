@@ -17,7 +17,7 @@ struct IncomingLiveInviteView: View {
             role: .incoming,
             totalSeconds: 15,
             secondsLeft: secondsLeft,
-            senderTitle: "Live signal",
+            senderTitle: String(localized: "signals.live.label"),
             preview: invite.message,
             onAccept: onAccept,
             onDecline: onDecline

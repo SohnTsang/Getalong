@@ -7,18 +7,18 @@ struct ChatsView: View {
                 VStack(alignment: .leading, spacing: GASpacing.sectionGap) {
 
                     VStack(alignment: .leading, spacing: GASpacing.xs) {
-                        Text("Chats")
+                        Text("chats.title")
                             .font(GATypography.screenTitle)
                             .foregroundStyle(GAColors.textPrimary)
-                        Text("Private one-to-one conversations.")
+                        Text("chats.subtitle")
                             .font(GATypography.callout)
                             .foregroundStyle(GAColors.textSecondary)
                     }
 
                     GACard {
                         GAEmptyState(
-                            title: "No chats yet",
-                            message: "Accept a live or missed invite to start a conversation.",
+                            title: String(localized: "chats.empty.title"),
+                            message: String(localized: "chats.empty.subtitle"),
                             systemImage: "ellipsis.message"
                         )
                     }

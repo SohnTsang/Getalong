@@ -12,7 +12,7 @@ struct DevComposeInviteCard: View {
 
                 Button { withAnimation(.easeOut(duration: 0.18)) { isExpanded.toggle() } } label: {
                     HStack {
-                        GAStatusPill(label: "Developer test",
+                        GAStatusPill(label: String(localized: "signals.dev.title"),
                                      systemImage: "wrench.and.screwdriver.fill",
                                      tint: GAColors.warning)
                         Spacer()
@@ -24,13 +24,14 @@ struct DevComposeInviteCard: View {
                 .buttonStyle(.plain)
 
                 if isExpanded {
-                    Text("In the real app, signals are sent from someone's profile or post in Discover. This shortcut goes away once Discovery ships.")
+                    Text("signals.dev.description")
                         .font(GATypography.footnote)
                         .foregroundStyle(GAColors.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
 
-                    GATextField(title: "Recipient handle",
+                    GATextField(title: String(localized: "signals.dev.recipient.label"),
                                 text: $vm.composeHandle,
-                                placeholder: "their_handle",
+                                placeholder: "your_handle",
                                 systemImage: "at",
                                 autocapitalization: .never)
 
@@ -39,7 +40,7 @@ struct DevComposeInviteCard: View {
                                       onDismiss: { vm.composeError = nil })
                     }
 
-                    GAButton(title: "Send signal",
+                    GAButton(title: String(localized: "signals.send"),
                              kind: .secondary,
                              size: .compact,
                              isLoading: vm.composeIsSending,

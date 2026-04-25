@@ -8,6 +8,13 @@ final class InvitesViewModel: ObservableObject {
         case live = "Live"
         case missed = "Missed"
         var id: String { rawValue }
+
+        var localizedTitle: String {
+            switch self {
+            case .live:   return String(localized: "signals.tab.live")
+            case .missed: return String(localized: "signals.tab.missed")
+            }
+        }
     }
 
     // Inbound
@@ -138,7 +145,7 @@ final class InvitesViewModel: ObservableObject {
             .trimmingCharacters(in: CharacterSet(charactersIn: "@"))
             .lowercased()
         guard handle.count >= 3 else {
-            composeError = "Enter a handle to invite."
+            composeError = String(localized: "signals.dev.recipient.error")
             return
         }
         composeIsSending = true
