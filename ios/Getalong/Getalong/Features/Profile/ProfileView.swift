@@ -112,10 +112,11 @@ struct ProfileView: View {
         GACard {
             sectionHeader(title: "Gender", actionTitle: "Edit") { /* TODO */ }
             VStack(alignment: .leading, spacing: GASpacing.xs) {
-                row("Gender", value: profile.gender)
+                row("I am", value: profile.gender?.capitalized)
                 row("Visible on profile",
                     value: profile.gender == nil ? nil
                                                  : (profile.genderVisible ? "Yes" : "No"))
+                row("Want to see", value: profile.interestedInGender?.capitalized)
             }
             .padding(.top, GASpacing.xs)
         }

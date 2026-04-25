@@ -9,6 +9,8 @@ final class QuickStartProfileViewModel: ObservableObject {
     @Published var getalongId: String = ""
     @Published var displayName: String = ""
     @Published var oneLineIntro: String = ""
+    @Published var gender: Gender? = nil
+    @Published var interestedIn: InterestedInGender? = nil
     @Published var is18Confirmed: Bool = false
 
     @Published var isWorking: Bool = false
@@ -58,8 +60,11 @@ final class QuickStartProfileViewModel: ObservableObject {
             city: nil,
             country: nil,
             languageCodes: Self.deviceLanguageCodes(),
-            gender: nil,
-            genderVisible: false
+            gender: gender?.rawValue,
+            // If the user picked their gender, default to showing it. They
+            // can hide later from Profile → Gender.
+            genderVisible: gender != nil,
+            interestedInGender: interestedIn?.rawValue
         )
 
         do {

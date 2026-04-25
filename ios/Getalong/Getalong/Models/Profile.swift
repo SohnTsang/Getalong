@@ -7,6 +7,7 @@ struct Profile: Codable, Identifiable, Hashable {
     var bio: String?
     var gender: String?
     var genderVisible: Bool
+    var interestedInGender: String?
     var birthYear: Int?
     var city: String?
     var country: String?
@@ -24,8 +25,9 @@ struct Profile: Codable, Identifiable, Hashable {
         case displayName   = "display_name"
         case bio
         case gender
-        case genderVisible = "gender_visible"
-        case birthYear     = "birth_year"
+        case genderVisible      = "gender_visible"
+        case interestedInGender = "interested_in_gender"
+        case birthYear          = "birth_year"
         case city
         case country
         case languageCodes = "language_codes"

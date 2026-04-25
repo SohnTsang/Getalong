@@ -43,6 +43,21 @@ struct QuickStartProfileView: View {
                 }
 
                 GACard {
+                    VStack(alignment: .leading, spacing: GASpacing.md) {
+                        pickerSection(title: "I am",
+                                      hint: "Optional",
+                                      options: Gender.allCases,
+                                      selection: $vm.gender,
+                                      label: { $0.label })
+                        pickerSection(title: "I want to see",
+                                      hint: "Optional",
+                                      options: InterestedInGender.allCases,
+                                      selection: $vm.interestedIn,
+                                      label: { $0.label })
+                    }
+                }
+
+                GACard {
                     Toggle(isOn: $vm.is18Confirmed) {
                         VStack(alignment: .leading, spacing: GASpacing.xs) {
                             Text("I confirm I am 18 or older.")
@@ -82,6 +97,66 @@ struct QuickStartProfileView: View {
             .padding(.vertical, GASpacing.xxl)
         }
         .background(GAColors.background.ignoresSafeArea())
+    }
+}
+
+    /// Optional segmented picker with a leading "Skip" tile.
+    @ViewBuilder
+    private func pickerSection<T: CaseIterable & Identifiable & Hashable>(
+        title: String,
+        hint: String?,
+        options: T.AllCases,
+        selection: Binding<T?>,
+        label: @escaping (T) -> String
+    ) -> some View {
+        VStack(alignment: .leading, spacing: GASpacing.xs) {
+            HStack {
+                Text(title)
+                    .font(GATypography.caption)
+                    .foregroundStyle(GAColors.textSecondary)
+                Spacer()
+                if let hint {
+                    Text(hint)
+                        .font(GATypography.caption)
+                        .foregroundStyle(GAColors.textTertiary)
+                }
+            }
+            HStack(spacing: GASpacing.sm) {
+                pickerTile(title: "Skip",
+                           isSelected: selection.wrappedValue == nil) {
+                    selection.wrappedValue = nil
+                }
+                ForEach(Array(options)) { option in
+                    pickerTile(title: label(option),
+                               isSelected: selection.wrappedValue == option) {
+                        selection.wrappedValue = option
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func pickerTile(title: String,
+                            isSelected: Bool,
+                            action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(GATypography.callout)
+                .frame(maxWidth: .infinity, minHeight: 40)
+                .padding(.horizontal, GASpacing.md)
+                .background(isSelected ? GAColors.accentSoft : GAColors.surfaceMuted)
+                .foregroundStyle(isSelected ? GAColors.accent : GAColors.textPrimary)
+                .clipShape(RoundedRectangle(cornerRadius: GACornerRadius.sm,
+                                            style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: GACornerRadius.sm,
+                                     style: .continuous)
+                        .stroke(isSelected ? GAColors.accent : GAColors.border,
+                                lineWidth: 1)
+                )
+        }
+        .buttonStyle(.plain)
     }
 }
 

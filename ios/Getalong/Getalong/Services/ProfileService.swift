@@ -26,18 +26,20 @@ struct ProfileInsert: Encodable {
     let languageCodes: [String]
     let gender: String?
     let genderVisible: Bool
+    let interestedInGender: String?
 
     enum CodingKeys: String, CodingKey {
         case id
-        case getalongId    = "getalong_id"
-        case displayName   = "display_name"
+        case getalongId         = "getalong_id"
+        case displayName        = "display_name"
         case bio
-        case birthYear     = "birth_year"
+        case birthYear          = "birth_year"
         case city
         case country
-        case languageCodes = "language_codes"
+        case languageCodes      = "language_codes"
         case gender
-        case genderVisible = "gender_visible"
+        case genderVisible      = "gender_visible"
+        case interestedInGender = "interested_in_gender"
     }
 }
 
