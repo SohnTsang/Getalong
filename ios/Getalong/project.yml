@@ -1,0 +1,44 @@
+# XcodeGen spec for the Getalong iOS app.
+# Generate the .xcodeproj with:  cd ios/Getalong && xcodegen generate
+
+name: Getalong
+options:
+  bundleIdPrefix: com.getalong
+  deploymentTarget:
+    iOS: "16.0"
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Automatic
+    GENERATE_INFOPLIST_FILE: NO
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    SWIFT_TREAT_WARNINGS_AS_ERRORS: NO
+
+packages:
+  Supabase:
+    url: https://github.com/supabase/supabase-swift
+    from: "2.5.1"
+
+targets:
+  Getalong:
+    type: application
+    platform: iOS
+    sources:
+      - path: Getalong
+        excludes:
+          - "Resources/Secrets.example.plist"
+    resources:
+      - Getalong/Resources/Secrets.plist
+    info:
+      path: Getalong/Resources/Info.plist
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.getalong.app
+        TARGETED_DEVICE_FAMILY: "1,2"
+        INFOPLIST_FILE: Getalong/Resources/Info.plist
+    dependencies:
+      - package: Supabase
+        product: Supabase

@@ -1,0 +1,30 @@
+# macOS
+.DS_Store
+
+# Xcode / SwiftPM
+**/xcuserdata/
+**/*.xcworkspace/xcuserdata/
+**/DerivedData/
+**/build/
+*.xcodeproj
+.swiftpm/
+.build/
+Packages/
+Package.resolved
+
+# Secrets — never commit these
+**/Secrets.plist
+ios/**/Secrets.plist
+
+# Supabase local dev
+supabase/.branches/
+supabase/.temp/
+.env
+.env.*
+
+# Deno / Edge Function caches
+**/deno.lock
+
+# Editor
+.vscode/
+.idea/

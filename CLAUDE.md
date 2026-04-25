@@ -1,0 +1,115 @@
+# Claude Code Instructions for Getalong
+
+You are working on Getalong, an iOS-first SwiftUI + Supabase social discovery app.
+
+## Original Design Rule
+
+Getalong must not copy Heymandi’s UI, branding, layout, colors, wording, or visual identity.
+
+Use a custom Getalong design system with full light mode and dark mode support from MVP.
+
+## Product Summary
+
+Getalong is a text-first social discovery app where users connect through:
+- short text posts
+- topic tags
+- 15-second live invitations
+- missed invitation recovery
+- private one-to-one chat
+- one-time-view image/GIF/video messages
+
+The product is similar in category to Heymandi but must not copy it directly. The goal is a premium, safer, cleaner, business-grade implementation.
+
+## Absolute Priorities
+
+1. Ship iOS MVP first.
+2. Use Supabase as the backend.
+3. Keep Android planned but not implemented until iOS MVP is stable.
+4. Protect private chat media.
+5. Enforce one-time-view media server-side.
+6. Keep scope small enough to ship.
+7. Use the corrected 15-second live invite model.
+
+## Correct Invite Model
+
+Getalong uses a real-time live invitation system.
+
+### Live Invite
+
+- Sender sends a live invite to another user.
+- Receiver has 15 seconds to accept.
+- If receiver accepts within 15 seconds, a chat room is created immediately.
+- A live accept does not consume the receiver's missed-invite accept quota.
+- Free/Silver users can have only 1 outgoing live invite active at a time.
+- Gold users can have 2 outgoing live invites active at a time.
+
+### Missed Invite
+
+- If the receiver does not accept within 15 seconds, the invite becomes a missed invite.
+- Missed invites appear in the receiver's missed invite list.
+- Free users have limited missed-invite accepts per day.
+- Paid users can accept missed invites instantly or with higher/no limits.
+- Accepting a missed invite creates a chat room.
+
+### Do Not Use This Old Model
+
+Do not implement the main invite mechanic as:
+- 10 invites/day
+- 30 invites/day
+- simple daily sent-invite limits
+
+Usage limits can exist for abuse prevention, but the core product mechanic is concurrent live invite slots + missed-invite accept limits.
+
+## Required Reading Before Coding
+
+Read these files first:
+
+- `docs/PROJECT_PLAN.md`
+- `docs/MVP_SCOPE.md`
+- `docs/SYSTEM_ARCHITECTURE.md`
+- `docs/DATABASE_SCHEMA.md`
+- `docs/EDGE_FUNCTIONS.md`
+- `docs/ONE_TIME_MEDIA_SECURITY.md`
+- `docs/MONETIZATION_PLAN.md`
+- `docs/QA_CHECKLIST.md`
+- every file in `/agents`
+
+## Development Rules
+
+- Do not expose Supabase service role key in any client app.
+- Do not make chat media public.
+- Do not rely on client-only security.
+- Use Edge Functions for sensitive actions.
+- Enable RLS on every table.
+- Use typed models.
+- Keep SwiftUI views thin.
+- Put business logic in services/view models.
+- Every feature must include loading, success, empty, and error states.
+- Every backend feature must include test cases.
+- Every API must return a stable JSON contract.
+- Invites, invite locks, missed-invite accepts, and chat creation must be enforced server-side.
+
+## First Implementation Task
+
+Start with:
+
+1. Supabase schema migration.
+2. RLS enabled on all tables.
+3. iOS SwiftUI project shell.
+4. Tabs: Discover, Invites, Chats, Profile.
+5. Placeholder Supabase client setup.
+6. Correct invite tables for 15-second live invites.
+7. No Android implementation yet.
+
+## Non-MVP Features
+
+Do not build these unless explicitly approved:
+
+- group chat
+- video calls
+- voice calls
+- AI matching engine
+- full admin dashboard
+- web app
+- public photo profile feed
+- complex dating filters
