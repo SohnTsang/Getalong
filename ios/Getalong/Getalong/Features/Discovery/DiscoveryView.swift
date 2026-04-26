@@ -192,7 +192,7 @@ private struct DiscoveryCard: View {
     /// menu.
     private var signalRow: some View {
         HStack(alignment: .top, spacing: GASpacing.sm) {
-            VStack(alignment: .leading, spacing: GASpacing.xs) {
+            VStack(alignment: .leading, spacing: GASpacing.sm) {
                 if let kind = GenderBadge.Kind.from(rawValue: profile.gender) {
                     GenderBadge(kind: kind)
                 }

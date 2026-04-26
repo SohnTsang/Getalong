@@ -95,7 +95,7 @@ struct SignInView: View {
     /// indicator. Identical structure to the Discovery card.
     private var inviteTeaser: some View {
         HStack(alignment: .top, spacing: GASpacing.md) {
-            VStack(alignment: .leading, spacing: GASpacing.xs) {
+            VStack(alignment: .leading, spacing: GASpacing.sm) {
                 GenderBadge(kind: .female)
                 Text("auth.hero.teaser.message")
                     .font(GATypography.bodyEmphasized)
