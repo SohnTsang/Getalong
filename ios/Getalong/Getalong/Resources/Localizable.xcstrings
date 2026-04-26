@@ -1599,19 +1599,19 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Apple sign-in didn’t return an identity token."
+            "value" : "Couldn’t sign in with Apple. Please try again."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Appleサインインからトークンが返されませんでした。"
+            "value" : "Appleでサインインできませんでした。もう一度お試しください。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Apple 登入未回傳識別權杖。"
+            "value" : "無法使用 Apple 登入，請再試一次。"
           }
         }
       }

@@ -30,13 +30,14 @@ final class AuthViewModel: ObservableObject {
                     idTokenJWT: token,
                     rawNonce: rawNonce
                 )
+            } catch let e as AuthError {
+                errorMessage = e.localizedDescription
             } catch {
-                errorMessage = error.localizedDescription
+                GALog.auth.error("apple post-token error: \(error.localizedDescription)")
+                errorMessage = String(localized: "error.generic")
             }
         case .failure(let error):
-            if (error as NSError).code != ASAuthorizationError.canceled.rawValue {
-                errorMessage = error.localizedDescription
-            }
+            errorMessage = Self.userMessage(forApple: error)
         }
     }
 
@@ -52,8 +53,38 @@ final class AuthViewModel: ObservableObject {
             )
         } catch AuthError.userCancelled {
             // silent
+        } catch let e as AuthError {
+            errorMessage = e.localizedDescription
         } catch {
-            errorMessage = error.localizedDescription
+            GALog.auth.error("oauth surfaced: \(error.localizedDescription)")
+            errorMessage = String(localized: "error.generic")
+        }
+    }
+
+    /// Translate an `ASAuthorizationError` from the Apple sign-in sheet
+    /// into a calm, localized message. Anything other than user-cancel
+    /// becomes a generic "couldn't sign in" so we never leak the raw
+    /// "AuthorizationError error 1000" text into the UI.
+    private static func userMessage(forApple error: Error) -> String? {
+        let ns = error as NSError
+        // ASAuthorizationError lives in its own domain; codes:
+        //   1000 unknown, 1001 canceled, 1002 invalidResponse,
+        //   1003 notHandled, 1004 failed, 1005 notInteractive
+        switch ns.code {
+        case ASAuthorizationError.canceled.rawValue:
+            return nil   // silent — user backed out
+        case ASAuthorizationError.notInteractive.rawValue:
+            // Happens when the system can't present (e.g. background).
+            GALog.auth.error("apple notInteractive")
+            return String(localized: "error.generic")
+        default:
+            // 1000 unknown / 1002 invalidResponse / 1003 notHandled /
+            // 1004 failed all mean "the system flow ended without a
+            // valid credential". Most common real-world cause on a
+            // device is a transient Apple ID hiccup; tell the user to
+            // try again rather than dumping NSError text on screen.
+            GALog.auth.error("apple authorization error code=\(ns.code) domain=\(ns.domain) desc=\(ns.localizedDescription)")
+            return String(localized: "error.appleNoToken")
         }
     }
 }
