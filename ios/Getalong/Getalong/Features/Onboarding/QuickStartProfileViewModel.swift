@@ -6,41 +6,35 @@ final class QuickStartProfileViewModel: ObservableObject {
 
     let userId: UUID
 
-    @Published var getalongId: String = ""
-    @Published var displayName: String = ""
+    /// The only field the user actually fills in. Required.
     @Published var oneLineIntro: String = ""
+    /// Required: user must pick.
     @Published var gender: Gender? = nil
+    /// Required: user must pick.
     @Published var interestedIn: InterestedInGender? = nil
-    @Published var is18Confirmed: Bool = false
 
     @Published var isWorking: Bool = false
     @Published var errorMessage: String?
 
+    static let signalMaxLength = 160
+
     init(userId: UUID) { self.userId = userId }
 
     var canSubmit: Bool {
-        !cleanedHandle.isEmpty
-        && cleanedHandle.count >= 3
-        && cleanedHandle.count <= 20
-        && !displayName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        && is18Confirmed
+        !trimmedSignal.isEmpty
+        && trimmedSignal.count <= Self.signalMaxLength
+        && gender != nil
+        && interestedIn != nil
         && !isWorking
     }
 
-    /// Lowercased, alphanumeric + `_` only. Mirrors what most apps allow.
-    var cleanedHandle: String {
-        getalongId
-            .lowercased()
-            .filter { $0.isLetter || $0.isNumber || $0 == "_" }
+    var trimmedSignal: String {
+        oneLineIntro.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    var handleHint: String? {
-        let raw = getalongId.trimmingCharacters(in: .whitespaces)
-        guard !raw.isEmpty else { return nil }
-        if cleanedHandle.count < 3 { return String(localized: "quickstart.handle.error.short") }
-        if cleanedHandle.count > 20 { return String(localized: "quickstart.handle.error.long") }
-        if cleanedHandle != raw.lowercased() {
-            return String(format: NSLocalizedString("quickstart.handle.error.normalized %@", comment: ""), cleanedHandle)
+    var signalHint: String? {
+        if trimmedSignal.count > Self.signalMaxLength {
+            return String(localized: "profile.validation.signalTooLong")
         }
         return nil
     }
@@ -52,31 +46,46 @@ final class QuickStartProfileViewModel: ObservableObject {
         isWorking = true
         defer { isWorking = false }
 
-        let trimmedIntro = oneLineIntro.trimmingCharacters(in: .whitespacesAndNewlines)
-        let payload = ProfileInsert(
-            id: userId,
-            getalongId: cleanedHandle,
-            displayName: displayName.trimmingCharacters(in: .whitespacesAndNewlines),
-            bio: trimmedIntro.isEmpty ? nil : trimmedIntro,
-            birthYear: nil,
-            city: nil,
-            country: nil,
-            languageCodes: Self.deviceLanguageCodes(),
-            gender: gender?.rawValue,
-            // If the user picked their gender, default to showing it. They
-            // can hide later from Profile → Gender.
-            genderVisible: gender != nil,
-            interestedInGender: interestedIn?.rawValue
-        )
-
-        do {
-            let profile = try await ProfileService.shared.createProfile(payload)
-            session.setAuthenticated(profile)
-            return true
-        } catch {
-            errorMessage = error.localizedDescription
-            return false
+        // Try a few generated handles to absorb the rare duplicate.
+        for _ in 0..<5 {
+            let handle = Self.generateHandle()
+            let payload = ProfileInsert(
+                id: userId,
+                getalongId: handle,
+                // display_name is required by the schema. We seed it from
+                // the handle; the user can change it later from Profile.
+                displayName: handle,
+                bio: trimmedSignal,
+                birthYear: nil,
+                city: nil,
+                country: nil,
+                languageCodes: Self.deviceLanguageCodes(),
+                gender: gender?.rawValue,
+                genderVisible: true,
+                interestedInGender: interestedIn?.rawValue
+            )
+            do {
+                let profile = try await ProfileService.shared.createProfile(payload)
+                session.setAuthenticated(profile)
+                return true
+            } catch ProfileError.duplicateGetalongId {
+                continue   // try a different random handle
+            } catch {
+                errorMessage = error.localizedDescription
+                return false
+            }
         }
+        errorMessage = String(localized: "error.generic")
+        return false
+    }
+
+    /// Stable internal handle: 8 random base-36 chars prefixed with "u".
+    /// Hidden from onboarding UI; users only ever see this as their @handle
+    /// after creation, and can edit display_name freely.
+    private static func generateHandle() -> String {
+        let chars = Array("0123456789abcdefghijklmnopqrstuvwxyz")
+        let suffix = (0..<8).map { _ in chars.randomElement()! }
+        return "u" + String(suffix)
     }
 
     private static func deviceLanguageCodes() -> [String] {

@@ -16,54 +16,27 @@ struct QuickStartProfileView: View {
 
                 GACard(kind: .standard, padding: GASpacing.xl) {
                     VStack(spacing: GASpacing.lg) {
-                        GATextField(title: String(localized: "quickstart.handle.label"),
-                                    text: $vm.getalongId,
-                                    placeholder: String(localized: "quickstart.handle.placeholder"),
-                                    systemImage: "at",
-                                    autocapitalization: .never,
-                                    helperText: String(localized: "quickstart.handle.helper"),
-                                    errorMessage: vm.handleHint)
-                        GATextField(title: String(localized: "quickstart.displayName.label"),
-                                    text: $vm.displayName,
-                                    placeholder: String(localized: "quickstart.displayName.placeholder"),
-                                    systemImage: "person",
-                                    autocapitalization: .words)
                         GATextField(title: String(localized: "quickstart.signal.label"),
                                     text: $vm.oneLineIntro,
                                     placeholder: String(localized: "quickstart.signal.placeholder"),
                                     systemImage: "text.alignleft",
                                     autocapitalization: .sentences,
-                                    helperText: String(localized: "quickstart.signal.helper"))
+                                    helperText: String(localized: "quickstart.signal.helper"),
+                                    errorMessage: vm.signalHint)
                     }
                 }
 
                 GACard {
                     VStack(alignment: .leading, spacing: GASpacing.lg) {
                         pickerSection(title: String(localized: "quickstart.gender.iAm"),
-                                      hint: String(localized: "quickstart.optional"),
                                       options: Gender.allCases,
                                       selection: $vm.gender,
                                       label: { $0.localizedLabel })
                         pickerSection(title: String(localized: "quickstart.gender.wantToSee"),
-                                      hint: String(localized: "quickstart.optional"),
                                       options: InterestedInGender.allCases,
                                       selection: $vm.interestedIn,
                                       label: { $0.localizedLabel })
                     }
-                }
-
-                GACard(kind: vm.is18Confirmed ? .highlight : .standard) {
-                    Toggle(isOn: $vm.is18Confirmed) {
-                        VStack(alignment: .leading, spacing: GASpacing.xs) {
-                            Text("quickstart.age.confirmation")
-                                .font(GATypography.bodyEmphasized)
-                                .foregroundStyle(GAColors.textPrimary)
-                            Text("quickstart.age.subtitle")
-                                .font(GATypography.footnote)
-                                .foregroundStyle(GAColors.textSecondary)
-                        }
-                    }
-                    .tint(GAColors.accent)
                 }
 
                 if let error = vm.errorMessage {
@@ -91,21 +64,21 @@ struct QuickStartProfileView: View {
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: GASpacing.lg) {
+        VStack(alignment: .leading, spacing: GASpacing.sm) {
             VStack(alignment: .leading, spacing: 0) {
                 Text("quickstart.title.line1")
-                    .font(GATypography.editorial)
+                    .font(GATypography.heroSerif)
                     .foregroundStyle(GAColors.textPrimary)
                     .lineSpacing(-2)
-                    .kerning(-0.4)
+                    .kerning(-0.3)
                 Text("quickstart.title.line2")
-                    .font(GATypography.editorial)
+                    .font(GATypography.heroSerif)
                     .foregroundStyle(GAColors.accent)
                     .lineSpacing(-2)
-                    .kerning(-0.4)
+                    .kerning(-0.3)
             }
             Text("quickstart.subtitle")
-                .font(GATypography.body)
+                .font(GATypography.callout)
                 .foregroundStyle(GAColors.textSecondary)
                 .lineSpacing(2)
                 .fixedSize(horizontal: false, vertical: true)
@@ -114,32 +87,21 @@ struct QuickStartProfileView: View {
 
     // MARK: - Pickers
 
+    /// A wrapping picker — chips flow to a second row when there are too
+    /// many to fit. No "Skip" option: the user must choose.
     @ViewBuilder
     private func pickerSection<T: CaseIterable & Identifiable & Hashable>(
         title: String,
-        hint: String?,
         options: T.AllCases,
         selection: Binding<T?>,
         label: @escaping (T) -> String
     ) -> some View {
         VStack(alignment: .leading, spacing: GASpacing.xs) {
-            HStack {
-                Text(title.uppercased())
-                    .font(GATypography.sectionTitle)
-                    .tracking(0.6)
-                    .foregroundStyle(GAColors.textTertiary)
-                Spacer()
-                if let hint {
-                    Text(hint)
-                        .font(GATypography.caption)
-                        .foregroundStyle(GAColors.textTertiary)
-                }
-            }
-            HStack(spacing: GASpacing.sm) {
-                pickerTile(title: String(localized: "quickstart.gender.skip"),
-                           isSelected: selection.wrappedValue == nil) {
-                    selection.wrappedValue = nil
-                }
+            Text(title.uppercased())
+                .font(GATypography.sectionTitle)
+                .tracking(0.6)
+                .foregroundStyle(GAColors.textTertiary)
+            FlowLayout(spacing: GASpacing.sm) {
                 ForEach(Array(options)) { option in
                     pickerTile(title: label(option),
                                isSelected: selection.wrappedValue == option) {
@@ -156,8 +118,10 @@ struct QuickStartProfileView: View {
         Button(action: action) {
             Text(title)
                 .font(GATypography.callout.weight(.medium))
-                .frame(maxWidth: .infinity, minHeight: 40)
-                .padding(.horizontal, GASpacing.md)
+                .lineLimit(1)
+                .fixedSize(horizontal: true, vertical: false)
+                .padding(.horizontal, GASpacing.lg)
+                .padding(.vertical, 10)
                 .background(isSelected ? GAColors.accentSoft : GAColors.surfaceRaised)
                 .foregroundStyle(isSelected ? GAColors.accent : GAColors.textPrimary)
                 .clipShape(RoundedRectangle(cornerRadius: GACornerRadius.medium,
