@@ -50,12 +50,13 @@ struct InvitesView: View {
                 if let uid = currentUserId { await vm.attach(userId: uid) }
             }
             .onDisappear { Task { await vm.detach() } }
-            .alert(String(localized: "chats.alert.title"), isPresented: chatCreatedBinding) {
-                Button(String(localized: "common.ok"), role: .cancel) { vm.clearLastChat() }
-            } message: {
+            .sheet(isPresented: chatCreatedBinding) {
                 if let id = vm.lastChatRoomId {
-                    Text(String(format: NSLocalizedString("chats.alert.body %@", comment: ""),
-                                String(id.uuidString.prefix(8))))
+                    ConversationStartedSheet(roomId: id) {
+                        vm.clearLastChat()
+                    }
+                    .presentationDetents([.medium])
+                    .presentationDragIndicator(.visible)
                 }
             }
         }

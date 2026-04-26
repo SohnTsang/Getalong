@@ -20,7 +20,13 @@ export type GAErrorCode =
   | "INVALID_INPUT"
   | "NOT_IMPLEMENTED"
   | "INTERNAL_ERROR"
-  | "RECEIVER_NOT_FOUND";
+  | "RECEIVER_NOT_FOUND"
+  | "ROOM_NOT_FOUND"
+  | "ROOM_NOT_ACTIVE"
+  | "NOT_ROOM_PARTICIPANT"
+  | "EMPTY_MESSAGE"
+  | "MESSAGE_TOO_LONG"
+  | "INSERT_FAILED";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",

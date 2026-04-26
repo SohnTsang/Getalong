@@ -70,6 +70,49 @@ final class RealtimeInviteManager {
     }
 }
 
+/// Subscribes to message inserts for a single chat room.
+@MainActor
+final class RealtimeChatManager {
+    static let shared = RealtimeChatManager()
+    private init() {}
+
+    private var channel: RealtimeChannelV2?
+    private var task: Task<Void, Never>?
+
+    func start(roomId: UUID, onInsert: @escaping () -> Void) async {
+        await stop()
+        let rid = roomId.uuidString.lowercased()
+        let ch = Supa.client.realtimeV2.channel("chat:room=\(rid)")
+
+        let inserts = ch.postgresChange(
+            InsertAction.self,
+            schema: "public",
+            table: "messages",
+            filter: .eq("room_id", value: rid)
+        )
+
+        do { try await ch.subscribeWithError() }
+        catch {
+            GALog.chat.error("realtime chat subscribe failed: \(error.localizedDescription)")
+            return
+        }
+        channel = ch
+
+        task = Task {
+            for await _ in inserts {
+                await MainActor.run { onInsert() }
+            }
+        }
+    }
+
+    func stop() async {
+        task?.cancel()
+        task = nil
+        if let channel { await channel.unsubscribe() }
+        channel = nil
+    }
+}
+
 /// Legacy stub kept for compatibility with earlier scaffolding.
 final class RealtimeManager {
     static let shared = RealtimeManager()
@@ -80,6 +123,8 @@ final class RealtimeManager {
         // Use RealtimeInviteManager.shared instead.
     }
     func subscribeToMessages(roomId: UUID,
-                             onMessage: @escaping (Message) -> Void) {}
+                             onMessage: @escaping (Message) -> Void) {
+        // Use RealtimeChatManager.shared instead.
+    }
     func unsubscribeAll() {}
 }
