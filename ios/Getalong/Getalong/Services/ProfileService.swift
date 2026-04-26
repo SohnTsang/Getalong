@@ -3,14 +3,52 @@ import Supabase
 
 enum ProfileError: LocalizedError {
     case duplicateGetalongId
+    case validation(String)
     case underlying(String)
 
     var errorDescription: String? {
         switch self {
         case .duplicateGetalongId: return String(localized: "error.duplicateHandle")
+        case .validation(let m):   return m
         case .underlying:          return String(localized: "error.generic")
         }
     }
+}
+
+/// Whitelist of fields a user may update on their own profile from the
+/// app. Sensitive fields (plan, is_banned, trust_score, deleted_at,
+/// created_at, id, getalong_id) are also locked at the database level by
+/// the profiles_lock_sensitive_columns trigger.
+struct ProfilePatch: Encodable {
+    var displayName: String?
+    var bio: String?
+    var gender: String?
+    var genderVisible: Bool?
+    var city: String?
+    var country: String?
+    var languageCodes: [String]?
+    var interestedInGender: String?
+
+    enum CodingKeys: String, CodingKey {
+        case displayName        = "display_name"
+        case bio
+        case gender
+        case genderVisible      = "gender_visible"
+        case city
+        case country
+        case languageCodes      = "language_codes"
+        case interestedInGender = "interested_in_gender"
+    }
+}
+
+/// Server-aligned bounds for client-side validation. The DB-side bio
+/// constraint allows up to 500 (matches the posts table); we cap UI at
+/// 160 for the one-line signal.
+enum ProfileLimits {
+    static let displayNameMax = 40
+    static let signalMax      = 160
+    static let cityMax        = 80
+    static let countryMax     = 80
 }
 
 /// Payload sent to `public.profiles` on profile creation. Only the columns
@@ -78,6 +116,28 @@ final class ProfileService {
                 .execute()
                 .value
             return inserted
+        } catch {
+            throw Self.translate(error)
+        }
+    }
+
+    /// Updates the caller's profile. Only fields whitelisted by
+    /// `ProfilePatch` may be changed; sensitive columns are also locked
+    /// at the DB level. Returns the freshly-fetched row.
+    func updateMyProfile(_ patch: ProfilePatch) async throws -> Profile {
+        guard let userId = try? await Supa.client.auth.session.user.id else {
+            throw ProfileError.underlying("not signed in")
+        }
+        do {
+            let updated: Profile = try await Supa.client
+                .from("profiles")
+                .update(patch)
+                .eq("id", value: userId)
+                .select()
+                .single()
+                .execute()
+                .value
+            return updated
         } catch {
             throw Self.translate(error)
         }

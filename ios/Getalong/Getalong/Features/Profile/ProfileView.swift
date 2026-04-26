@@ -4,6 +4,10 @@ struct ProfileView: View {
     @EnvironmentObject private var session: SessionManager
     @StateObject private var vm = ProfileViewModel()
     @State private var isTagEditorPresented: Bool = false
+    @State private var isBasicsPresented: Bool = false
+    @State private var isRegionPresented: Bool = false
+    @State private var isPreferencesPresented: Bool = false
+    @State private var saveSuccessNote: String?
     @State private var isDeleteConfirmPresented: Bool = false
     @State private var isDeleting: Bool = false
     @State private var deleteError: String?
@@ -26,9 +30,13 @@ struct ProfileView: View {
             GAScreen(maxWidth: 560) {
                 if let profile {
                     VStack(alignment: .leading, spacing: GASpacing.sectionGap) {
+                        if let note = saveSuccessNote {
+                            successNote(note)
+                        }
                         header(profile)
                         signalSection(profile)
                         tagsSection
+                        regionSection(profile)
                         preferencesSection(profile)
                         appearanceSection
                         safetySection
@@ -51,6 +59,76 @@ struct ProfileView: View {
                     }
                 }
             }
+            .sheet(isPresented: $isBasicsPresented) {
+                if let p = profile {
+                    EditProfileBasicsSheet(
+                        initial: p,
+                        onSaved: { updated in
+                            session.setAuthenticated(updated)
+                            isBasicsPresented = false
+                            flashSuccess()
+                        },
+                        onClose: { isBasicsPresented = false }
+                    )
+                }
+            }
+            .sheet(isPresented: $isRegionPresented) {
+                if let p = profile {
+                    EditRegionSheet(
+                        initial: p,
+                        onSaved: { updated in
+                            session.setAuthenticated(updated)
+                            isRegionPresented = false
+                            flashSuccess()
+                        },
+                        onClose: { isRegionPresented = false }
+                    )
+                }
+            }
+            .sheet(isPresented: $isPreferencesPresented) {
+                if let p = profile {
+                    EditPreferencesSheet(
+                        initial: p,
+                        onSaved: { updated in
+                            session.setAuthenticated(updated)
+                            isPreferencesPresented = false
+                            flashSuccess()
+                        },
+                        onClose: { isPreferencesPresented = false }
+                    )
+                }
+            }
+        }
+    }
+
+    // MARK: - Success note
+
+    private func successNote(_ text: String) -> some View {
+        HStack(spacing: GASpacing.sm) {
+            Image(systemName: "checkmark.circle.fill")
+                .foregroundStyle(GAColors.success)
+            Text(text)
+                .font(GATypography.footnote)
+                .foregroundStyle(GAColors.textPrimary)
+            Spacer()
+            Button { saveSuccessNote = nil } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(GAColors.textTertiary)
+            }
+        }
+        .padding(.horizontal, GASpacing.md)
+        .padding(.vertical, GASpacing.sm)
+        .background(GAColors.surfaceRaised)
+        .clipShape(RoundedRectangle(cornerRadius: GACornerRadius.medium,
+                                    style: .continuous))
+    }
+
+    private func flashSuccess() {
+        saveSuccessNote = String(localized: "profile.edit.success")
+        Task {
+            try? await Task.sleep(nanoseconds: 2_500_000_000)
+            await MainActor.run { saveSuccessNote = nil }
         }
     }
 
@@ -134,7 +212,9 @@ struct ProfileView: View {
         VStack(alignment: .leading, spacing: GASpacing.sm) {
             GASectionHeader(title: String(localized: "profile.yourSignal"),
                             subtitle: String(localized: "profile.yourSignal.subtitle"),
-                            actionTitle: String(localized: "common.edit")) { /* TODO */ }
+                            actionTitle: String(localized: "common.edit")) {
+                isBasicsPresented = true
+            }
             GACard {
                 if let bio = p.bio, !bio.isEmpty {
                     Text(bio)
@@ -142,7 +222,9 @@ struct ProfileView: View {
                         .foregroundStyle(GAColors.textPrimary)
                 } else {
                     placeholderRow(text: String(localized: "profile.yourSignal.placeholder"),
-                                   actionTitle: String(localized: "profile.yourSignal.add")) { /* TODO */ }
+                                   actionTitle: String(localized: "profile.yourSignal.add")) {
+                        isBasicsPresented = true
+                    }
                 }
             }
         }
@@ -175,18 +257,32 @@ struct ProfileView: View {
         }
     }
 
-    private func preferencesSection(_ p: Profile) -> some View {
+    private func regionSection(_ p: Profile) -> some View {
         VStack(alignment: .leading, spacing: GASpacing.sm) {
-            GASectionHeader(title: String(localized: "profile.preferences"),
-                            actionTitle: String(localized: "common.edit")) { /* TODO */ }
+            GASectionHeader(title: String(localized: "profile.region.title"),
+                            actionTitle: String(localized: "common.edit")) {
+                isRegionPresented = true
+            }
             GACard {
                 VStack(spacing: 0) {
-                    detailRow(label: String(localized: "profile.region"),
-                              value: [p.city, p.country].compactMap { $0 }.joined(separator: ", "))
+                    detailRow(label: String(localized: "profile.city.label"),
+                              value: p.city)
                     divider
-                    detailRow(label: String(localized: "profile.language"),
-                              value: p.languageCodes.first?.uppercased())
-                    divider
+                    detailRow(label: String(localized: "profile.country.label"),
+                              value: p.country)
+                }
+            }
+        }
+    }
+
+    private func preferencesSection(_ p: Profile) -> some View {
+        VStack(alignment: .leading, spacing: GASpacing.sm) {
+            GASectionHeader(title: String(localized: "profile.preferences.title"),
+                            actionTitle: String(localized: "common.edit")) {
+                isPreferencesPresented = true
+            }
+            GACard {
+                VStack(spacing: 0) {
                     detailRow(label: String(localized: "profile.gender.iAm"),
                               value: p.gender.flatMap { Gender(rawValue: $0)?.localizedLabel })
                     divider
@@ -196,6 +292,9 @@ struct ProfileView: View {
                     divider
                     detailRow(label: String(localized: "profile.gender.wantToSee"),
                               value: p.interestedInGender.flatMap { InterestedInGender(rawValue: $0)?.localizedLabel })
+                    divider
+                    detailRow(label: String(localized: "profile.language.label"),
+                              value: p.languageCodes.first?.uppercased())
                 }
             }
         }

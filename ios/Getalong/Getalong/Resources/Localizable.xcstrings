@@ -1629,6 +1629,146 @@
       "ja" :      { "stringUnit" : { "state" : "translated", "value" : "閉じる" }},
       "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "關閉" }}
     }},
+    "profile.edit.title" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Edit profile" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "プロフィールを編集" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "編輯個人頁" }}
+    }},
+    "profile.edit.basics" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Edit your signal" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "一言を編集" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "編輯你的小訊號" }}
+    }},
+    "profile.edit.region" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Edit region" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "地域を編集" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "編輯地區" }}
+    }},
+    "profile.edit.preferences" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Edit preferences" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "設定を編集" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "編輯偏好設定" }}
+    }},
+    "profile.edit.save" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Save" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "保存" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "儲存" }}
+    }},
+    "profile.edit.saving" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Saving..." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "保存中..." }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "儲存中..." }}
+    }},
+    "profile.edit.success" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Profile updated." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "プロフィールを更新しました。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "個人頁已更新。" }}
+    }},
+    "profile.edit.error" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Couldn’t update your profile. Please try again." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "プロフィールを更新できませんでした。もう一度お試しください。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "無法更新個人頁，請再試一次。" }}
+    }},
+    "profile.displayName.label" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Display name" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "表示名" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "顯示名稱" }}
+    }},
+    "profile.displayName.placeholder" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Your name" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "表示する名前" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "你的名稱" }}
+    }},
+    "profile.signal.label" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Your signal" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "あなたの一言" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "你的小訊號" }}
+    }},
+    "profile.signal.placeholder" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "One line that helps the right people feel they might get along with you." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "気が合いそうな人に届く、短い一言を書いてみましょう。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "寫下一句讓合得來的人更容易發現你的話。" }}
+    }},
+    "profile.region.title" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Region" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "地域" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "地區" }}
+    }},
+    "profile.city.label" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "City" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "市区町村" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "城市" }}
+    }},
+    "profile.city.placeholder" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Tokyo" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "東京" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "東京" }}
+    }},
+    "profile.country.label" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Country" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "国・地域" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "國家／地區" }}
+    }},
+    "profile.country.placeholder" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Japan" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "日本" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "日本" }}
+    }},
+    "profile.preferences.title" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Preferences" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "設定" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "偏好設定" }}
+    }},
+    "profile.gender.label" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Gender" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "性別" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "性別" }}
+    }},
+    "profile.gender.placeholder" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Optional" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "任意" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "選填" }}
+    }},
+    "profile.gender.hidden" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Hidden from others" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "他の人には表示されません" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "不向其他人顯示" }}
+    }},
+    "profile.language.label" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Language" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "言語" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "語言" }}
+    }},
+    "profile.language.system" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "System language" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "システム設定" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "跟隨系統設定" }}
+    }},
+    "profile.validation.displayNameRequired" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Display name is required." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "表示名を入力してください。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "請輸入顯示名稱。" }}
+    }},
+    "profile.validation.displayNameTooLong" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Display name must be 40 characters or less." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "表示名は40文字以内で入力してください。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "顯示名稱不可超過 40 個字元。" }}
+    }},
+    "profile.validation.signalTooLong" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Your signal must be 160 characters or less." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "一言は160文字以内で入力してください。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "你的小訊號不可超過 160 個字元。" }}
+    }},
+    "profile.validation.cityTooLong" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "City must be 80 characters or less." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "市区町村は80文字以内で入力してください。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "城市不可超過 80 個字元。" }}
+    }},
+    "profile.validation.countryTooLong" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Country must be 80 characters or less." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "国・地域は80文字以内で入力してください。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "國家／地區不可超過 80 個字元。" }}
+    }},
     "common.more" : { "localizations" : {
       "en" :      { "stringUnit" : { "state" : "translated", "value" : "More" }},
       "ja" :      { "stringUnit" : { "state" : "translated", "value" : "その他" }},
