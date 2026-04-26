@@ -27,8 +27,13 @@ struct GAProviderRow: View {
     var body: some View {
         Button(action: { if !isLoading && !isDisabled { action() } }) {
             HStack(spacing: GASpacing.lg) {
+                // Fixed-width slot so every row's icon column starts at
+                // the same x-position even when iconSize differs per
+                // provider. The actual mark scales to iconSize centered
+                // inside this slot.
                 icon
                     .frame(width: iconSize, height: iconSize)
+                    .frame(width: 32, height: 32)
                 Text(title)
                     .font(GATypography.body)
                     .foregroundStyle(GAColors.textPrimary)
