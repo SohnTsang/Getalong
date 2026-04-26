@@ -7,6 +7,7 @@ struct IncomingLiveInviteView: View {
     let onAccept: () -> Void
     let onDecline: () -> Void
     let onExpired: () -> Void
+    var isBusy: Bool = false
 
     @State private var secondsLeft: Double = 0
     @State private var firedExpired: Bool = false
@@ -20,7 +21,8 @@ struct IncomingLiveInviteView: View {
             senderTitle: String(localized: "signals.live.label"),
             preview: invite.message,
             onAccept: onAccept,
-            onDecline: onDecline
+            onDecline: onDecline,
+            isBusy: isBusy
         )
         .onAppear { tick() }
         .onReceive(timer) { _ in tick() }

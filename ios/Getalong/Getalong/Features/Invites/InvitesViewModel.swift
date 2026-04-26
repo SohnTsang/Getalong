@@ -29,6 +29,10 @@ final class InvitesViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var lastChatRoomId: UUID?
     @Published var lastChatPartner: String?
+    /// Invite id for which a network action (accept/decline/cancel) is
+    /// currently in flight. Cards observe this to disable themselves and
+    /// show a spinner. Only one signal action runs at a time per VM.
+    @Published var processingInviteId: UUID?
 
     // Dev compose form (handle only — invites are a single tap)
     @Published var composeHandle: String = ""
@@ -75,6 +79,9 @@ final class InvitesViewModel: ObservableObject {
     // MARK: - Receiver actions
 
     func acceptLive(_ invite: Invite) async {
+        guard processingInviteId == nil else { return }
+        processingInviteId = invite.id
+        defer { processingInviteId = nil }
         errorMessage = nil
         do {
             let resp = try await InviteService.shared.acceptLiveInvite(inviteId: invite.id)
@@ -94,6 +101,9 @@ final class InvitesViewModel: ObservableObject {
     }
 
     func decline(_ invite: Invite) async {
+        guard processingInviteId == nil else { return }
+        processingInviteId = invite.id
+        defer { processingInviteId = nil }
         do {
             try await InviteService.shared.declineInvite(inviteId: invite.id)
             await refresh()
@@ -103,6 +113,9 @@ final class InvitesViewModel: ObservableObject {
     }
 
     func acceptMissed(_ invite: Invite) async {
+        guard processingInviteId == nil else { return }
+        processingInviteId = invite.id
+        defer { processingInviteId = nil }
         errorMessage = nil
         do {
             let resp = try await InviteService.shared.acceptMissedInvite(inviteId: invite.id)
@@ -129,6 +142,9 @@ final class InvitesViewModel: ObservableObject {
     // MARK: - Sender actions
 
     func cancelOutgoing(_ invite: Invite) async {
+        guard processingInviteId == nil else { return }
+        processingInviteId = invite.id
+        defer { processingInviteId = nil }
         do {
             try await InviteService.shared.cancelLiveInvite(inviteId: invite.id)
             await refresh()

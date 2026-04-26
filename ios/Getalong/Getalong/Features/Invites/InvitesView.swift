@@ -16,14 +16,16 @@ struct InvitesView: View {
                             invite: invite,
                             onAccept:  { Task { await vm.acceptLive(invite) } },
                             onDecline: { Task { await vm.declineLive(invite) } },
-                            onExpired: { Task { await vm.liveCountdownExpired(invite) } }
+                            onExpired: { Task { await vm.liveCountdownExpired(invite) } },
+                            isBusy: vm.processingInviteId == invite.id
                         )
                     }
 
                     if let outgoing = vm.outgoingLive {
                         OutgoingLiveInviteCard(
                             invite: outgoing,
-                            onCancel: { Task { await vm.cancelOutgoing(outgoing) } }
+                            onCancel: { Task { await vm.cancelOutgoing(outgoing) } },
+                            isBusy: vm.processingInviteId == outgoing.id
                         )
                     }
 
@@ -116,7 +118,8 @@ struct InvitesView: View {
                     MissedInviteCard(
                         invite: invite,
                         onAccept:  { Task { await vm.acceptMissed(invite) } },
-                        onDecline: { Task { await vm.decline(invite) } }
+                        onDecline: { Task { await vm.decline(invite) } },
+                        isBusy: vm.processingInviteId == invite.id
                     )
                 }
             }

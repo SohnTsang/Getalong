@@ -16,6 +16,8 @@ struct GALiveInviteCard: View {
     var onAccept:  (() -> Void)? = nil
     var onDecline: (() -> Void)? = nil
     var onCancel:  (() -> Void)? = nil
+    /// While true, action buttons show a spinner and don't accept taps.
+    var isBusy: Bool = false
 
     private var progress: Double { max(0, min(1, secondsLeft / totalSeconds)) }
     private var displaySeconds: Int { max(0, Int(ceil(secondsLeft))) }
@@ -91,10 +93,13 @@ struct GALiveInviteCard: View {
             HStack(spacing: GASpacing.md) {
                 GAButton(title: String(localized: "signals.decline.notNow"),
                          kind: .ghost,
-                         size: .compact) { onDecline?() }
+                         size: .compact,
+                         isDisabled: isBusy) { onDecline?() }
                 GAButton(title: String(localized: "signals.accept.start"),
                          kind: .primary,
-                         size: .compact) { onAccept?() }
+                         size: .compact,
+                         isLoading: isBusy,
+                         isDisabled: isBusy) { onAccept?() }
             }
         case .outgoing:
             HStack {
@@ -102,6 +107,8 @@ struct GALiveInviteCard: View {
                 GAButton(title: String(localized: "signals.cancel"),
                          kind: .ghost,
                          size: .compact,
+                         isLoading: isBusy,
+                         isDisabled: isBusy,
                          fillsWidth: false) { onCancel?() }
             }
         }

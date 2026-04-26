@@ -99,10 +99,12 @@ private struct ChatRowView: View {
                                 .foregroundStyle(GAColors.textTertiary)
                         }
                     }
-                    if let preview = row.lastMessage?.body, !preview.isEmpty {
-                        Text(preview)
+                    if let preview = lastMessagePreview {
+                        Text(preview.text)
                             .font(GATypography.callout)
-                            .foregroundStyle(GAColors.textSecondary)
+                            .foregroundStyle(preview.isPlaceholder
+                                ? GAColors.textTertiary
+                                : GAColors.textSecondary)
                             .lineLimit(1)
                     } else {
                         Text("chats.row.noMessage")
@@ -114,6 +116,25 @@ private struct ChatRowView: View {
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(GAColors.textTertiary)
             }
+        }
+    }
+
+    /// Builds a one-line preview for the chat list row. Media messages
+    /// never include a thumbnail or media bytes — only a localized label.
+    private var lastMessagePreview: (text: String, isPlaceholder: Bool)? {
+        guard let m = row.lastMessage else { return nil }
+        switch m.messageType {
+        case .text, .system:
+            if let body = m.body, !body.isEmpty {
+                return (body, false)
+            }
+            return nil
+        case .image:
+            return (String(localized: "chats.row.media.photo"), true)
+        case .gif:
+            return (String(localized: "chats.row.media.gif"),   true)
+        case .video:
+            return (String(localized: "chats.row.media.video"), true)
         }
     }
 

@@ -4,6 +4,7 @@ struct MissedInviteCard: View {
     let invite: Invite
     let onAccept: () -> Void
     let onDecline: () -> Void
+    var isBusy: Bool = false
 
     var body: some View {
         GACard(kind: .standard, padding: GASpacing.lg) {
@@ -38,9 +39,12 @@ struct MissedInviteCard: View {
 
                 HStack(spacing: GASpacing.md) {
                     GAButton(title: String(localized: "signals.decline.notNow"),
-                             kind: .ghost, size: .compact) { onDecline() }
+                             kind: .ghost, size: .compact,
+                             isDisabled: isBusy) { onDecline() }
                     GAButton(title: String(localized: "signals.accept.start"),
-                             kind: .primary, size: .compact) { onAccept() }
+                             kind: .primary, size: .compact,
+                             isLoading: isBusy,
+                             isDisabled: isBusy) { onAccept() }
                 }
             }
         }

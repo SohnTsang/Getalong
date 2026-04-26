@@ -4,6 +4,9 @@ struct ProfileView: View {
     @EnvironmentObject private var session: SessionManager
     @StateObject private var vm = ProfileViewModel()
     @State private var isTagEditorPresented: Bool = false
+    @State private var isDeleteConfirmPresented: Bool = false
+    @State private var isDeleting: Bool = false
+    @State private var deleteError: String?
     @AppStorage("ga.appearance") private var appearanceRaw: String = GAAppearance.system.rawValue
 
     private var appearance: Binding<GAAppearance> {
@@ -28,6 +31,7 @@ struct ProfileView: View {
                         tagsSection
                         preferencesSection(profile)
                         appearanceSection
+                        legalSection
                         signOutSection
                     }
                 } else {
@@ -210,20 +214,83 @@ struct ProfileView: View {
         }
     }
 
+    private var legalSection: some View {
+        VStack(alignment: .leading, spacing: GASpacing.sm) {
+            GASectionHeader(title: String(localized: "profile.legal"))
+            GACard {
+                VStack(spacing: 0) {
+                    legalRow(label: String(localized: "profile.legal.privacy"),
+                             url: LegalLinks.privacy)
+                    divider
+                    legalRow(label: String(localized: "profile.legal.terms"),
+                             url: LegalLinks.terms)
+                    divider
+                    legalRow(label: String(localized: "profile.legal.support"),
+                             url: LegalLinks.support)
+                }
+            }
+        }
+    }
+
+    private func legalRow(label: String, url: URL) -> some View {
+        Link(destination: url) {
+            HStack {
+                Text(label)
+                    .font(GATypography.body)
+                    .foregroundStyle(GAColors.textPrimary)
+                Spacer()
+                Image(systemName: "arrow.up.right")
+                    .font(GATypography.caption)
+                    .foregroundStyle(GAColors.textTertiary)
+            }
+            .padding(.vertical, GASpacing.sm)
+        }
+        .buttonStyle(.plain)
+    }
+
     private var signOutSection: some View {
         VStack(spacing: GASpacing.md) {
+            if let err = deleteError {
+                GAErrorBanner(message: err, onDismiss: { deleteError = nil })
+            }
             GAButton(title: String(localized: "profile.signOut"),
-                     kind: .ghost) {
+                     kind: .ghost,
+                     isDisabled: isDeleting) {
                 Task { await session.signOut() }
             }
-            Button { /* TODO: confirm + delete */ } label: {
+            Button { isDeleteConfirmPresented = true } label: {
                 Text("profile.deleteAccount")
                     .font(GATypography.footnote)
                     .foregroundStyle(GAColors.textTertiary)
             }
             .buttonStyle(.plain)
+            .disabled(isDeleting)
         }
         .padding(.top, GASpacing.sm)
+        .confirmationDialog(
+            String(localized: "profile.deleteAccount.confirm.title"),
+            isPresented: $isDeleteConfirmPresented,
+            titleVisibility: .visible
+        ) {
+            Button(String(localized: "profile.deleteAccount.confirm.action"),
+                   role: .destructive) {
+                Task { await performDelete() }
+            }
+            Button(String(localized: "common.cancel"), role: .cancel) {}
+        } message: {
+            Text("profile.deleteAccount.confirm.message")
+        }
+    }
+
+    private func performDelete() async {
+        isDeleting = true
+        defer { isDeleting = false }
+        do {
+            try await AuthService.shared.deleteAccount()
+        } catch {
+            deleteError = String(localized: "profile.deleteAccount.error")
+            Haptics.error()
+        }
     }
 
     // MARK: - Pieces

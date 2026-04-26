@@ -306,28 +306,61 @@
         }
       }
     },
-    "chats.alert.body %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Room %@… is ready. Full chat is coming next."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ルーム %@… が準備できました。会話画面はまもなく追加されます。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "聊天室 %@… 已準備好。完整對話畫面即將推出。"
-          }
-        }
-      }
-    },
+    "chats.row.media.photo" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "View once photo" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "一度だけ見られる写真" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "只可查看一次的相片" }}
+    }},
+    "chats.row.media.gif" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "View once GIF" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "一度だけ見られるGIF" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "只可查看一次的 GIF" }}
+    }},
+    "chats.row.media.video" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "View once video" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "一度だけ見られる動画" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "只可查看一次的影片" }}
+    }},
+    "profile.legal" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Legal" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "法的事項" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "法律事項" }}
+    }},
+    "profile.legal.privacy" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Privacy policy" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "プライバシーポリシー" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "隱私政策" }}
+    }},
+    "profile.legal.terms" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Terms of service" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "利用規約" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "服務條款" }}
+    }},
+    "profile.legal.support" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Support" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "サポート" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "支援" }}
+    }},
+    "profile.deleteAccount.confirm.title" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Delete your Getalong account?" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "Getalongアカウントを削除しますか？" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "確定要刪除你的 Getalong 帳戶嗎？" }}
+    }},
+    "profile.deleteAccount.confirm.message" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "This signs you out and removes your profile from Getalong." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "サインアウトされ、プロフィールがGetalongから削除されます。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "這會將你登出，並從 Getalong 移除你的個人資料。" }}
+    }},
+    "profile.deleteAccount.confirm.action" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Delete account" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "アカウントを削除" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "刪除帳戶" }}
+    }},
+    "profile.deleteAccount.error" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Couldn’t delete your account. Please try again." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "アカウントを削除できませんでした。もう一度お試しください。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "無法刪除帳戶。請再試一次。" }}
+    }},
     "chats.alert.title" : {
       "extractionState" : "stale",
       "localizations" : {
