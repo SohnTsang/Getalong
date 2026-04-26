@@ -58,6 +58,24 @@ extension Supa {
     static func invokeRaw(_ functionName: String) async throws -> Data {
         try await client.functions.invoke(functionName) { data, _ in data }
     }
+
+    /// Walks a thrown error's reflection graph and returns the first
+    /// `Data` field it finds. supabase-swift surfaces non-2xx Edge
+    /// Function responses as `FunctionsError.httpError(code:Int, data:Data)`
+    /// — the `data` payload contains our own error envelope, but it's
+    /// nested two levels deep (enum case → associated tuple → labeled
+    /// fields), which a one-level Mirror walk misses.
+    static func errorBody(from error: Error) -> Data? {
+        var queue: [Any] = [error]
+        while let current = queue.popLast() {
+            if let data = current as? Data { return data }
+            let mirror = Mirror(reflecting: current)
+            for child in mirror.children {
+                queue.append(child.value)
+            }
+        }
+        return nil
+    }
 }
 
 /// Single shared `SupabaseClient`. Services and `SessionManager` go

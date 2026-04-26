@@ -223,29 +223,17 @@ final class InviteService {
         } catch {
             // Edge Functions return non-2xx with our envelope embedded;
             // supabase-swift surfaces it as FunctionsError.httpError(code, data).
-            if let data = Self.errorPayload(from: error),
-               let err  = try? JSONDecoder.gaInvite.decode(EnvelopeErr.self, from: data) {
-                GALog.invite.error("\(name) http error code=\(err.error_code ?? "-") message=\(err.message ?? "-")")
-                throw InviteServiceError(code: err.error_code, message: err.message)
+            if let data = Supa.errorBody(from: error) {
+                if let err = try? JSONDecoder.gaInvite.decode(EnvelopeErr.self, from: data) {
+                    GALog.invite.error("\(name) http error code=\(err.error_code ?? "-") message=\(err.message ?? "-")")
+                    throw InviteServiceError(code: err.error_code, message: err.message)
+                }
+                let preview = String(data: data, encoding: .utf8)?.prefix(400) ?? "-"
+                GALog.invite.error("\(name) http error body: \(preview)")
             }
             GALog.invite.error("\(name) transport: \(error.localizedDescription) [\((error as NSError).domain) #\((error as NSError).code)]")
             throw InviteServiceError.other(error.localizedDescription)
         }
-    }
-
-    /// Best-effort extraction of the JSON body from `FunctionsError.httpError`
-    /// without taking a hard compile-time dependency on the enum shape (it
-    /// has shifted between supabase-swift releases).
-    private static func errorPayload(from error: Error) -> Data? {
-        let mirror = Mirror(reflecting: error)
-        for child in mirror.children {
-            if let nested = Mirror(reflecting: child.value).children.first(where: { _ in true })?.value,
-               let data = nested as? Data {
-                return data
-            }
-            if let data = child.value as? Data { return data }
-        }
-        return nil
     }
 }
 

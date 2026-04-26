@@ -174,7 +174,7 @@ private struct DiscoveryCard: View {
 
     var body: some View {
         Button(action: { if isInteractive { onSend() } }) {
-            GACard(kind: .standard, padding: GASpacing.lg) {
+            GACard(kind: .standard, padding: GASpacing.xl) {
                 VStack(alignment: .leading, spacing: GASpacing.md) {
                     signalRow
                     if !profile.tags.isEmpty {
@@ -192,7 +192,7 @@ private struct DiscoveryCard: View {
             .overlay(
                 RoundedRectangle(cornerRadius: GACornerRadius.large,
                                  style: .continuous)
-                    .strokeBorder(genderTintBorder, lineWidth: 1)
+                    .strokeBorder(genderTintBorder, lineWidth: 0.5)
             )
         }
         .buttonStyle(.plain)

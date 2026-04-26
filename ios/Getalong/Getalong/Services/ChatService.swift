@@ -150,11 +150,15 @@ final class ChatService {
         } catch let e as ChatServiceError {
             throw e
         } catch {
-            if let data = Self.errorPayload(from: error),
-               let err = try? JSONDecoder.gaChat.decode(EnvelopeErr.self, from: data) {
-                throw ChatServiceError(code: err.error_code)
+            if let data = Supa.errorBody(from: error) {
+                if let err = try? JSONDecoder.gaChat.decode(EnvelopeErr.self, from: data) {
+                    GALog.chat.error("createChatMessage error code=\(err.error_code ?? "-") message=\(err.message ?? "-")")
+                    throw ChatServiceError(code: err.error_code)
+                }
+                let preview = String(data: data, encoding: .utf8)?.prefix(400) ?? "-"
+                GALog.chat.error("createChatMessage body: \(preview)")
             }
-            GALog.chat.error("createChatMessage: \(error.localizedDescription)")
+            GALog.chat.error("createChatMessage transport: \(error.localizedDescription)")
             throw ChatServiceError.other
         }
     }
@@ -172,15 +176,6 @@ final class ChatService {
         let message: String?
     }
 
-    private static func errorPayload(from error: Error) -> Data? {
-        let mirror = Mirror(reflecting: error)
-        for child in mirror.children {
-            if let nested = Mirror(reflecting: child.value).children.first(where: { _ in true })?.value,
-               let data = nested as? Data { return data }
-            if let data = child.value as? Data { return data }
-        }
-        return nil
-    }
 }
 
 private extension JSONDecoder {

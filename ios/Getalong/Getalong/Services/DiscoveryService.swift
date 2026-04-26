@@ -107,24 +107,16 @@ final class DiscoveryService {
         } catch let e as DiscoveryServiceError {
             throw e
         } catch {
-            if let data = Self.errorPayload(from: error),
-               let err  = try? JSONDecoder().decode(EnvelopeErr.self, from: data) {
-                GALog.discovery.error("http error code=\(err.error_code ?? "-") message=\(err.message ?? "-")")
-                throw DiscoveryServiceError(code: err.error_code)
+            if let data = Supa.errorBody(from: error) {
+                if let err = try? JSONDecoder().decode(EnvelopeErr.self, from: data) {
+                    GALog.discovery.error("http error code=\(err.error_code ?? "-") message=\(err.message ?? "-")")
+                    throw DiscoveryServiceError(code: err.error_code)
+                }
+                let preview = String(data: data, encoding: .utf8)?.prefix(400) ?? "-"
+                GALog.discovery.error("http error body: \(preview)")
             }
-            GALog.discovery.error("transport: \(error.localizedDescription)")
+            GALog.discovery.error("transport: \(error.localizedDescription) [\((error as NSError).domain) #\((error as NSError).code)]")
             throw DiscoveryServiceError.loadFailed
         }
-    }
-
-    private static func errorPayload(from error: Error) -> Data? {
-        let mirror = Mirror(reflecting: error)
-        for child in mirror.children {
-            if let nested = Mirror(reflecting: child.value).children
-                .first(where: { _ in true })?.value,
-               let data = nested as? Data { return data }
-            if let data = child.value as? Data { return data }
-        }
-        return nil
     }
 }

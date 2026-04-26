@@ -236,27 +236,20 @@ final class ReportService {
         } catch let e as SafetyServiceError {
             throw e
         } catch {
-            if let data = Self.errorPayload(from: error),
-               let err  = try? Self.decoder.decode(EnvelopeErr.self, from: data) {
-                throw SafetyServiceError(code: err.error_code)
+            if let data = Supa.errorBody(from: error) {
+                if let err = try? Self.decoder.decode(EnvelopeErr.self, from: data) {
+                    GALog.safety.error("\(name) error code=\(err.error_code ?? "-") message=\(err.message ?? "-")")
+                    throw SafetyServiceError(code: err.error_code)
+                }
+                let preview = String(data: data, encoding: .utf8)?.prefix(400) ?? "-"
+                GALog.safety.error("\(name) body: \(preview)")
             }
-            GALog.app.error("safety \(name): \(error.localizedDescription)")
+            GALog.safety.error("\(name) transport: \(error.localizedDescription)")
             throw SafetyServiceError.network
         }
     }
 
     private static let decoder = JSONDecoder()
-
-    private static func errorPayload(from error: Error) -> Data? {
-        let mirror = Mirror(reflecting: error)
-        for child in mirror.children {
-            if let nested = Mirror(reflecting: child.value).children
-                .first(where: { _ in true })?.value,
-               let data = nested as? Data { return data }
-            if let data = child.value as? Data { return data }
-        }
-        return nil
-    }
 }
 
 private extension String {
