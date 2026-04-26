@@ -27,6 +27,15 @@ final class DiscoveryViewModel: ObservableObject {
     /// Active report context for a profile card.
     @Published var pendingReport: ReportContext?
 
+    /// Active block confirmation context for a profile card.
+    @Published var pendingBlock: BlockContext?
+
+    struct BlockContext: Identifiable, Equatable {
+        let id = UUID()
+        let userId: UUID
+        let displayName: String?
+    }
+
     /// Trigger threshold: start loading more when the card at
     /// `count - prefetchTrigger` (or later) appears.
     private let prefetchTrigger = 3
@@ -191,5 +200,18 @@ final class DiscoveryViewModel: ObservableObject {
 
     func presentReport(_ profile: DiscoveryProfile) {
         pendingReport = .init(targetId: profile.id)
+    }
+
+    func presentBlock(_ profile: DiscoveryProfile) {
+        pendingBlock = .init(userId: profile.id, displayName: profile.displayName)
+    }
+
+    /// Called by BlockUserSheet's onBlocked closure after the server has
+    /// successfully recorded the block. Drop the row from the feed and
+    /// dismiss the sheet.
+    func confirmBlocked(userId: UUID) async {
+        profiles.removeAll { $0.id == userId }
+        sendStates.removeValue(forKey: userId)
+        pendingBlock = nil
     }
 }

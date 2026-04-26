@@ -31,6 +31,14 @@ struct DiscoveryView: View {
                     onClose:    { vm.pendingReport = nil }
                 )
             }
+            .sheet(item: $vm.pendingBlock) { ctx in
+                BlockUserSheet(
+                    userId: ctx.userId,
+                    displayName: ctx.displayName,
+                    onBlocked: { Task { await vm.confirmBlocked(userId: ctx.userId) } },
+                    onClose:   { vm.pendingBlock = nil }
+                )
+            }
         }
     }
 
@@ -67,7 +75,8 @@ struct DiscoveryView: View {
                         profile: profile,
                         sendState: vm.sendState(for: profile),
                         onSend:    { Task { await vm.sendSignal(to: profile) } },
-                        onReport:  { vm.presentReport(profile) }
+                        onReport:  { vm.presentReport(profile) },
+                        onBlock:   { vm.presentBlock(profile) }
                     )
                     .onAppear {
                         Task { await vm.loadMoreIfNeeded(currentItem: profile) }
@@ -154,34 +163,52 @@ private struct DiscoveryCard: View {
     let sendState: DiscoveryViewModel.CardSendState
     let onSend: () -> Void
     let onReport: () -> Void
+    let onBlock: () -> Void
+
+    private var isInteractive: Bool {
+        switch sendState {
+        case .idle, .failed: return true
+        case .sending, .sent: return false
+        }
+    }
 
     var body: some View {
-        GACard(kind: .standard, padding: GASpacing.lg) {
-            VStack(alignment: .leading, spacing: GASpacing.md) {
-                signalRow
-                if !profile.tags.isEmpty {
-                    tagsBlock
+        Button(action: { if isInteractive { onSend() } }) {
+            GACard(kind: .standard, padding: GASpacing.lg) {
+                VStack(alignment: .leading, spacing: GASpacing.md) {
+                    signalRow
+                    if !profile.tags.isEmpty {
+                        tagsBlock
+                    }
+                    if !profile.sharedTags.isEmpty {
+                        sharedRow
+                    }
+                    stateFooter
                 }
-                if !profile.sharedTags.isEmpty {
-                    sharedRow
-                }
-                actionRow
             }
+            // When the card represents a gendered identity, echo the
+            // gender colour as a thin hairline around the card so the
+            // badge and the card frame read as a single visual idea.
+            .overlay(
+                RoundedRectangle(cornerRadius: GACornerRadius.large,
+                                 style: .continuous)
+                    .strokeBorder(genderTintBorder, lineWidth: 1)
+            )
         }
-        // When the card represents a gendered identity, echo the gender
-        // colour as a thin hairline around the card so the badge and the
-        // card frame read as a single visual idea.
-        .overlay(
-            RoundedRectangle(cornerRadius: GACornerRadius.large,
-                             style: .continuous)
-                .strokeBorder(genderTintBorder, lineWidth: 1)
-        )
+        .buttonStyle(.plain)
+        .disabled(!isInteractive)
         .contextMenu {
-            Button(role: .destructive) {
+            Button {
                 onReport()
             } label: {
                 Label(String(localized: "safety.menu.reportUser"),
                       systemImage: "flag")
+            }
+            Button(role: .destructive) {
+                onBlock()
+            } label: {
+                Label(String(localized: "safety.menu.blockUser"),
+                      systemImage: "hand.raised")
             }
         }
     }
@@ -232,11 +259,17 @@ private struct DiscoveryCard: View {
 
     private var menuButton: some View {
         Menu {
-            Button(role: .destructive) {
+            Button {
                 onReport()
             } label: {
                 Label(String(localized: "safety.menu.reportUser"),
                       systemImage: "flag")
+            }
+            Button(role: .destructive) {
+                onBlock()
+            } label: {
+                Label(String(localized: "safety.menu.blockUser"),
+                      systemImage: "hand.raised")
             }
         } label: {
             Image(systemName: "ellipsis")
@@ -269,22 +302,30 @@ private struct DiscoveryCard: View {
         }
     }
 
+    /// Quiet footer that telegraphs the per-card invite state. Whole
+    /// card is the tap target, so this is feedback rather than a
+    /// separate button.
     @ViewBuilder
-    private var actionRow: some View {
+    private var stateFooter: some View {
         switch sendState {
         case .idle:
-            GAButton(title: String(localized: "discovery.action.sendSignal"),
-                     systemImage: "dot.radiowaves.left.and.right",
-                     kind: .primary,
-                     size: .compact,
-                     action: onSend)
+            HStack(spacing: GASpacing.xs) {
+                Image(systemName: "dot.radiowaves.left.and.right")
+                    .font(GATypography.caption)
+                    .foregroundStyle(GAColors.accent)
+                Text("discovery.action.sendSignal")
+                    .font(GATypography.footnote.weight(.semibold))
+                    .foregroundStyle(GAColors.accent)
+                Spacer()
+            }
         case .sending:
-            GAButton(title: String(localized: "discovery.action.sending"),
-                     kind: .primary,
-                     size: .compact,
-                     isLoading: true,
-                     isDisabled: true,
-                     action: {})
+            HStack(spacing: GASpacing.sm) {
+                ProgressView().controlSize(.small)
+                Text("discovery.action.sending")
+                    .font(GATypography.footnote)
+                    .foregroundStyle(GAColors.textSecondary)
+                Spacer()
+            }
         case .sent:
             HStack(spacing: GASpacing.sm) {
                 Image(systemName: "checkmark.circle.fill")
@@ -299,18 +340,16 @@ private struct DiscoveryCard: View {
                 }
                 Spacer()
             }
-            .padding(.vertical, GASpacing.xs)
         case .failed(let message):
-            VStack(alignment: .leading, spacing: GASpacing.xs) {
+            HStack(spacing: GASpacing.xs) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(GATypography.caption)
+                    .foregroundStyle(GAColors.danger)
                 Text(message)
                     .font(GATypography.footnote)
                     .foregroundStyle(GAColors.danger)
                     .lineLimit(2)
-                GAButton(title: String(localized: "discovery.action.sendSignal"),
-                         systemImage: "dot.radiowaves.left.and.right",
-                         kind: .primary,
-                         size: .compact,
-                         action: onSend)
+                Spacer()
             }
         }
     }

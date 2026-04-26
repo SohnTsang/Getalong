@@ -33,14 +33,12 @@ struct GAAppTopBar<Leading: View, Trailing: View>: View {
         }
         .frame(height: 44)
         .padding(.horizontal, GASpacing.lg)
-        .background(
-            GAColors.background
-                .overlay(alignment: .bottom) {
-                    Rectangle()
-                        .fill(GAColors.border)
-                        .frame(height: 0.5)
-                }
-        )
+        .background(GAColors.background)
+        .overlay(alignment: .bottom) {
+            Rectangle()
+                .fill(GAColors.border)
+                .frame(height: 1)
+        }
     }
 }
 

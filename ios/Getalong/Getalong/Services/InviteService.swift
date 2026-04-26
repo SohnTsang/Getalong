@@ -202,14 +202,21 @@ final class InviteService {
     // MARK: - Invocation
 
     private func invoke<T: Decodable>(_ name: String, body: [String: AnyJSON]) async throws -> T {
+        GALog.invite.info("invoke \(name)")
         do {
             let raw = try await Supa.invokeRaw(name, body: body)
             if let ok = try? JSONDecoder.gaInvite.decode(EnvelopeOK<T>.self, from: raw) {
+                GALog.invite.info("\(name) ok")
                 return ok.data
             }
             if let err = try? JSONDecoder.gaInvite.decode(EnvelopeErr.self, from: raw) {
+                GALog.invite.error("\(name) server error code=\(err.error_code ?? "-") message=\(err.message ?? "-")")
                 throw InviteServiceError(code: err.error_code, message: err.message)
             }
+            // Last resort: dump the raw body so we can see what the
+            // function actually returned.
+            let preview = String(data: raw, encoding: .utf8)?.prefix(400) ?? "-"
+            GALog.invite.error("\(name) undecodable response: \(preview)")
             throw InviteServiceError.other("Unexpected response.")
         } catch let e as InviteServiceError {
             throw e
@@ -218,8 +225,10 @@ final class InviteService {
             // supabase-swift surfaces it as FunctionsError.httpError(code, data).
             if let data = Self.errorPayload(from: error),
                let err  = try? JSONDecoder.gaInvite.decode(EnvelopeErr.self, from: data) {
+                GALog.invite.error("\(name) http error code=\(err.error_code ?? "-") message=\(err.message ?? "-")")
                 throw InviteServiceError(code: err.error_code, message: err.message)
             }
+            GALog.invite.error("\(name) transport: \(error.localizedDescription) [\((error as NSError).domain) #\((error as NSError).code)]")
             throw InviteServiceError.other(error.localizedDescription)
         }
     }
