@@ -12,7 +12,7 @@ Getalong 由 Getalong 團隊營運。聯絡方式：**support@getalong.app**
 
 當你建立帳戶並使用 Getalong 時，我們會收集：
 
-- **帳戶資料**：你透過 Apple、Google、Facebook 或 X 登入時的識別碼。我們無法看到你的密碼。
+- **帳戶資料**：你透過 Apple、Google 或 X 登入時的識別碼。我們無法看到你的密碼。
 - **個人頁資料**：你的 ID、顯示名稱、可選擇填寫的小訊號、性別（可不填）、想看到的對象（可不填）、地區、語言。
 - **訊號紀錄**：你送出的即時訊號、錯過的訊號，以及對應的時間與結果。
 - **對話內容**：你在一對一私密對話中所傳送的訊息。一般營運過程中我們不會閱讀其內容。
@@ -36,7 +36,7 @@ Getalong 由 Getalong 團隊營運。聯絡方式：**support@getalong.app**
 
 - **Supabase**：資料庫、認證、儲存、Edge Functions。
 - **Apple 推播通知服務（APNs）**：推播訊息傳送。
-- **Apple、Google、Facebook、X**：登入服務（我們僅取得識別碼）。
+- **Apple、Google、X**：登入服務（我們僅取得識別碼）。
 
 上述供應商各自有其條款與私隱政策。
 

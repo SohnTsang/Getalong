@@ -1,15 +1,14 @@
 import SwiftUI
 
-/// Brand-tinted social sign-in button. All four providers share height,
+/// Brand-tinted social sign-in button. All providers share height,
 /// radius, padding, and font — only the icon and tint differ.
 struct GASocialButton: View {
     enum Brand {
-        case google, facebook, twitter
+        case google, twitter
 
         var label: String {
             switch self {
             case .google:   return "Continue with Google"
-            case .facebook: return "Continue with Facebook"
             case .twitter:  return "Continue with X"
             }
         }
@@ -17,7 +16,6 @@ struct GASocialButton: View {
         var systemImage: String {
             switch self {
             case .google:   return "g.circle.fill"
-            case .facebook: return "f.circle.fill"
             case .twitter:  return "xmark"
             }
         }
@@ -25,7 +23,6 @@ struct GASocialButton: View {
         var iconTint: Color {
             switch self {
             case .google:   return Color(red: 0.93, green: 0.27, blue: 0.21)
-            case .facebook: return Color(red: 0.10, green: 0.36, blue: 0.78)
             case .twitter:  return GAColors.textPrimary
             }
         }

@@ -25,8 +25,7 @@ struct GetalongApp: App {
                 .onOpenURL { url in
                     // Fallback for when an OAuth provider redirects via the
                     // system browser instead of completing inside
-                    // ASWebAuthenticationSession (e.g. Facebook returning
-                    // through Safari).
+                    // ASWebAuthenticationSession.
                     Task {
                         try? await Supa.client.auth.session(from: url)
                     }

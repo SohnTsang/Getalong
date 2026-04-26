@@ -12,7 +12,7 @@ Getalong is operated by the Getalong team. Contact: **support@getalong.app**.
 
 When you create an account and use Getalong, we collect:
 
-- **Account information.** Your sign-in identifier from Apple, Google, Facebook, or X. We do not see your password.
+- **Account information.** Your sign-in identifier from Apple, Google, or X. We do not see your password.
 - **Profile information.** Your handle, display name, optional one-line signal, optional gender, optional "want to see" preference, optional region, optional language.
 - **Signals you send.** Live signals, missed signals, and the timestamps and outcomes of each.
 - **Chats.** Messages you send in private one-to-one chats. We don't read them in the normal course of operating the service.
@@ -36,7 +36,7 @@ We do not use your data for advertising. We do not sell your data.
 
 - **Supabase** — database, authentication, storage, edge functions.
 - **Apple Push Notification service (APNs)** — delivery of push notifications.
-- **Apple, Google, Facebook, X** — sign-in providers (only the identifier we receive from them).
+- **Apple, Google, X** — sign-in providers (only the identifier we receive from them).
 
 These providers are bound by their own terms; their use of data is governed by their privacy policies.
 

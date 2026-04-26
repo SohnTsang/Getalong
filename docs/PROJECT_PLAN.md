@@ -94,7 +94,7 @@ The MVP is successful if a user can:
 
 ### Phase 1 — Auth & Onboarding
 
-- Sign in with Apple / Google / Facebook / X.
+- Sign in with Apple / Google / X.
 - Age gate (18+).
 - Create profile (handle, display name, one-line signal).
 - Account deletion.

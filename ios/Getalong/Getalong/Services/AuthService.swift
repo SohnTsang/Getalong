@@ -24,10 +24,10 @@ enum AuthError: LocalizedError {
 }
 
 /// Social sign-in providers that Getalong accepts.
+/// Facebook is intentionally not supported in the MVP.
 enum AuthProvider: String, CaseIterable, Identifiable {
     case apple
     case google
-    case facebook
     case twitter   // X
 
     var id: String { rawValue }
@@ -36,7 +36,6 @@ enum AuthProvider: String, CaseIterable, Identifiable {
         switch self {
         case .apple:    return "Apple"
         case .google:   return "Google"
-        case .facebook: return "Facebook"
         case .twitter:  return "X"
         }
     }
@@ -46,7 +45,6 @@ enum AuthProvider: String, CaseIterable, Identifiable {
         switch self {
         case .apple:    return .apple
         case .google:   return .google
-        case .facebook: return .facebook
         case .twitter:  return .twitter
         }
     }
@@ -80,7 +78,7 @@ final class AuthService {
         }
     }
 
-    // MARK: - Google / Facebook / X (web OAuth)
+    // MARK: - Google / X (web OAuth)
 
     /// Opens an `ASWebAuthenticationSession` against Supabase's OAuth
     /// authorize URL for the given provider, then exchanges the resulting

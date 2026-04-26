@@ -190,11 +190,6 @@ struct SignInView: View {
                             systemImage: "g.circle.fill",
                             tint: Color(red: 0.93, green: 0.27, blue: 0.21))
                 GAHairline()
-                providerRow(.facebook,
-                            title: String(localized: "auth.cta.facebook"),
-                            systemImage: "f.circle.fill",
-                            tint: Color(red: 0.10, green: 0.36, blue: 0.78))
-                GAHairline()
                 providerRow(.twitter,
                             title: String(localized: "auth.cta.x"),
                             systemImage: "xmark",
