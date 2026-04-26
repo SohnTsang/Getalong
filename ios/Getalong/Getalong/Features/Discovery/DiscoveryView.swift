@@ -157,9 +157,6 @@ private struct DiscoveryCard: View {
                 if !profile.sharedTags.isEmpty {
                     sharedRow
                 }
-                if let location = profile.location {
-                    locationRow(location)
-                }
                 actionRow
             }
         }
@@ -265,17 +262,6 @@ private struct DiscoveryCard: View {
                 .font(GATypography.footnote)
                 .foregroundStyle(GAColors.textSecondary)
                 .lineLimit(2)
-        }
-    }
-
-    private func locationRow(_ location: String) -> some View {
-        HStack(spacing: GASpacing.xs) {
-            Image(systemName: "mappin.and.ellipse")
-                .font(GATypography.caption)
-                .foregroundStyle(GAColors.textTertiary)
-            Text(location)
-                .font(GATypography.footnote)
-                .foregroundStyle(GAColors.textTertiary)
         }
     }
 

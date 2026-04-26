@@ -48,7 +48,7 @@
         }
       }
     },
-"auth.cta.google" : {
+    "auth.cta.google" : {
       "extractionState" : "stale",
       "localizations" : {
         "en" : {
@@ -207,7 +207,6 @@
       }
     },
     "auth.hero.teaser.message" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
