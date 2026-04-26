@@ -934,6 +934,21 @@
       "ja" :      { "stringUnit" : { "state" : "translated", "value" : "気が合うきっかけ" }},
       "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "可能合得來的地方" }}
     }},
+    "discovery.loadingMore" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Loading more..." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "さらに読み込み中..." }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "正在載入更多..." }}
+    }},
+    "discovery.loadMoreError" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Couldn’t load more people." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "続きを読み込めませんでした。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "無法載入更多內容。" }}
+    }},
+    "discovery.loadMoreRetry" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Try again" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "もう一度試す" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "再試一次" }}
+    }},
     "discovery.refresh" : { "localizations" : {
       "en" :      { "stringUnit" : { "state" : "translated", "value" : "Refresh" }},
       "ja" :      { "stringUnit" : { "state" : "translated", "value" : "更新" }},

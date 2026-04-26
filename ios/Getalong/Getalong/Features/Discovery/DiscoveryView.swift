@@ -60,7 +60,11 @@ struct DiscoveryView: View {
                         onSend:    { Task { await vm.sendSignal(to: profile) } },
                         onReport:  { vm.presentReport(profile) }
                     )
+                    .onAppear {
+                        Task { await vm.loadMoreIfNeeded(currentItem: profile) }
+                    }
                 }
+                loadMoreFooter
             }
         }
 
@@ -70,6 +74,42 @@ struct DiscoveryView: View {
                 onRetry:   { Task { await vm.refresh() } },
                 onDismiss: { vm.loadError = nil }
             )
+        }
+    }
+
+    @ViewBuilder
+    private var loadMoreFooter: some View {
+        if let err = vm.loadMoreError {
+            HStack(spacing: GASpacing.sm) {
+                Image(systemName: "exclamationmark.triangle")
+                    .foregroundStyle(GAColors.danger)
+                Text(err)
+                    .font(GATypography.footnote)
+                    .foregroundStyle(GAColors.textSecondary)
+                    .lineLimit(2)
+                Spacer()
+                Button {
+                    Task { await vm.loadMore() }
+                } label: {
+                    Text("discovery.loadMoreRetry")
+                        .font(GATypography.footnote.weight(.semibold))
+                        .foregroundStyle(GAColors.accent)
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(GASpacing.md)
+            .background(GAColors.surfaceRaised)
+            .clipShape(RoundedRectangle(cornerRadius: GACornerRadius.medium,
+                                        style: .continuous))
+        } else if vm.isLoadingMore {
+            HStack(spacing: GASpacing.sm) {
+                ProgressView().controlSize(.small)
+                Text("discovery.loadingMore")
+                    .font(GATypography.footnote)
+                    .foregroundStyle(GAColors.textTertiary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, GASpacing.md)
         }
     }
 
