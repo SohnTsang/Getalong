@@ -71,6 +71,10 @@ struct EditProfileBasicsSheet: View {
             }
             .interactiveDismissDisabled(phase == .saving)
         }
+        // Half-sheet by default; the user can drag to large if they need
+        // more vertical room while typing on a smaller phone.
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
     }
 
     private var signalEditor: some View {

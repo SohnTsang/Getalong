@@ -35,11 +35,12 @@ struct ProfileView: View {
                         if let note = saveSuccessNote {
                             successNote(note)
                         }
-                        header(profile)
                         signalSection(profile)
                         tagsSection
                         regionSection(profile)
-                        preferencesSection(profile)
+                        genderSection(profile)
+                        visibilitySection(profile)
+                        interestSection(profile)
                         appearanceSection
                         safetySection
                         legalSection
@@ -135,172 +136,137 @@ struct ProfileView: View {
         }
     }
 
-    // MARK: - Header
-
-    private func header(_ p: Profile) -> some View {
-        GACard(kind: .elevated, padding: GASpacing.xl) {
-            VStack(alignment: .leading, spacing: GASpacing.lg) {
-                HStack(alignment: .top, spacing: GASpacing.lg) {
-                    avatar(p)
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(p.displayName)
-                            .font(GATypography.title)
-                            .foregroundStyle(GAColors.textPrimary)
-                        Text("@\(p.getalongId)")
-                            .font(GATypography.callout)
-                            .foregroundStyle(GAColors.textSecondary)
-                    }
-                    Spacer()
-                }
-
-                if let bio = p.bio, !bio.isEmpty {
-                    Text(bio)
-                        .font(GATypography.body)
-                        .foregroundStyle(GAColors.textPrimary)
-                        .lineLimit(3)
-                }
-
-                HStack(spacing: GASpacing.sm) {
-                    GAStatusPill(label: p.plan.displayName,
-                                 systemImage: planIcon(p.plan),
-                                 tint: planTint(p.plan))
-                    if p.trustScore > 0 {
-                        GAStatusPill(label: String(format: NSLocalizedString("profile.trust %lld", comment: ""), p.trustScore),
-                                     systemImage: "checkmark.seal.fill",
-                                     tint: GAColors.success)
-                    }
-                }
-            }
-        }
-    }
-
-    private func avatar(_ p: Profile) -> some View {
-        ZStack {
-            Circle()
-                .fill(LinearGradient(
-                    colors: [GAColors.accentSoft, GAColors.surfaceRaised],
-                    startPoint: .topLeading, endPoint: .bottomTrailing))
-            Text(initials(for: p))
-                .font(GATypography.title.weight(.bold))
-                .foregroundStyle(GAColors.accent)
-        }
-        .frame(width: 64, height: 64)
-        .overlay(Circle().strokeBorder(GAColors.border, lineWidth: 1))
-    }
-
-    private func initials(for p: Profile) -> String {
-        let letters = p.displayName
-            .split(separator: " ")
-            .prefix(2)
-            .compactMap { $0.first.map(String.init) }
-        let result = letters.joined().uppercased()
-        if !result.isEmpty { return result }
-        return p.getalongId.prefix(2).uppercased()
-    }
-
-    private func planIcon(_ plan: SubscriptionPlan) -> String {
-        switch plan { case .gold: return "crown.fill"; case .silver: return "star.fill"; case .free: return "circle" }
-    }
-    private func planTint(_ plan: SubscriptionPlan) -> Color {
-        switch plan {
-        case .gold:   return GAColors.warning
-        case .silver: return GAColors.secondary
-        case .free:   return GAColors.textSecondary
-        }
-    }
-
-    // MARK: - Sections
+    // MARK: - Sections (tap-the-card opens the editor)
 
     private func signalSection(_ p: Profile) -> some View {
-        VStack(alignment: .leading, spacing: GASpacing.sm) {
-            GASectionHeader(title: String(localized: "profile.yourSignal"),
-                            subtitle: String(localized: "profile.yourSignal.subtitle"),
-                            actionTitle: String(localized: "common.edit")) {
-                isBasicsPresented = true
-            }
-            GACard {
-                if let bio = p.bio, !bio.isEmpty {
-                    Text(bio)
-                        .font(GATypography.body)
-                        .foregroundStyle(GAColors.textPrimary)
-                } else {
-                    placeholderRow(text: String(localized: "profile.yourSignal.placeholder"),
-                                   actionTitle: String(localized: "profile.yourSignal.add")) {
-                        isBasicsPresented = true
+        Button {
+            isBasicsPresented = true
+        } label: {
+            VStack(alignment: .leading, spacing: GASpacing.sm) {
+                GASectionHeader(title: String(localized: "profile.yourSignal"),
+                                subtitle: String(localized: "profile.yourSignal.subtitle"))
+                GACard {
+                    if let bio = p.bio, !bio.isEmpty {
+                        Text(bio)
+                            .font(GATypography.body)
+                            .foregroundStyle(GAColors.textPrimary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.vertical, GASpacing.xs)
+                    } else {
+                        Text("profile.yourSignal.placeholder")
+                            .font(GATypography.callout)
+                            .foregroundStyle(GAColors.textTertiary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.vertical, GASpacing.xs)
                     }
                 }
             }
         }
+        .buttonStyle(.plain)
     }
 
     private var tagsSection: some View {
-        VStack(alignment: .leading, spacing: GASpacing.sm) {
-            GASectionHeader(title: String(localized: "profile.tags"),
-                            subtitle: String(localized: "profile.tags.subtitle"),
-                            actionTitle: String(localized: vm.tags.isEmpty
-                                                 ? "profile.tags.add"
-                                                 : "profile.tags.edit")) {
-                isTagEditorPresented = true
-            }
-            GACard {
-                if vm.isLoadingTags {
-                    HStack { Spacer(); ProgressView(); Spacer() }
-                        .padding(.vertical, GASpacing.sm)
-                } else if vm.tags.isEmpty {
-                    placeholderRow(text: String(localized: "profile.tags.empty"),
-                                   actionTitle: String(localized: "profile.tags.add")) {
-                        isTagEditorPresented = true
-                    }
-                } else {
-                    FlowLayout(spacing: GASpacing.sm) {
-                        ForEach(vm.tags) { GAChip(label: $0.tag) }
+        Button {
+            isTagEditorPresented = true
+        } label: {
+            VStack(alignment: .leading, spacing: GASpacing.sm) {
+                GASectionHeader(title: String(localized: "profile.tags"),
+                                subtitle: String(localized: "profile.tags.subtitle"))
+                GACard {
+                    if vm.isLoadingTags {
+                        HStack { Spacer(); ProgressView(); Spacer() }
+                            .padding(.vertical, GASpacing.sm)
+                    } else if vm.tags.isEmpty {
+                        Text("profile.tags.empty")
+                            .font(GATypography.callout)
+                            .foregroundStyle(GAColors.textTertiary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.vertical, GASpacing.xs)
+                    } else {
+                        FlowLayout(spacing: GASpacing.sm) {
+                            ForEach(vm.tags) { GAChip(label: $0.tag) }
+                        }
                     }
                 }
             }
         }
+        .buttonStyle(.plain)
     }
 
+    /// Region is read-only for v1 — the user told us it should be GPS-driven
+    /// only, never manually edited. The card therefore has no tap target;
+    /// it only displays whatever the backend has on file (city, country
+    /// joined onto a single line). The GPS toggle is a separate follow-up.
     private func regionSection(_ p: Profile) -> some View {
         VStack(alignment: .leading, spacing: GASpacing.sm) {
-            GASectionHeader(title: String(localized: "profile.region.title"),
-                            actionTitle: String(localized: "common.edit")) {
-                isRegionPresented = true
-            }
+            GASectionHeader(title: String(localized: "profile.region.title"))
             GACard {
-                VStack(spacing: 0) {
-                    detailRow(label: String(localized: "profile.city.label"),
-                              value: p.city)
-                    divider
-                    detailRow(label: String(localized: "profile.country.label"),
-                              value: p.country)
-                }
+                detailRow(label: String(localized: "profile.region.title"),
+                          value: regionText(p))
             }
         }
     }
 
-    private func preferencesSection(_ p: Profile) -> some View {
-        VStack(alignment: .leading, spacing: GASpacing.sm) {
-            GASectionHeader(title: String(localized: "profile.preferences.title"),
-                            actionTitle: String(localized: "common.edit")) {
-                isPreferencesPresented = true
-            }
-            GACard {
-                VStack(spacing: 0) {
+    private func regionText(_ p: Profile) -> String? {
+        let parts = [p.city, p.country].compactMap { value -> String? in
+            guard let value, !value.isEmpty else { return nil }
+            return value
+        }
+        return parts.isEmpty ? nil : parts.joined(separator: ", ")
+    }
+
+    /// Each preference now has its own card so they don't read as one
+    /// dense list. Tapping any card opens the same EditPreferencesSheet —
+    /// which itself separates gender / visibility / want-to-see into
+    /// distinct visual blocks.
+    private func genderSection(_ p: Profile) -> some View {
+        Button {
+            isPreferencesPresented = true
+        } label: {
+            VStack(alignment: .leading, spacing: GASpacing.sm) {
+                GASectionHeader(title: String(localized: "profile.gender.label"))
+                GACard {
                     detailRow(label: String(localized: "profile.gender.iAm"),
                               value: p.gender.flatMap { Gender(rawValue: $0)?.localizedLabel })
-                    divider
-                    detailRow(label: String(localized: "profile.gender.visible"),
-                              value: p.gender == nil ? nil
-                                    : String(localized: p.genderVisible ? "profile.gender.yes" : "profile.gender.no"))
-                    divider
-                    detailRow(label: String(localized: "profile.gender.wantToSee"),
-                              value: p.interestedInGender.flatMap { InterestedInGender(rawValue: $0)?.localizedLabel })
-                    divider
-                    detailRow(label: String(localized: "profile.language.label"),
-                              value: p.languageCodes.first?.uppercased())
                 }
             }
         }
+        .buttonStyle(.plain)
+    }
+
+    private func visibilitySection(_ p: Profile) -> some View {
+        Button {
+            isPreferencesPresented = true
+        } label: {
+            VStack(alignment: .leading, spacing: GASpacing.sm) {
+                GASectionHeader(title: String(localized: "profile.gender.visible"))
+                GACard {
+                    detailRow(
+                        label: String(localized: "profile.gender.visibleOnDiscover"),
+                        value: p.gender == nil ? nil
+                            : String(localized: p.genderVisible
+                                     ? "profile.gender.yes"
+                                     : "profile.gender.no")
+                    )
+                }
+            }
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func interestSection(_ p: Profile) -> some View {
+        Button {
+            isPreferencesPresented = true
+        } label: {
+            VStack(alignment: .leading, spacing: GASpacing.sm) {
+                GASectionHeader(title: String(localized: "profile.gender.wantToSee"))
+                GACard {
+                    detailRow(label: String(localized: "profile.gender.wantToSee"),
+                              value: p.interestedInGender.flatMap { InterestedInGender(rawValue: $0)?.localizedLabel })
+                }
+            }
+        }
+        .buttonStyle(.plain)
     }
 
     private var appearanceSection: some View {
@@ -370,7 +336,7 @@ struct ProfileView: View {
                     .font(GATypography.caption)
                     .foregroundStyle(GAColors.textTertiary)
             }
-            .padding(.vertical, GASpacing.sm)
+            .padding(.vertical, GASpacing.md)
         }
         .buttonStyle(.plain)
     }
@@ -433,8 +399,9 @@ struct ProfileView: View {
             Text(isEmpty ? String(localized: "profile.gender.notSet") : value!)
                 .font(GATypography.body)
                 .foregroundStyle(isEmpty ? GAColors.textTertiary : GAColors.textPrimary)
+                .multilineTextAlignment(.trailing)
         }
-        .padding(.vertical, GASpacing.sm)
+        .padding(.vertical, GASpacing.md)
     }
 
     private var divider: some View {

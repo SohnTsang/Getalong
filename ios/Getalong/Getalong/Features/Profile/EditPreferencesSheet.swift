@@ -25,10 +25,10 @@ struct EditPreferencesSheet: View {
     var body: some View {
         NavigationStack {
             GAScreen(maxWidth: 560) {
-                VStack(alignment: .leading, spacing: GASpacing.lg) {
+                VStack(alignment: .leading, spacing: GASpacing.xl) {
                     genderCard
+                    visibilityCard
                     interestedInCard
-                    languageCard
 
                     if case .error(let message) = phase {
                         GAErrorBanner(message: message,
@@ -57,35 +57,45 @@ struct EditPreferencesSheet: View {
         VStack(alignment: .leading, spacing: GASpacing.sm) {
             GASectionHeader(title: String(localized: "profile.gender.label"))
             GACard {
-                VStack(alignment: .leading, spacing: GASpacing.sm) {
-                    HStack(spacing: GASpacing.sm) {
-                        ForEach(Gender.allCases) { g in
-                            choiceChip(label: g.localizedLabel,
-                                       selected: gender == g) {
-                                gender = (gender == g ? nil : g)
-                            }
-                        }
-                        choiceChip(label: String(localized: "profile.gender.placeholder"),
-                                   selected: gender == nil) {
-                            gender = nil
+                HStack(spacing: GASpacing.sm) {
+                    ForEach(Gender.allCases) { g in
+                        choiceChip(label: g.localizedLabel,
+                                   selected: gender == g) {
+                            gender = (gender == g ? nil : g)
                         }
                     }
-                    Toggle(isOn: $genderVisible) {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("profile.gender.visible")
-                                .font(GATypography.body)
-                                .foregroundStyle(GAColors.textPrimary)
-                            Text(genderVisible
-                                 ? String(localized: "profile.gender.visible")
-                                 : String(localized: "profile.gender.hidden"))
-                                .font(GATypography.caption)
-                                .foregroundStyle(GAColors.textTertiary)
-                        }
+                    choiceChip(label: String(localized: "profile.gender.placeholder"),
+                               selected: gender == nil) {
+                        gender = nil
                     }
-                    .tint(GAColors.accent)
-                    .disabled(gender == nil)
-                    .opacity(gender == nil ? 0.5 : 1)
                 }
+                .padding(.vertical, GASpacing.xs)
+            }
+        }
+    }
+
+    /// Visibility lives in its own card so it doesn't read as a sub-line
+    /// of the gender chip row. Disabled when no gender is picked.
+    private var visibilityCard: some View {
+        VStack(alignment: .leading, spacing: GASpacing.sm) {
+            GASectionHeader(title: String(localized: "profile.gender.visible"))
+            GACard {
+                Toggle(isOn: $genderVisible) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("profile.gender.visibleOnDiscover")
+                            .font(GATypography.body)
+                            .foregroundStyle(GAColors.textPrimary)
+                        Text(genderVisible
+                             ? String(localized: "profile.gender.visible")
+                             : String(localized: "profile.gender.hidden"))
+                            .font(GATypography.caption)
+                            .foregroundStyle(GAColors.textTertiary)
+                    }
+                }
+                .tint(GAColors.accent)
+                .disabled(gender == nil)
+                .opacity(gender == nil ? 0.5 : 1)
+                .padding(.vertical, GASpacing.xs)
             }
         }
     }
@@ -102,32 +112,9 @@ struct EditPreferencesSheet: View {
                         }
                     }
                 }
-            }
-        }
-    }
-
-    private var languageCard: some View {
-        VStack(alignment: .leading, spacing: GASpacing.sm) {
-            GASectionHeader(title: String(localized: "profile.language.label"))
-            GACard {
-                HStack {
-                    Text(currentLanguageLabel)
-                        .font(GATypography.body)
-                        .foregroundStyle(GAColors.textSecondary)
-                    Spacer()
-                    Text("profile.language.system")
-                        .font(GATypography.caption)
-                        .foregroundStyle(GAColors.textTertiary)
-                }
                 .padding(.vertical, GASpacing.xs)
             }
         }
-    }
-
-    private var currentLanguageLabel: String {
-        let code = initial.languageCodes.first ?? Locale.current.identifier
-        return Locale.current.localizedString(forIdentifier: code)?.capitalized
-            ?? code.uppercased()
     }
 
     private func choiceChip(label: String,

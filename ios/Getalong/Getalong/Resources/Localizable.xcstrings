@@ -1215,19 +1215,19 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Send Live Signal"
+            "value" : "Send invite"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ライブのきっかけを送る"
+            "value" : "招待を送る"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "送出即時訊號"
+            "value" : "送出邀請"
           }
         }
       }
@@ -1237,19 +1237,19 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Signal sent"
+            "value" : "Invite sent"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "送信しました"
+            "value" : "招待を送信しました"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "訊號已送出"
+            "value" : "已送出邀請"
           }
         }
       }
@@ -3475,6 +3475,12 @@
         }
       }
     },
+    "profile.gender.visibleOnDiscover" : {
+      "localizations" : {
+        "en" :      { "stringUnit" : { "state" : "translated", "value" : "Visible on Discover" }},
+        "ja" :      { "stringUnit" : { "state" : "translated", "value" : "Discoverに表示" }},
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "在 Discover 上顯示" }}
+    }},
     "profile.gender.wantToSee" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -5579,19 +5585,19 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Report signal"
+            "value" : "Report invite"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "きっかけを報告"
+            "value" : "招待を報告"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "檢舉訊號"
+            "value" : "檢舉邀請"
           }
         }
       }
@@ -6557,19 +6563,19 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Signals"
+            "value" : "Invites"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "きっかけ"
+            "value" : "招待"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "訊號"
+            "value" : "邀請"
           }
         }
       }
@@ -6764,19 +6770,19 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Live"
+            "value" : "Invite"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ライブ"
+            "value" : "招待"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "即時"
+            "value" : "邀請"
           }
         }
       }
