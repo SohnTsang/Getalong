@@ -29,9 +29,10 @@ struct ChatRoomView: View {
 
                 ChatInputBar(text: $vm.draft,
                              isSending: vm.isSending,
-                             canSend: vm.canSend) {
-                    Task { await vm.send() }
-                }
+                             canSend: vm.canSend,
+                             canAttachMedia: vm.canAttachMedia,
+                             onSend: { Task { await vm.send() } },
+                             onAttachPicked: { src in vm.startMediaPick(src) })
             }
         }
         .navigationBarBackButtonHidden(true)
@@ -40,6 +41,45 @@ struct ChatRoomView: View {
             if let uid = currentUserId { await vm.attach(currentUserId: uid) }
         }
         .onDisappear { Task { await vm.detach() } }
+        // Composer (selection → preview → upload → send).
+        .sheet(isPresented: composerBinding) {
+            if let controller = vm.mediaController {
+                MediaComposerSheet(
+                    controller: controller,
+                    onConfirm: { vm.confirmMediaSend() },
+                    onClose:   { vm.dismissMediaComposer() }
+                )
+            }
+        }
+        // Viewer for receiver opening view-once media.
+        .fullScreenCover(isPresented: viewerBinding) {
+            if let mid = vm.openingMediaId, let mt = vm.openingMessageType {
+                MediaViewerSheet(
+                    mediaId: mid,
+                    messageType: mt,
+                    onViewed: { vm.markLocalAssetViewed(mid) },
+                    onClose:  { vm.closeMediaViewer() }
+                )
+            }
+        }
+    }
+
+    private var composerBinding: Binding<Bool> {
+        Binding(
+            get: { vm.mediaController != nil },
+            set: { newValue in
+                if !newValue { vm.dismissMediaComposer() }
+            }
+        )
+    }
+
+    private var viewerBinding: Binding<Bool> {
+        Binding(
+            get: { vm.openingMediaId != nil },
+            set: { newValue in
+                if !newValue { vm.closeMediaViewer() }
+            }
+        )
     }
 
     // MARK: - Header
@@ -106,15 +146,26 @@ struct ChatRoomView: View {
                     ProgressView()
                         .frame(maxWidth: .infinity, minHeight: 100)
                         .padding(.top, GASpacing.xxl)
-                } else if vm.messages.isEmpty {
+                } else if vm.messages.isEmpty && vm.mediaController == nil {
                     emptyState
                         .padding(.top, GASpacing.xxl)
                 } else {
                     LazyVStack(spacing: GASpacing.sm) {
                         ForEach(vm.messages) { message in
-                            ChatMessageBubble(message: message,
-                                              isMine: vm.isMine(message))
-                                .id(message.id)
+                            ChatMessageBubble(
+                                message: message,
+                                isMine: vm.isMine(message),
+                                mediaAsset: vm.mediaAsset(for: message),
+                                onTapMedia: vm.isMine(message) ? nil : { vm.openMedia(message) }
+                            )
+                            .id(message.id)
+                        }
+
+                        if let controller = vm.mediaController {
+                            PendingMediaBubble(
+                                controller: controller,
+                                onRemove: { vm.dismissMediaComposer() }
+                            )
                         }
                     }
                     .padding(.horizontal, GASpacing.lg)

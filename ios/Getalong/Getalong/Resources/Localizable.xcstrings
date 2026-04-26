@@ -1615,6 +1615,141 @@
       "ja" :      { "stringUnit" : { "state" : "translated", "value" : "タグを削除" }},
       "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "移除標籤" }}
     }},
+    "media.button.attach" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Add media" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "メディアを追加" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "加入媒體" }}
+    }},
+    "media.composer.title" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Send view-once" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "一度だけ表示で送る" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "傳送只顯示一次的內容" }}
+    }},
+    "media.viewOnce.label" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "View once" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "一度だけ表示" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "只顯示一次" }}
+    }},
+    "media.viewOnce.photo" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "View once photo" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "一度だけ見られる写真" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "只可查看一次的相片" }}
+    }},
+    "media.viewOnce.gif" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "View once GIF" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "一度だけ見られるGIF" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "只可查看一次的 GIF" }}
+    }},
+    "media.viewOnce.video" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "View once video" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "一度だけ見られる動画" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "只可查看一次的影片" }}
+    }},
+    "media.openOnce" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Open once" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "一度だけ開く" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "開啟一次" }}
+    }},
+    "media.viewed" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Viewed" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "表示済み" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "已查看" }}
+    }},
+    "media.opened" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Opened" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "開封済み" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "已開啟" }}
+    }},
+    "media.unavailable" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "No longer available" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "もう表示できません" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "已無法查看" }}
+    }},
+    "media.preparing" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Preparing media..." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "準備中..." }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "正在準備..." }}
+    }},
+    "media.uploading" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Uploading..." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "アップロード中..." }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "上載中..." }}
+    }},
+    "media.sending" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Sending..." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "送信中..." }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "傳送中..." }}
+    }},
+    "media.opening" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Opening..." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "開いています..." }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "正在開啟..." }}
+    }},
+    "media.uploadFailed" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Upload failed" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "アップロードできませんでした" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "上載失敗" }}
+    }},
+    "media.retry" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Retry" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "再試行" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "重試" }}
+    }},
+    "media.remove" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Remove" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "削除" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "移除" }}
+    }},
+    "media.cancelUpload" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Cancel upload" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "アップロードをキャンセル" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "取消上載" }}
+    }},
+    "media.error.tooLarge" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "This file is too large." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "このファイルは大きすぎます。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "這個檔案太大。" }}
+    }},
+    "media.error.fileTooLargeAfterCompression" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "This file is still too large to send." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "このファイルは送信するには大きすぎます。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "這個檔案仍然太大，無法傳送。" }}
+    }},
+    "media.error.videoTooLong" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "This video is too long." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "この動画は長すぎます。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "這段影片太長。" }}
+    }},
+    "media.error.openFailed" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Couldn’t open this media." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "メディアを開けませんでした。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "無法開啟這個媒體。" }}
+    }},
+    "media.error.uploadFailed" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Couldn’t upload this media." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "メディアをアップロードできませんでした。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "無法上載這個媒體。" }}
+    }},
+    "media.error.compressionFailed" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Couldn’t prepare this media." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "このメディアを準備できませんでした。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "無法準備這個媒體。" }}
+    }},
+    "media.error.unsupportedType" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "This file type isn’t supported." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "このファイル形式には対応していません。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "不支援這種檔案類型。" }}
+    }},
+    "media.privacy.note" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Can only be opened once. Screenshots may still be possible." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "一度だけ開けます。スクリーンショットは完全には防げません。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "只能開啟一次。截圖仍可能無法完全避免。" }}
+    }},
+    "common.send" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Send" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "送信" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "傳送" }}
+    }},
     "push.permission.title" : { "localizations" : {
       "en" :      { "stringUnit" : { "state" : "translated", "value" : "Stay close to live moments" }},
       "ja" :      { "stringUnit" : { "state" : "translated", "value" : "今のきっかけを逃さない" }},

@@ -1,15 +1,23 @@
-// createChatMessage — Getalong Edge Function (text only, MVP).
+// createChatMessage — Getalong Edge Function.
 //
-// Body: { room_id: uuid, body: string }
+// Two shapes:
+//   text:  { room_id, body }
+//   media: { room_id, media_id }   // body optional; for view-once media
+//
 // On success: { ok: true, data: { message: <messages row> } }
 
 import { ok, fail, preflight } from "../_shared/response.ts";
 import { requireUserId, admin, readJson } from "../_shared/auth.ts";
 import { pushToUser, PUSH_NEW_MESSAGE } from "../_shared/apns.ts";
+import { MEDIA_BUCKET, messageTypeFromMime } from "../_shared/media.ts";
 
 const MAX_MESSAGE_LENGTH = 1000;
 
-interface Body { room_id?: string; body?: string }
+interface Body {
+  room_id?: string;
+  body?: string;
+  media_id?: string;
+}
 
 Deno.serve(async (req) => {
   const pre = preflight(req); if (pre) return pre;
@@ -19,13 +27,21 @@ Deno.serve(async (req) => {
   if (typeof userOrErr !== "string") return userOrErr;
   const userId = userOrErr;
 
-  const { room_id, body } = await readJson<Body>(req);
+  const { room_id, body, media_id } = await readJson<Body>(req);
   if (!room_id) return fail("INVALID_INPUT", "room_id required.", 400);
 
   const text = (body ?? "").trim();
-  if (text.length === 0)            return fail("EMPTY_MESSAGE", "Message cannot be empty.", 400);
-  if (text.length > MAX_MESSAGE_LENGTH)
-    return fail("MESSAGE_TOO_LONG", `Message must be ${MAX_MESSAGE_LENGTH} characters or fewer.`, 400);
+  const isMedia = !!media_id;
+
+  if (!isMedia) {
+    if (text.length === 0)
+      return fail("EMPTY_MESSAGE", "Message cannot be empty.", 400);
+    if (text.length > MAX_MESSAGE_LENGTH)
+      return fail("MESSAGE_TOO_LONG", `Message must be ${MAX_MESSAGE_LENGTH} characters or fewer.`, 400);
+  } else {
+    if (text.length > MAX_MESSAGE_LENGTH)
+      return fail("MESSAGE_TOO_LONG", `Caption too long.`, 400);
+  }
 
   const sb = admin();
 
@@ -63,18 +79,79 @@ Deno.serve(async (req) => {
   if ((blocks ?? []).length > 0)
     return fail("BLOCKED_RELATIONSHIP", "You can't reach this person.", 403);
 
-  // 4. Insert message.
+  // 4a. Validate media if provided.
+  let messageType: "text" | "image" | "gif" | "video" = "text";
+  let mediaRow: {
+    id: string; owner_id: string; room_id: string;
+    storage_path: string; mime_type: string; status: string;
+    attached_message_id: string | null;
+  } | null = null;
+
+  if (isMedia) {
+    const { data: m, error: mErr } = await sb
+      .from("media_assets")
+      .select("id, owner_id, room_id, storage_path, mime_type, status, attached_message_id")
+      .eq("id", media_id!)
+      .maybeSingle();
+    if (mErr) return fail("INTERNAL_ERROR", mErr.message, 500);
+    if (!m)   return fail("MEDIA_NOT_FOUND", "Media not found.", 404);
+    if (m.owner_id !== userId) return fail("MEDIA_NOT_OWNED", "Media is not yours.", 403);
+    if (m.room_id  !== room_id) return fail("MEDIA_WRONG_ROOM", "Media not in this room.", 403);
+    if (m.attached_message_id) return fail("MEDIA_ALREADY_ATTACHED", "Media already sent.", 409);
+    if (m.status !== "pending_upload" && m.status !== "active")
+      return fail("MEDIA_NOT_ACTIVE", "Media is not in a sendable state.", 409);
+
+    // Verify that the storage object actually exists (uploaded).
+    // storage.from(...).list with the file's basename inside its parent.
+    const slash = m.storage_path.lastIndexOf("/");
+    const dir   = slash >= 0 ? m.storage_path.slice(0, slash) : "";
+    const name  = slash >= 0 ? m.storage_path.slice(slash + 1) : m.storage_path;
+    const { data: list, error: lErr } = await sb
+      .storage.from(MEDIA_BUCKET)
+      .list(dir, { search: name, limit: 1 });
+    if (lErr) return fail("STORAGE_ERROR", lErr.message, 500);
+    if (!list || list.length === 0)
+      return fail("MEDIA_NOT_UPLOADED", "Media has not been uploaded yet.", 409);
+
+    const inferred = messageTypeFromMime(m.mime_type);
+    if (!inferred) return fail("MEDIA_TYPE_NOT_ALLOWED", "Unsupported media type.", 400);
+    messageType = inferred;
+    mediaRow = m;
+  }
+
+  // 4b. Insert message.
   const { data: message, error: insErr } = await sb
     .from("messages")
     .insert({
       room_id,
       sender_id: userId,
-      message_type: "text",
-      body: text,
+      message_type: messageType,
+      body: isMedia ? (text.length > 0 ? text : null) : text,
+      media_id: media_id ?? null,
     })
     .select()
     .single();
   if (insErr) return fail("INSERT_FAILED", insErr.message, 500);
+
+  // 4c. Mark media active + attach to message.
+  if (mediaRow) {
+    const nowIso = new Date().toISOString();
+    const { error: aErr } = await sb
+      .from("media_assets")
+      .update({
+        status: "active",
+        uploaded_at: nowIso,
+        attached_message_id: message.id,
+      })
+      .eq("id", mediaRow.id);
+    if (aErr) {
+      // Failure here means we have a message that points at a media row
+      // that didn't transition. Soft-delete the message to keep state
+      // consistent — the client treats this as send failure and can retry.
+      await sb.from("messages").update({ is_deleted: true }).eq("id", message.id);
+      return fail("INSERT_FAILED", aErr.message, 500);
+    }
+  }
 
   // 5. Bump last_message_at. Best-effort; failure here doesn't block the send.
   const { error: bumpErr } = await sb
@@ -94,5 +171,6 @@ Deno.serve(async (req) => {
     threadId:   `chat:${room_id}`,
   }).catch((e) => console.warn("createChatMessage push failed:", e));
 
+  // Strip storage_path from the response: the client only needs message.
   return ok({ message });
 });

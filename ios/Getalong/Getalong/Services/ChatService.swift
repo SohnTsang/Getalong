@@ -111,6 +111,22 @@ final class ChatService {
     // MARK: - Writes (Edge Function)
 
     private struct SendBody: Encodable { let room_id: UUID; let body: String }
+    private struct SendMediaBody: Encodable {
+        let room_id: UUID
+        let media_id: UUID
+        let body: String?
+    }
+
+    /// Sends a media message via createChatMessage Edge Function. The media
+    /// must already exist in `media_assets` (status = pending_upload) and
+    /// have its bytes uploaded to private storage.
+    func sendMediaMessage(roomId: UUID, mediaId: UUID, caption: String?) async throws -> Message {
+        let trimmedCaption = caption?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let captionToSend = (trimmedCaption?.isEmpty ?? true) ? nil : trimmedCaption
+        return try await invokeCreate(body: SendMediaBody(
+            room_id: roomId, media_id: mediaId, body: captionToSend
+        ))
+    }
 
     /// Sends a text message via createChatMessage Edge Function.
     func sendTextMessage(roomId: UUID, body: String) async throws -> Message {
@@ -118,10 +134,14 @@ final class ChatService {
         guard !trimmed.isEmpty else { throw ChatServiceError.emptyMessage }
         guard trimmed.count <= 1000 else { throw ChatServiceError.messageTooLong }
 
+        return try await invokeCreate(body: SendBody(room_id: roomId, body: trimmed))
+    }
+
+    private func invokeCreate<B: Encodable>(body: B) async throws -> Message {
         do {
             let raw: Data = try await Supa.client.functions.invoke(
                 "createChatMessage",
-                options: .init(body: SendBody(room_id: roomId, body: trimmed))
+                options: .init(body: body)
             )
             if let envelope = try? JSONDecoder.gaChat.decode(EnvelopeOK.self, from: raw) {
                 return envelope.data.message
@@ -137,7 +157,7 @@ final class ChatService {
                let err = try? JSONDecoder.gaChat.decode(EnvelopeErr.self, from: data) {
                 throw ChatServiceError(code: err.error_code)
             }
-            GALog.chat.error("sendTextMessage: \(error.localizedDescription)")
+            GALog.chat.error("createChatMessage: \(error.localizedDescription)")
             throw ChatServiceError.other
         }
     }

@@ -9,11 +9,21 @@ final class ChatRoomViewModel: ObservableObject {
     private(set) var currentUserId: UUID?
 
     @Published var messages: [Message] = []
+    /// Asset cache keyed by media_id, populated lazily when rendering media bubbles.
+    @Published var mediaAssets: [UUID: MediaAsset] = [:]
     @Published var isLoadingInitial: Bool = true
     @Published var loadError: String?
     @Published var sendError: String?
     @Published var isSending: Bool = false
     @Published var draft: String = ""
+
+    /// Composer for the in-flight piece of view-once media. nil when idle.
+    @Published var mediaController: MediaUploadController?
+
+    /// id of media currently being viewed (full-screen sheet).
+    @Published var openingMediaId: UUID?
+    /// Cached message type for the opening sheet (drives gif/video/image render).
+    @Published var openingMessageType: MessageType?
 
     init(roomId: UUID, partner: Profile?) {
         self.roomId = roomId
@@ -23,7 +33,6 @@ final class ChatRoomViewModel: ObservableObject {
     func attach(currentUserId: UUID) async {
         self.currentUserId = currentUserId
 
-        // Hydrate partner if we don't have one yet.
         if partner == nil {
             if let room = try? await ChatService.shared.fetchRoom(id: roomId) {
                 partner = try? await ChatService.shared.fetchPartnerProfile(
@@ -40,6 +49,8 @@ final class ChatRoomViewModel: ObservableObject {
 
     func detach() async {
         await RealtimeChatManager.shared.stop()
+        mediaController?.cancel()
+        mediaController = nil
     }
 
     // MARK: - Loads
@@ -47,6 +58,7 @@ final class ChatRoomViewModel: ObservableObject {
     func reload() async {
         do {
             messages = try await ChatService.shared.fetchMessages(roomId: roomId, limit: 50)
+            await hydrateMediaAssets()
             loadError = nil
         } catch {
             loadError = String(localized: "chat.error.loadFailed")
@@ -54,21 +66,37 @@ final class ChatRoomViewModel: ObservableObject {
         isLoadingInitial = false
     }
 
-    /// Realtime hint: a new message landed. Refetch the latest 50 — cheap
-    /// for MVP, deduplicates implicitly because we replace the array.
     private func reloadOnRealtimeInsert() async {
         do {
             let latest = try await ChatService.shared.fetchMessages(roomId: roomId, limit: 50)
             messages = latest
+            await hydrateMediaAssets()
         } catch {
             GALog.chat.error("realtime reload: \(error.localizedDescription)")
         }
     }
 
-    // MARK: - Send
+    /// Loads media metadata for any message whose media_id is not yet in
+    /// the cache. Best-effort; failures stay silent so chat still renders.
+    private func hydrateMediaAssets() async {
+        let needed = messages
+            .compactMap { $0.mediaId }
+            .filter { mediaAssets[$0] == nil }
+        for id in Set(needed) {
+            if let asset = try? await MediaService.shared.fetchAsset(id: id) {
+                mediaAssets[id] = asset
+            }
+        }
+    }
+
+    // MARK: - Send (text)
 
     var canSend: Bool {
         !draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !isSending
+    }
+
+    var canAttachMedia: Bool {
+        mediaController == nil && !isSending
     }
 
     func send() async {
@@ -81,7 +109,6 @@ final class ChatRoomViewModel: ObservableObject {
 
         do {
             let inserted = try await ChatService.shared.sendTextMessage(roomId: roomId, body: text)
-            // Optimistic-style: append directly so we don't wait for realtime.
             if !messages.contains(where: { $0.id == inserted.id }) {
                 messages.append(inserted)
             }
@@ -96,10 +123,83 @@ final class ChatRoomViewModel: ObservableObject {
         }
     }
 
+    // MARK: - Send (media)
+
+    func startMediaPick(_ source: MediaUploadController.PickerSource) {
+        let controller = MediaController(roomId: roomId)
+        mediaController = controller
+        controller.begin(source)
+    }
+
+    func confirmMediaSend() {
+        guard let controller = mediaController else { return }
+        controller.confirmSend { [weak self] message in
+            Task { @MainActor in
+                guard let self else { return }
+                if !self.messages.contains(where: { $0.id == message.id }) {
+                    self.messages.append(message)
+                    if let mid = message.mediaId,
+                       let asset = try? await MediaService.shared.fetchAsset(id: mid) {
+                        self.mediaAssets[mid] = asset
+                    }
+                }
+                self.mediaController = nil
+                Haptics.tap()
+            }
+        }
+    }
+
+    func dismissMediaComposer() {
+        mediaController?.cancel()
+        mediaController = nil
+    }
+
+    // MARK: - Open view-once
+
+    func openMedia(_ message: Message) {
+        guard let mid = message.mediaId else { return }
+        guard let asset = mediaAssets[mid] else { return }
+        guard !isMine(message),
+              asset.viewOnce,
+              asset.status == .active,
+              asset.viewedAt == nil
+        else { return }
+        openingMediaId = mid
+        openingMessageType = message.messageType
+    }
+
+    /// Called by the viewer when it has confirmed the server flipped the
+    /// row to viewed (or it was already viewed). We update the local cache
+    /// so the bubble shows the correct state immediately.
+    func markLocalAssetViewed(_ mediaId: UUID) {
+        guard var asset = mediaAssets[mediaId] else { return }
+        asset.status = .viewed
+        asset.viewedAt = Date()
+        asset.viewedBy = currentUserId
+        mediaAssets[mediaId] = asset
+    }
+
+    func closeMediaViewer() {
+        // Refresh the asset row in case sender's bubble was open elsewhere.
+        if let id = openingMediaId {
+            Task {
+                if let updated = try? await MediaService.shared.fetchAsset(id: id) {
+                    mediaAssets[id] = updated
+                }
+            }
+        }
+        openingMediaId = nil
+        openingMessageType = nil
+    }
+
     // MARK: - Display helpers
 
     func isMine(_ message: Message) -> Bool {
         message.senderId == currentUserId
+    }
+
+    func mediaAsset(for message: Message) -> MediaAsset? {
+        message.mediaId.flatMap { mediaAssets[$0] }
     }
 
     var headerTitle: String {
@@ -112,3 +212,7 @@ final class ChatRoomViewModel: ObservableObject {
         partner.map { "@\($0.getalongId)" }
     }
 }
+
+// MARK: - typealias
+
+typealias MediaController = MediaUploadController
