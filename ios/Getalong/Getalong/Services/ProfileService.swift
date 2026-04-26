@@ -107,6 +107,7 @@ final class ProfileService {
     }
 
     func createProfile(_ payload: ProfileInsert) async throws -> Profile {
+        GALog.profile.info("createProfile handle=@\(payload.getalongId)")
         do {
             let inserted: Profile = try await Supa.client
                 .from("profiles")
@@ -115,8 +116,10 @@ final class ProfileService {
                 .single()
                 .execute()
                 .value
+            GALog.profile.info("createProfile ok id=\(inserted.id)")
             return inserted
         } catch {
+            GALog.profile.error("createProfile failed: \(error.localizedDescription)")
             throw Self.translate(error)
         }
     }
@@ -126,8 +129,10 @@ final class ProfileService {
     /// at the DB level. Returns the freshly-fetched row.
     func updateMyProfile(_ patch: ProfilePatch) async throws -> Profile {
         guard let userId = try? await Supa.client.auth.session.user.id else {
+            GALog.profile.error("updateMyProfile: not signed in")
             throw ProfileError.underlying("not signed in")
         }
+        GALog.profile.info("updateMyProfile begin user=\(userId)")
         do {
             let updated: Profile = try await Supa.client
                 .from("profiles")
@@ -137,8 +142,10 @@ final class ProfileService {
                 .single()
                 .execute()
                 .value
+            GALog.profile.info("updateMyProfile ok")
             return updated
         } catch {
+            GALog.profile.error("updateMyProfile failed: \(error.localizedDescription)")
             throw Self.translate(error)
         }
     }

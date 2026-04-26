@@ -91,6 +91,7 @@ final class AuthService {
         guard provider != .apple else {
             throw AuthError.oauthFailed("Use signInWithApple for Apple.")
         }
+        GALog.auth.info("signInWithOAuth begin provider=\(provider.rawValue)")
 
         // 1. Ask Supabase for the provider authorize URL.
         let authorizeURL: URL
@@ -100,7 +101,7 @@ final class AuthService {
                 redirectTo: Self.redirectURL
             )
         } catch {
-            GALog.auth.error("oauth failed: \(error.localizedDescription)")
+            GALog.auth.error("oauth authorize url failed: \(error.localizedDescription)")
             throw Self.classify(error)
         }
 
@@ -113,9 +114,10 @@ final class AuthService {
                 anchor: presentationAnchor
             )
         } catch ASWebAuthenticationSessionError.canceledLogin {
+            GALog.auth.info("oauth cancelled by user")
             throw AuthError.userCancelled
         } catch {
-            GALog.auth.error("oauth failed: \(error.localizedDescription)")
+            GALog.auth.error("oauth web session failed: \(error.localizedDescription)")
             throw Self.classify(error)
         }
 
@@ -123,8 +125,9 @@ final class AuthService {
         //    or implicit fragment and creates a session.
         do {
             try await Supa.client.auth.session(from: callbackURL)
+            GALog.auth.info("signInWithOAuth ok provider=\(provider.rawValue)")
         } catch {
-            GALog.auth.error("oauth failed: \(error.localizedDescription)")
+            GALog.auth.error("oauth session-from-url failed: \(error.localizedDescription)")
             throw Self.classify(error)
         }
     }

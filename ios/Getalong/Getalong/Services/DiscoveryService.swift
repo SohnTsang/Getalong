@@ -90,25 +90,30 @@ final class DiscoveryService {
                    limit: Int = 20,
                    tags: [String]? = nil) async throws -> DiscoveryFeedResponse {
         let body = RequestBody(tags: tags, limit: limit, cursor: cursor)
+        GALog.discovery.info("fetchFeed cursor=\(cursor ?? "-") limit=\(limit)")
         do {
             let raw: Data = try await Supa.client.functions
                 .invoke("getDiscoveryFeed", options: .init(body: body))
             if let env = try? JSONDecoder().decode(
                 EnvelopeOK<DiscoveryFeedResponse>.self, from: raw) {
+                GALog.discovery.info("fetchFeed ok items=\(env.data.items.count) hasMore=\(env.data.hasMore)")
                 return env.data
             }
             if let err = try? JSONDecoder().decode(EnvelopeErr.self, from: raw) {
+                GALog.discovery.error("server error code=\(err.error_code ?? "-") message=\(err.message ?? "-")")
                 throw DiscoveryServiceError(code: err.error_code)
             }
+            GALog.discovery.error("undecodable response: \(String(data: raw, encoding: .utf8) ?? "-")")
             throw DiscoveryServiceError.loadFailed
         } catch let e as DiscoveryServiceError {
             throw e
         } catch {
             if let data = Self.errorPayload(from: error),
                let err  = try? JSONDecoder().decode(EnvelopeErr.self, from: data) {
+                GALog.discovery.error("http error code=\(err.error_code ?? "-") message=\(err.message ?? "-")")
                 throw DiscoveryServiceError(code: err.error_code)
             }
-            GALog.app.error("discovery: \(error.localizedDescription)")
+            GALog.discovery.error("transport: \(error.localizedDescription)")
             throw DiscoveryServiceError.loadFailed
         }
     }

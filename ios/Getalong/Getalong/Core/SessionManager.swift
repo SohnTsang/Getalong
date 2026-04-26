@@ -19,11 +19,14 @@ final class SessionManager: ObservableObject {
     private var authListener: Task<Void, Never>?
 
     func bootstrap() async {
+        GALog.session.info("bootstrap")
         // Resolve any cached session, then start listening for changes.
         do {
             if let session = try? await Supa.client.auth.session {
+                GALog.session.info("found cached session for user \(session.user.id)")
                 await resolve(userId: session.user.id)
             } else {
+                GALog.session.info("no cached session -> unauthenticated")
                 state = .unauthenticated
             }
         }
@@ -61,21 +64,26 @@ final class SessionManager: ObservableObject {
 
     /// Looks up the profile row for `userId`. If absent, signals onboarding.
     func resolve(userId: UUID) async {
+        GALog.session.info("resolve user=\(userId)")
         do {
             let profile: Profile? = try await ProfileService.shared.fetchProfile(id: userId)
             if let profile {
                 if profile.isBanned {
+                    GALog.session.info("resolved -> banned")
                     state = .banned
                 } else if profile.deletedAt != nil {
+                    GALog.session.info("resolved -> deleted")
                     state = .deleted
                 } else {
+                    GALog.session.info("resolved -> authenticated handle=@\(profile.getalongId)")
                     state = .authenticated(profile: profile)
                 }
             } else {
+                GALog.session.info("resolved -> profileSetupRequired")
                 state = .profileSetupRequired(userId: userId)
             }
         } catch {
-            GALog.auth.error("resolve(userId:) failed: \(error.localizedDescription)")
+            GALog.session.error("resolve failed: \(error.localizedDescription)")
             state = .error(error.localizedDescription)
         }
     }

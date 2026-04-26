@@ -163,6 +163,7 @@
       }
     },
     "auth.hero.teaser.label" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1258,7 +1259,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No signal yet"
+            "value" : "No line yet"
           }
         },
         "ja" : {
@@ -1350,19 +1351,19 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No signals yet"
+            "value" : "No one on your wavelength yet"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "まだ表示できるきっかけがありません"
+            "value" : "まだ気が合いそうな人は見つかりません"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "目前還沒有可顯示的訊號"
+            "value" : "暫時還沒有與你合拍的人"
           }
         }
       }
@@ -1530,19 +1531,19 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Find people through small signals and tags."
+            "value" : "Find people on your wavelength through a line and a few tags."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "小さなきっかけやタグから、気が合いそうな人を見つけます。"
+            "value" : "短い一言とタグで、気が合いそうな人を見つけます。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "透過小訊號與標籤，找到可能合得來的人。"
+            "value" : "透過一句話和標籤，找到與你合拍的人。"
           }
         }
       }
@@ -3822,7 +3823,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your signal"
+            "value" : "Your line"
           }
         },
         "ja" : {
@@ -4277,7 +4278,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your signal"
+            "value" : "Your line"
           }
         },
         "ja" : {
@@ -4289,7 +4290,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "你的小訊號"
+            "value" : "你的一句話"
           }
         }
       }
@@ -4967,8 +4968,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your signal"
-          }
+            "value" : "Your line" }
         },
         "ja" : {
           "stringUnit" : {
@@ -4979,7 +4979,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "你的小訊號"
+            "value" : "你的一句話"
           }
         }
       }

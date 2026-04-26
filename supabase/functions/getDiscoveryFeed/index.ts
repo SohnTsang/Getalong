@@ -109,30 +109,43 @@ Deno.serve(async (req) => {
   // 1. Build the set of user_ids to exclude.
   const excludeIds = new Set<string>([userId]);
 
-  const { data: blocksOut } = await sb
-    .from("blocks").select("blocked_id").eq("blocker_id", userId);
-  for (const r of blocksOut ?? []) excludeIds.add(r.blocked_id);
-
-  const { data: blocksIn } = await sb
-    .from("blocks").select("blocker_id").eq("blocked_id", userId);
-  for (const r of blocksIn ?? []) excludeIds.add(r.blocker_id);
-
-  const { data: rooms } = await sb
-    .from("chat_rooms")
-    .select("user_a, user_b, status")
-    .or(`user_a.eq.${userId},user_b.eq.${userId}`)
-    .eq("status", "active");
-  for (const r of rooms ?? []) {
-    excludeIds.add(r.user_a === userId ? r.user_b : r.user_a);
+  // Each side-channel query: log + ignore on error so a single bad
+  // table query never tanks the whole feed. Worst case the user sees
+  // a partner they've already blocked / chatted with — far better than
+  // an empty feed with a generic error.
+  {
+    const { data, error } = await sb
+      .from("blocks").select("blocked_id").eq("blocker_id", userId);
+    if (error) console.warn("blocksOut:", error.message);
+    for (const r of data ?? []) excludeIds.add(r.blocked_id);
   }
-
-  const { data: liveInvites } = await sb
-    .from("invites")
-    .select("sender_id, receiver_id")
-    .eq("status", "live_pending")
-    .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`);
-  for (const r of liveInvites ?? []) {
-    excludeIds.add(r.sender_id === userId ? r.receiver_id : r.sender_id);
+  {
+    const { data, error } = await sb
+      .from("blocks").select("blocker_id").eq("blocked_id", userId);
+    if (error) console.warn("blocksIn:", error.message);
+    for (const r of data ?? []) excludeIds.add(r.blocker_id);
+  }
+  {
+    const { data, error } = await sb
+      .from("chat_rooms")
+      .select("user_a, user_b")
+      .eq("status", "active")
+      .or(`user_a.eq.${userId},user_b.eq.${userId}`);
+    if (error) console.warn("active rooms:", error.message);
+    for (const r of data ?? []) {
+      excludeIds.add(r.user_a === userId ? r.user_b : r.user_a);
+    }
+  }
+  {
+    const { data, error } = await sb
+      .from("invites")
+      .select("sender_id, receiver_id")
+      .eq("status", "live_pending")
+      .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`);
+    if (error) console.warn("live invites:", error.message);
+    for (const r of data ?? []) {
+      excludeIds.add(r.sender_id === userId ? r.receiver_id : r.sender_id);
+    }
   }
 
   // 2. Tag intent: caller-supplied filters take precedence; otherwise we
@@ -158,29 +171,34 @@ Deno.serve(async (req) => {
   const fetchSize = Math.min(MAX_LIMIT * 4, 200);
   const excludeArr = [...excludeIds];
 
+  // Flat select — PostgREST tolerates whitespace, but we keep this
+  // tight to avoid any client/SDK string-massaging surprises.
+  const selectCols = "id,getalong_id,display_name,bio,city,country,"
+    + "gender,gender_visible,plan,updated_at,created_at,"
+    + "profile_tags(tag,normalized_tag)";
+
   let q = sb
     .from("profiles")
-    .select(`
-      id, getalong_id, display_name, bio, city, country,
-      gender, gender_visible, plan, updated_at, created_at,
-      profile_tags ( tag, normalized_tag )
-    `)
+    .select(selectCols)
     .eq("is_banned", false)
     .is("deleted_at", null)
-    .order("updated_at", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false })
-    .order("id", { ascending: false })
     .range(offset, offset + fetchSize - 1);
 
-  // PostgREST limits "not.in" list size; our exclude set is normally small
-  // but we cap defensively. For larger sets we'd switch to an RPC, but v0
-  // is fine.
+  // not.in needs each UUID quoted with double-quotes inside the
+  // PostgREST tuple to be parsed as a literal string. Without quotes,
+  // a stray hyphen in a UUID has been observed to confuse the parser
+  // on some Postgres / PostgREST versions.
   if (excludeArr.length > 0) {
-    q = q.not("id", "in", `(${excludeArr.join(",")})`);
+    const quoted = excludeArr.map((u) => `"${u}"`).join(",");
+    q = q.not("id", "in", `(${quoted})`);
   }
 
   const { data: rows, error } = await q;
-  if (error) return fail("INTERNAL_ERROR", error.message, 500);
+  if (error) {
+    console.error("profiles fetch:", error.message);
+    return fail("INTERNAL_ERROR", error.message, 500);
+  }
 
   type Row = {
     id: string;
