@@ -188,11 +188,13 @@ struct SignInView: View {
                 providerRow(.google,
                             title: String(localized: "auth.cta.google"),
                             systemImage: "g.circle.fill",
+                            brandAsset: "BrandGoogleG",
                             tint: Color(red: 0.93, green: 0.27, blue: 0.21))
                 GAHairline()
                 providerRow(.twitter,
                             title: String(localized: "auth.cta.x"),
                             systemImage: "xmark",
+                            brandAsset: "BrandX",
                             tint: GAColors.textPrimary)
             }
             .padding(.top, GASpacing.sm)
@@ -235,10 +237,12 @@ struct SignInView: View {
     private func providerRow(_ provider: AuthProvider,
                              title: String,
                              systemImage: String,
+                             brandAsset: String? = nil,
                              tint: Color) -> some View {
         GAProviderRow(
             title: title,
             systemImage: systemImage,
+            brandAsset: brandAsset,
             iconTint: tint,
             isLoading: vm.workingProvider == provider,
             isDisabled: vm.isWorking && vm.workingProvider != provider

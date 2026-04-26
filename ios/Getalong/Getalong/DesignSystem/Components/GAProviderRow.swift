@@ -1,12 +1,20 @@
 import SwiftUI
+import UIKit
 
 /// A list-style auth row used as the secondary providers below the
 /// primary Apple button. Hairline-divided, no boxed chrome — relies on
 /// rhythm and typography. Inspired by editorial app auth (Threads,
 /// Linear, Vercel).
+///
+/// `brandAsset` is preferred when available — when an image with that
+/// name exists in the asset catalog (e.g., the official Google "G" or X
+/// mark dropped into Assets.xcassets), it is rendered unmodified. If the
+/// asset is missing the row falls back to the SF Symbol so builds still
+/// work before the brand kits are added.
 struct GAProviderRow: View {
     let title: String
     let systemImage: String
+    var brandAsset: String? = nil
     var iconTint: Color = GAColors.textPrimary
     var isLoading: Bool = false
     var isDisabled: Bool = false
@@ -15,9 +23,7 @@ struct GAProviderRow: View {
     var body: some View {
         Button(action: { if !isLoading && !isDisabled { action() } }) {
             HStack(spacing: GASpacing.lg) {
-                Image(systemName: systemImage)
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundStyle(iconTint)
+                icon
                     .frame(width: 22, height: 22)
                 Text(title)
                     .font(GATypography.body)
@@ -39,6 +45,20 @@ struct GAProviderRow: View {
         .buttonStyle(.plain)
         .disabled(isDisabled || isLoading)
         .opacity(isDisabled ? 0.5 : 1)
+    }
+
+    @ViewBuilder
+    private var icon: some View {
+        if let name = brandAsset, UIImage(named: name) != nil {
+            // Brand kits ship the official mark; render unmodified.
+            Image(name)
+                .resizable()
+                .scaledToFit()
+        } else {
+            Image(systemName: systemImage)
+                .font(.system(size: 18, weight: .medium))
+                .foregroundStyle(iconTint)
+        }
     }
 }
 
