@@ -119,9 +119,10 @@ struct SignInView: View {
                 }
             }
 
-            // Aria's signal — a small thought, not a bio.
-            Text("\u{201C}\(String(localized: "auth.hero.teaser.message"))\u{201D}")
-                .font(GATypography.editorialQuote)
+            // Aria's signal — a small thought, not a bio. No quotes;
+            // the layout already frames the line as a profile signal.
+            Text("auth.hero.teaser.message")
+                .font(GATypography.bodyEmphasized)
                 .foregroundStyle(GAColors.textPrimary)
                 .lineSpacing(2)
                 .fixedSize(horizontal: false, vertical: true)
@@ -157,21 +158,21 @@ struct SignInView: View {
     }
 
     private var editorialLines: some View {
-        VStack(alignment: .leading, spacing: GASpacing.md) {
+        VStack(alignment: .leading, spacing: GASpacing.sm) {
             VStack(alignment: .leading, spacing: 0) {
                 Text("auth.hero.title.line1")
-                    .font(GATypography.editorial)
+                    .font(GATypography.heroSerif)
                     .foregroundStyle(GAColors.textPrimary)
-                    .lineSpacing(-4)
-                    .kerning(-0.4)
+                    .lineSpacing(-2)
+                    .kerning(-0.3)
                 Text("auth.hero.title.line2")
-                    .font(GATypography.editorial)
+                    .font(GATypography.heroSerif)
                     .foregroundStyle(GAColors.accent)
-                    .lineSpacing(-4)
-                    .kerning(-0.4)
+                    .lineSpacing(-2)
+                    .kerning(-0.3)
             }
             Text("auth.hero.subtitle")
-                .font(GATypography.body)
+                .font(GATypography.callout)
                 .foregroundStyle(GAColors.textSecondary)
                 .lineSpacing(2)
                 .fixedSize(horizontal: false, vertical: true)
@@ -214,7 +215,10 @@ struct SignInView: View {
             Task { await vm.handleAppleResult(result, rawNonce: nonce) }
         }
         .signInWithAppleButtonStyle(appleStyle)
-        .frame(height: GASpacing.controlHeight)
+        // SignInWithAppleButton sizes its label to fit the height —
+        // 44pt brings the title in line with the secondary provider rows
+        // without making the button feel cramped.
+        .frame(height: 44)
         .clipShape(RoundedRectangle(cornerRadius: GACornerRadius.medium,
                                     style: .continuous))
         .overlay(

@@ -14,6 +14,11 @@ enum GATypography {
     /// Tighter line height, serif design for character.
     static let editorial = Font.system(size: 44, weight: .regular, design: .serif)
 
+    /// Slightly tightened editorial hero — used on the SignIn screen
+    /// where the brand line shares the screen with a demo card and
+    /// provider buttons; 44pt was overpowering everything else.
+    static let heroSerif = Font.system(size: 32, weight: .regular, design: .serif)
+
     /// Mid-size serif used for in-card quoted messages (the live-invite
     /// teaser on the auth landing).
     static let editorialQuote = Font.system(size: 22, weight: .regular, design: .serif)
