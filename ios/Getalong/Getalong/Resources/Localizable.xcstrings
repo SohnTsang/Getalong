@@ -1615,6 +1615,41 @@
       "ja" :      { "stringUnit" : { "state" : "translated", "value" : "タグを削除" }},
       "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "移除標籤" }}
     }},
+    "push.permission.title" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Stay close to live moments" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "今のきっかけを逃さない" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "不要錯過此刻的訊號" }}
+    }},
+    "push.permission.subtitle" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Get notified when someone sends a Live Signal or replies to your conversation." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "ライブのきっかけや新しい会話が届いたときにお知らせします。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "當有人送出即時訊號，或對話有新訊息時，我們會通知你。" }}
+    }},
+    "push.permission.enable" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Enable notifications" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "通知をオンにする" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "開啟通知" }}
+    }},
+    "push.permission.notNow" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Not now" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "今はしない" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "暫時不要" }}
+    }},
+    "push.error.registrationFailed" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Couldn’t register for notifications." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "通知の登録ができませんでした。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "無法註冊通知。" }}
+    }},
+    "push.settings.title" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Notifications" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "通知" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "通知" }}
+    }},
+    "push.settings.system" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Managed in iOS Settings" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "iOSの設定で管理されます" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "可在 iOS 設定中管理" }}
+    }},
     "profile.deleteAccount" : {
       "localizations" : {
         "en" : {

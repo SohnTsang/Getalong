@@ -5,6 +5,7 @@
 
 import { ok, fail, preflight } from "../_shared/response.ts";
 import { requireUserId, admin, readJson } from "../_shared/auth.ts";
+import { pushToUser, PUSH_NEW_MESSAGE } from "../_shared/apns.ts";
 
 const MAX_MESSAGE_LENGTH = 1000;
 
@@ -81,6 +82,17 @@ Deno.serve(async (req) => {
     .update({ last_message_at: message.created_at })
     .eq("id", room_id);
   if (bumpErr) console.warn("last_message_at update failed:", bumpErr.message);
+
+  // 6. Best-effort push to the other participant.
+  pushToUser(partnerId, PUSH_NEW_MESSAGE, {
+    data: {
+      type: "new_message",
+      room_id,
+      message_id: message.id,
+    },
+    collapseId: `chat:${room_id}`,
+    threadId:   `chat:${room_id}`,
+  }).catch((e) => console.warn("createChatMessage push failed:", e));
 
   return ok({ message });
 });

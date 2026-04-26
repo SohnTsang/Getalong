@@ -5,6 +5,7 @@
 
 import { ok, fail, preflight } from "../_shared/response.ts";
 import { requireUserId, admin, mapPgError, readJson } from "../_shared/auth.ts";
+import { pushToUser, PUSH_LIVE_SIGNAL_RECEIVED } from "../_shared/apns.ts";
 
 interface Body {
   receiver_id?: string;
@@ -53,6 +54,14 @@ Deno.serve(async (req) => {
   }
 
   const row = Array.isArray(data) ? data[0] : data;
+
+  // Best-effort push to the receiver. Never block the response on this.
+  pushToUser(receiverId, PUSH_LIVE_SIGNAL_RECEIVED, {
+    data: { type: "live_signal_received", invite_id: row.invite_id },
+    collapseId: `invite:${row.invite_id}`,
+    threadId:   "live-signals",
+  }).catch((e) => console.warn("sendLiveInvite push failed:", e));
+
   return ok({
     invite_id:        row.invite_id,
     live_expires_at:  row.live_expires_at,

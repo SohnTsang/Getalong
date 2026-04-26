@@ -3,7 +3,9 @@ import Supabase
 
 @main
 struct GetalongApp: App {
+    @UIApplicationDelegateAdaptor(GetalongAppDelegate.self) private var appDelegate
     @StateObject private var session = SessionManager()
+    @StateObject private var push    = PushNotificationManager.shared
     @AppStorage("ga.appearance") private var appearanceRaw: String = GAAppearance.system.rawValue
 
     private var appearance: GAAppearance {
@@ -14,6 +16,7 @@ struct GetalongApp: App {
         WindowGroup {
             AppRouter()
                 .environmentObject(session)
+                .environmentObject(push)
                 .preferredColorScheme(appearance.colorScheme)
                 .tint(GAColors.accent)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)

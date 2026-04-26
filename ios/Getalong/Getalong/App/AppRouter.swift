@@ -59,6 +59,7 @@ struct AppRouter: View {
 struct MainTabView: View {
     enum Tab: Hashable { case discover, invites, chats, profile }
 
+    @EnvironmentObject private var push: PushNotificationManager
     @State private var selection: Tab = .discover
 
     init() {
@@ -84,6 +85,25 @@ struct MainTabView: View {
                 .tag(Tab.profile)
         }
         .tint(GAColors.accent)
+        // First-time permission ask, deferred until the user has reached
+        // the main app — never on the auth screen and never on first launch.
+        .task {
+            await push.requestAuthorizationIfNeeded()
+        }
+        // Notification-tap routing. We currently route to a tab; deep-link
+        // into a specific room is a TODO once ChatsView exposes selection.
+        .onChange(of: push.pendingTap) { route in
+            guard let route else { return }
+            switch route {
+            case .signals:
+                selection = .invites
+            case .chats:
+                // TODO: deep-link to a specific chat room when ChatsView
+                // accepts an external selection.
+                selection = .chats
+            }
+            push.pendingTap = nil
+        }
     }
 
     /// Tab bar gets a slightly raised, blurred surface that matches our

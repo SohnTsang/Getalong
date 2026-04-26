@@ -8,6 +8,7 @@ enum GALog {
     static let chat     = Logger(subsystem: subsystem, category: "chat")
     static let media    = Logger(subsystem: subsystem, category: "media")
     static let net      = Logger(subsystem: subsystem, category: "network")
+    static let push     = Logger(subsystem: subsystem, category: "push")
 
     private static let subsystem =
         Bundle.main.bundleIdentifier ?? "com.getalong.app"
