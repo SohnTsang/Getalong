@@ -884,51 +884,61 @@
         }
       }
     },
-    "discovery.empty.subtitle" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Discover will help you find people through signals and tags."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Discoverでは今後、きっかけやタグから気が合いそうな人を見つけられるようになります。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Discover 之後會透過小訊號和標籤，幫你找到可能合得來的人。"
-          }
-        }
-      }
-    },
-    "discovery.empty.title" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nothing yet"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "まだ表示できるものがありません"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "目前還沒有內容"
-          }
-        }
-      }
-    },
+    "discovery.empty.subtitle" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Add a few tags to help people find your wavelength." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "タグを追加すると、気が合いそうな人に見つけてもらいやすくなります。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "加入一些標籤，能讓合得來的人更容易發現你。" }}
+    }},
+    "discovery.empty.title" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "No signals yet" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "まだ表示できるきっかけがありません" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "目前還沒有可顯示的訊號" }}
+    }},
+    "discovery.error.loadFailed" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Couldn’t load Discover. Please try again." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "Discoverを読み込めませんでした。もう一度お試しください。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "無法載入探索，請再試一次。" }}
+    }},
+    "discovery.action.sendSignal" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Send Live Signal" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "ライブのきっかけを送る" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "送出即時訊號" }}
+    }},
+    "discovery.action.sending" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Sending..." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "送信中..." }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "傳送中..." }}
+    }},
+    "discovery.action.sent" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Signal sent" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "送信しました" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "訊號已送出" }}
+    }},
+    "discovery.signal.liveFor" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Live for 15 seconds" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "15秒だけ届きます" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "即時訊號會保留 15 秒" }}
+    }},
+    "discovery.card.noSignal" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "No signal yet" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "まだ一言はありません" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "目前沒有小訊號" }}
+    }},
+    "discovery.card.tagsEmpty" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "No tags yet" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "まだタグはありません" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "目前沒有標籤" }}
+    }},
+    "discovery.card.sameWavelength" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "You may get along over" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "気が合うきっかけ" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "可能合得來的地方" }}
+    }},
+    "discovery.refresh" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Refresh" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "更新" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "重新整理" }}
+    }},
     "discovery.filter.all" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -952,50 +962,16 @@
         }
       }
     },
-    "discovery.subtitle" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Small thoughts from people on your wavelength."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "気が合いそうな人たちの、ふとした一言。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "與你合拍的人，他們的小小想法。"
-          }
-        }
-      }
-    },
-    "discovery.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Today’s signals"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "今日のきっかけ"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "今天的訊號"
-          }
-        }
-      }
-    },
+    "discovery.subtitle" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Find people through small signals and tags." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "小さなきっかけやタグから、気が合いそうな人を見つけます。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "透過小訊號與標籤，找到可能合得來的人。" }}
+    }},
+    "discovery.title" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Discover" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "見つける" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "探索" }}
+    }},
     "error.activeChatLimitReached" : {
       "extractionState" : "stale",
       "localizations" : {
