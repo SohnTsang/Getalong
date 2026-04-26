@@ -13,6 +13,9 @@ struct PulsingCountdownRing: View {
     var total: Double = 15
     var size: CGFloat = 64
     var lineWidth: CGFloat = 4
+    /// When false the ring runs once from `total` to 0 and stops there.
+    /// When true (default, used by the auth hero) it loops forever.
+    var loops: Bool = true
 
     @State private var elapsed: Double = 0
     @State private var pulse: Bool = false
@@ -52,9 +55,14 @@ struct PulsingCountdownRing: View {
             pulse = true
         }
         .onReceive(timer) { _ in
-            elapsed += 0.05
-            // Pause for a beat at zero, then loop.
-            if elapsed >= total + 0.8 { elapsed = 0 }
+            // Stop at zero when not looping, otherwise pause for a beat
+            // and loop back to `total`.
+            if !loops {
+                if elapsed < total { elapsed += 0.05 }
+            } else {
+                elapsed += 0.05
+                if elapsed >= total + 0.8 { elapsed = 0 }
+            }
         }
         .accessibilityHidden(true)
     }

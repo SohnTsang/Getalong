@@ -183,20 +183,24 @@ private struct DiscoveryCard: View {
                     if !profile.sharedTags.isEmpty {
                         sharedRow
                     }
-                    stateFooter
+                    if case .failed(let message) = sendState {
+                        failureRow(message)
+                    }
                 }
             }
-            // When the card represents a gendered identity, echo the
-            // gender colour as a thin hairline around the card so the
-            // badge and the card frame read as a single visual idea.
+            // Card never dims regardless of state — the countdown ring
+            // in the corner is the only signal that an invite is live.
             .overlay(
                 RoundedRectangle(cornerRadius: GACornerRadius.large,
                                  style: .continuous)
-                    .strokeBorder(genderTintBorder, lineWidth: 0.25)
+                    .strokeBorder(borderColor, lineWidth: borderWidth)
             )
         }
         .buttonStyle(.plain)
-        .disabled(!isInteractive)
+        // Block taps but DO NOT use .disabled — that dims the whole
+        // card via opacity. We want the card to stay fully visible
+        // even after the invite has been sent.
+        .allowsHitTesting(isInteractive)
         .contextMenu {
             Button {
                 onReport()
@@ -213,19 +217,34 @@ private struct DiscoveryCard: View {
         }
     }
 
-    private var genderTintBorder: Color {
+    /// Border colour + thickness shifts with state so the gendered
+    /// hairline grows into a "live" frame while a sent invite ticks
+    /// down. Always uses the user's gender tint when available.
+    private var borderColor: Color {
         guard let kind = GenderBadge.Kind.from(rawValue: profile.gender) else {
             return Color.clear
         }
-        return kind.tint.opacity(0.30)
+        switch sendState {
+        case .sent:    return kind.tint.opacity(0.85)
+        case .sending: return kind.tint.opacity(0.55)
+        default:       return kind.tint.opacity(0.30)
+        }
+    }
+
+    private var borderWidth: CGFloat {
+        switch sendState {
+        case .sent:    return 1.25
+        case .sending: return 0.75
+        default:       return 0.25
+        }
     }
 
     // MARK: -
 
     /// Headline of the card: gender badge (if visible) + one-line signal.
-    /// No avatar, no display name, no @handle, no region — by product
-    /// direction. Small ellipsis on the trailing side opens the report
-    /// menu.
+    /// The trailing control flips with state — ellipsis menu when idle,
+    /// a small spinner while sending, the live 15-second countdown ring
+    /// once the invite has been sent.
     private var signalRow: some View {
         HStack(alignment: .top, spacing: GASpacing.sm) {
             VStack(alignment: .leading, spacing: GASpacing.sm) {
@@ -235,8 +254,24 @@ private struct DiscoveryCard: View {
                 signalText
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            menuButton
+            trailingControl
                 .padding(.top, -4)
+        }
+    }
+
+    @ViewBuilder
+    private var trailingControl: some View {
+        switch sendState {
+        case .sent:
+            // One-shot countdown — ring runs from 15 to 0 and stops.
+            PulsingCountdownRing(total: 15, size: 36, lineWidth: 2.5,
+                                 loops: false)
+        case .sending:
+            ProgressView()
+                .controlSize(.small)
+                .frame(width: 28, height: 28)
+        case .idle, .failed:
+            menuButton
         }
     }
 
@@ -302,47 +337,19 @@ private struct DiscoveryCard: View {
         }
     }
 
-    /// Quiet footer that telegraphs the per-card invite state.
-    /// Idle = nothing rendered (the whole card is the tap target).
-    /// Other states show feedback only.
-    @ViewBuilder
-    private var stateFooter: some View {
-        switch sendState {
-        case .idle:
-            EmptyView()
-        case .sending:
-            HStack(spacing: GASpacing.sm) {
-                ProgressView().controlSize(.small)
-                Text("discovery.action.sending")
-                    .font(GATypography.footnote)
-                    .foregroundStyle(GAColors.textSecondary)
-                Spacer()
-            }
-        case .sent:
-            HStack(spacing: GASpacing.sm) {
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(GAColors.success)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("discovery.action.sent")
-                        .font(GATypography.bodyEmphasized)
-                        .foregroundStyle(GAColors.textPrimary)
-                    Text("discovery.signal.liveFor")
-                        .font(GATypography.caption)
-                        .foregroundStyle(GAColors.textTertiary)
-                }
-                Spacer()
-            }
-        case .failed(let message):
-            HStack(spacing: GASpacing.xs) {
-                Image(systemName: "exclamationmark.triangle.fill")
-                    .font(GATypography.caption)
-                    .foregroundStyle(GAColors.danger)
-                Text(message)
-                    .font(GATypography.footnote)
-                    .foregroundStyle(GAColors.danger)
-                    .lineLimit(2)
-                Spacer()
-            }
+    /// Inline error row shown only on failed sends. Sending and sent
+    /// states have no footer at all — the trailing control (spinner /
+    /// countdown ring) is the only visual feedback.
+    private func failureRow(_ message: String) -> some View {
+        HStack(spacing: GASpacing.xs) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(GATypography.caption)
+                .foregroundStyle(GAColors.danger)
+            Text(message)
+                .font(GATypography.footnote)
+                .foregroundStyle(GAColors.danger)
+                .lineLimit(2)
+            Spacer()
         }
     }
 }
