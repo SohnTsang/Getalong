@@ -174,6 +174,44 @@ final class ReportService {
         }
     }
 
+    /// Returns the list of profiles the current user has blocked, paired
+    /// with the original block timestamp. RLS allows the user to read
+    /// their own blocks rows; profile lookups happen via PostgREST.
+    func fetchBlockedUsers() async throws -> [BlockedUser] {
+        struct Row: Decodable {
+            let blockedId: UUID
+            let createdAt: Date
+            enum CodingKeys: String, CodingKey {
+                case blockedId = "blocked_id"
+                case createdAt = "created_at"
+            }
+        }
+        let rows: [Row] = try await Supa.client
+            .from("blocks")
+            .select("blocked_id, created_at")
+            .order("created_at", ascending: false)
+            .execute()
+            .value
+        if rows.isEmpty { return [] }
+
+        // Fetch profiles in a single round-trip.
+        let ids = rows.map { $0.blockedId }
+        let profiles: [Profile] = try await Supa.client
+            .from("profiles")
+            .select()
+            .in("id", values: ids)
+            .execute()
+            .value
+        let byId = Dictionary(uniqueKeysWithValues: profiles.map { ($0.id, $0) })
+        return rows.map { row in
+            BlockedUser(
+                userId: row.blockedId,
+                blockedAt: row.createdAt,
+                profile: byId[row.blockedId]
+            )
+        }
+    }
+
     // MARK: - Invocation
 
     private struct EnvelopeOK<T: Decodable>: Decodable { let ok: Bool; let data: T }
@@ -224,4 +262,23 @@ final class ReportService {
 
 private extension String {
     var nilIfEmpty: String? { isEmpty ? nil : self }
+}
+
+struct BlockedUser: Identifiable, Hashable {
+    let userId: UUID
+    let blockedAt: Date
+    let profile: Profile?
+
+    var id: UUID { userId }
+
+    var displayName: String {
+        if let name = profile?.displayName, !name.isEmpty { return name }
+        if let h = profile?.getalongId, !h.isEmpty { return "@\(h)" }
+        return String(localized: "chat.title.fallback")
+    }
+
+    var handle: String? {
+        guard let h = profile?.getalongId, !h.isEmpty else { return nil }
+        return "@\(h)"
+    }
 }

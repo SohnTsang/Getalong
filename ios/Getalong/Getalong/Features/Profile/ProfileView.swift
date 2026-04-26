@@ -31,6 +31,7 @@ struct ProfileView: View {
                         tagsSection
                         preferencesSection(profile)
                         appearanceSection
+                        safetySection
                         legalSection
                         signOutSection
                     }
@@ -210,6 +211,30 @@ struct ProfileView: View {
                     }
                 }
                 .pickerStyle(.segmented)
+            }
+        }
+    }
+
+    private var safetySection: some View {
+        VStack(alignment: .leading, spacing: GASpacing.sm) {
+            GASectionHeader(title: String(localized: "profile.safety.title"))
+            GACard {
+                NavigationLink {
+                    BlockedUsersView()
+                } label: {
+                    HStack {
+                        Text("profile.safety.blockedUsers")
+                            .font(GATypography.body)
+                            .foregroundStyle(GAColors.textPrimary)
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(GATypography.caption)
+                            .foregroundStyle(GAColors.textTertiary)
+                    }
+                    .padding(.vertical, GASpacing.sm)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
             }
         }
     }

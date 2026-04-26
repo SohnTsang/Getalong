@@ -34,6 +34,19 @@ final class InvitesViewModel: ObservableObject {
     /// show a spinner. Only one signal action runs at a time per VM.
     @Published var processingInviteId: UUID?
 
+    /// Active report context (drives the .sheet(item:) on InvitesView).
+    @Published var pendingReport: ReportContext?
+
+    struct ReportContext: Identifiable, Equatable {
+        let id = UUID()
+        let targetType: ReportTargetType
+        let targetId: UUID
+    }
+
+    func presentReportInvite(_ invite: Invite) {
+        pendingReport = .init(targetType: .invite, targetId: invite.id)
+    }
+
     // Dev compose form (handle only — invites are a single tap)
     @Published var composeHandle: String = ""
     @Published var composeIsSending: Bool = false

@@ -4,6 +4,7 @@ struct ChatRoomView: View {
     @EnvironmentObject private var session: SessionManager
     @StateObject private var vm: ChatRoomViewModel
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.scenePhase) private var scenePhase
     @State private var lastMessageId: UUID?
 
     init(roomId: UUID, partner: Profile?) {
@@ -43,6 +44,13 @@ struct ChatRoomView: View {
         .toolbar(.hidden, for: .navigationBar)
         .task {
             if let uid = currentUserId { await vm.attach(currentUserId: uid) }
+        }
+        .onChange(of: scenePhase) { newPhase in
+            // When returning to the foreground, refresh block state in
+            // case the partner blocked us while we were backgrounded.
+            if newPhase == .active {
+                Task { await vm.refreshBlockState() }
+            }
         }
         .onDisappear { Task { await vm.detach() } }
         // Composer (selection → preview → upload → send).

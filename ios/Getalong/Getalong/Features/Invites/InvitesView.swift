@@ -17,7 +17,8 @@ struct InvitesView: View {
                             onAccept:  { Task { await vm.acceptLive(invite) } },
                             onDecline: { Task { await vm.declineLive(invite) } },
                             onExpired: { Task { await vm.liveCountdownExpired(invite) } },
-                            isBusy: vm.processingInviteId == invite.id
+                            isBusy: vm.processingInviteId == invite.id,
+                            onReport: { vm.presentReportInvite(invite) }
                         )
                     }
 
@@ -60,6 +61,13 @@ struct InvitesView: View {
                     .presentationDetents([.medium])
                     .presentationDragIndicator(.visible)
                 }
+            }
+            .sheet(item: $vm.pendingReport) { ctx in
+                ReportSheet(
+                    targetType: ctx.targetType,
+                    targetId:   ctx.targetId,
+                    onClose:    { vm.pendingReport = nil }
+                )
             }
         }
     }
@@ -119,7 +127,8 @@ struct InvitesView: View {
                         invite: invite,
                         onAccept:  { Task { await vm.acceptMissed(invite) } },
                         onDecline: { Task { await vm.decline(invite) } },
-                        isBusy: vm.processingInviteId == invite.id
+                        isBusy: vm.processingInviteId == invite.id,
+                        onReport: { vm.presentReportInvite(invite) }
                     )
                 }
             }

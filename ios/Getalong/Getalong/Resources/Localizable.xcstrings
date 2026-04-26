@@ -1768,6 +1768,76 @@
       "ja" :      { "stringUnit" : { "state" : "translated", "value" : "この会話ではメッセージを送信できません。" }},
       "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "這段對話已停用訊息功能。" }}
     }},
+    "safety.blockedUsers.title" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Blocked users" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "ブロックしたユーザー" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "已封鎖的使用者" }}
+    }},
+    "safety.blockedUsers.empty.title" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "No blocked users" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "ブロック中のユーザーはいません" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "目前沒有封鎖的使用者" }}
+    }},
+    "safety.blockedUsers.empty.subtitle" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "People you block will appear here." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "ブロックしたユーザーはここに表示されます。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "你封鎖的使用者會顯示在這裡。" }}
+    }},
+    "safety.blockedUsers.unblock" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Unblock" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "ブロックを解除" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "解除封鎖" }}
+    }},
+    "safety.blockedUsers.unblockConfirm.title" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Unblock this user?" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "ブロックを解除しますか？" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "要解除封鎖嗎？" }}
+    }},
+    "safety.blockedUsers.unblockConfirm.message" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "They may be able to send you signals or messages again." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "相手からのきっかけやメッセージが再び届く可能性があります。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "對方之後可能可以再次向你送出訊號或訊息。" }}
+    }},
+    "safety.blockedUsers.unblockConfirm.action" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Unblock user" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "ブロックを解除" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "解除封鎖" }}
+    }},
+    "safety.blockedUsers.unblockSuccess" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "User unblocked." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "ブロックを解除しました。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "已解除封鎖。" }}
+    }},
+    "safety.blockedUsers.unblockError" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Couldn’t unblock this user. Please try again." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "ブロックを解除できませんでした。もう一度お試しください。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "無法解除封鎖，請再試一次。" }}
+    }},
+    "safety.blockedUsers.loadError" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Couldn’t load blocked users." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "ブロックリストを読み込めませんでした。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "無法載入封鎖名單。" }}
+    }},
+    "safety.menu.reportSignal" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Report signal" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "きっかけを報告" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "檢舉訊號" }}
+    }},
+    "safety.menu.reportViewerMedia" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Report media" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "メディアを報告" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "檢舉媒體" }}
+    }},
+    "profile.safety.title" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Safety" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "安全" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "安全" }}
+    }},
+    "profile.safety.blockedUsers" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Blocked users" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "ブロックしたユーザー" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "已封鎖的使用者" }}
+    }},
     "safety.menu.reportUser" : { "localizations" : {
       "en" :      { "stringUnit" : { "state" : "translated", "value" : "Report user" }},
       "ja" :      { "stringUnit" : { "state" : "translated", "value" : "ユーザーを報告" }},

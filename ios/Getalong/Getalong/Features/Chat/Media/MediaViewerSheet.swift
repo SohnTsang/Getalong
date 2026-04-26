@@ -19,6 +19,7 @@ struct MediaViewerSheet: View {
     /// states don't need a finalize call (the prior open already handled it).
     @State private var didOpen: Bool = false
     @State private var finalizing: Bool = false
+    @State private var isReportPresented: Bool = false
 
     enum ViewerState {
         case opening
@@ -51,6 +52,8 @@ struct MediaViewerSheet: View {
 
             VStack {
                 HStack {
+                    reportMenu
+                        .padding(.leading, GASpacing.lg)
                     Spacer()
                     Button {
                         finalizeAndClose()
@@ -76,6 +79,13 @@ struct MediaViewerSheet: View {
         }
         .task { await load() }
         .interactiveDismissDisabled(finalizing)
+        .sheet(isPresented: $isReportPresented) {
+            ReportSheet(
+                targetType: .media,
+                targetId:   mediaId,
+                onClose:    { isReportPresented = false }
+            )
+        }
         .onDisappear {
             // Catch swipe-to-dismiss (and any other path that bypasses the
             // close button). Idempotent server-side — the X button path
@@ -84,6 +94,26 @@ struct MediaViewerSheet: View {
                 Task { await MediaService.shared.finalizeViewOnce(mediaId: mediaId) }
             }
         }
+    }
+
+    private var reportMenu: some View {
+        Menu {
+            Button {
+                isReportPresented = true
+            } label: {
+                Label(String(localized: "safety.menu.reportViewerMedia"),
+                      systemImage: "flag")
+            }
+        } label: {
+            Image(systemName: "ellipsis")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: 36, height: 36)
+                .background(.ultraThinMaterial, in: Circle())
+        }
+        .padding(GASpacing.lg)
+        .disabled(finalizing)
+        .accessibilityLabel(String(localized: "common.more"))
     }
 
     private func finalizeAndClose() {

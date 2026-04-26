@@ -65,7 +65,7 @@ final class ChatRoomViewModel: ObservableObject {
         }
     }
 
-    private func refreshBlockState() async {
+    func refreshBlockState() async {
         guard let me = currentUserId, let p = partner else { return }
         hasBlockedPartner = await ReportService.shared.hasBlocked(userId: p.id, by: me)
     }
@@ -172,6 +172,12 @@ final class ChatRoomViewModel: ObservableObject {
         } catch let e as ChatServiceError {
             sendError = e.errorDescription
             Haptics.error()
+            // If the backend rejected with BLOCKED_RELATIONSHIP, our local
+            // view of the block state is stale — most likely the partner
+            // blocked us. Re-check so the input flips to the blocked card.
+            if e == .blockedRelationship {
+                await refreshBlockState()
+            }
         } catch {
             sendError = String(localized: "chat.error.sendFailed")
             Haptics.error()

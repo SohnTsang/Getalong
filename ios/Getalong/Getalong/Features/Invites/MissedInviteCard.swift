@@ -5,6 +5,7 @@ struct MissedInviteCard: View {
     let onAccept: () -> Void
     let onDecline: () -> Void
     var isBusy: Bool = false
+    var onReport: (() -> Void)? = nil
 
     var body: some View {
         GACard(kind: .standard, padding: GASpacing.lg) {
@@ -45,6 +46,16 @@ struct MissedInviteCard: View {
                              kind: .primary, size: .compact,
                              isLoading: isBusy,
                              isDisabled: isBusy) { onAccept() }
+                }
+            }
+        }
+        .contextMenu {
+            if let onReport {
+                Button {
+                    onReport()
+                } label: {
+                    Label(String(localized: "safety.menu.reportSignal"),
+                          systemImage: "flag")
                 }
             }
         }

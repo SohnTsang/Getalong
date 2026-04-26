@@ -8,6 +8,7 @@ struct IncomingLiveInviteView: View {
     let onDecline: () -> Void
     let onExpired: () -> Void
     var isBusy: Bool = false
+    var onReport: (() -> Void)? = nil
 
     @State private var secondsLeft: Double = 0
     @State private var firedExpired: Bool = false
@@ -24,6 +25,16 @@ struct IncomingLiveInviteView: View {
             onDecline: onDecline,
             isBusy: isBusy
         )
+        .contextMenu {
+            if let onReport {
+                Button {
+                    onReport()
+                } label: {
+                    Label(String(localized: "safety.menu.reportSignal"),
+                          systemImage: "flag")
+                }
+            }
+        }
         .onAppear { tick() }
         .onReceive(timer) { _ in tick() }
     }
