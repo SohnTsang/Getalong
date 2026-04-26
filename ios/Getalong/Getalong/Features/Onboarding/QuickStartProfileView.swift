@@ -9,7 +9,7 @@ struct QuickStartProfileView: View {
     }
 
     var body: some View {
-        GAScreen(maxWidth: 520) {
+        GAScreen(maxWidth: 520, centerVertically: true) {
             VStack(alignment: .leading, spacing: GASpacing.xl) {
 
                 header
@@ -19,7 +19,6 @@ struct QuickStartProfileView: View {
                         GATextField(title: String(localized: "quickstart.signal.label"),
                                     text: $vm.oneLineIntro,
                                     placeholder: String(localized: "quickstart.signal.placeholder"),
-                                    systemImage: "text.alignleft",
                                     autocapitalization: .sentences,
                                     helperText: String(localized: "quickstart.signal.helper"),
                                     errorMessage: vm.signalHint)

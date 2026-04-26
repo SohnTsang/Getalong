@@ -9,6 +9,10 @@ struct GAScreen<Content: View>: View {
     var horizontalPadding: CGFloat = GASpacing.screenHorizontal
     var topPadding: CGFloat = GASpacing.lg
     var bottomPadding: CGFloat = GASpacing.xxl
+    /// When true, short content sits vertically centred in the available
+    /// height; long content still scrolls. Useful for onboarding-style
+    /// screens with one focused card.
+    var centerVertically: Bool = false
     @ViewBuilder var content: () -> Content
 
     var body: some View {
@@ -18,19 +22,27 @@ struct GAScreen<Content: View>: View {
             Group {
                 switch layout {
                 case .scroll:
-                    ScrollView {
-                        body(of: content())
+                    if centerVertically {
+                        GeometryReader { proxy in
+                            ScrollView {
+                                contentBody
+                                    .frame(maxWidth: .infinity,
+                                           minHeight: proxy.size.height,
+                                           alignment: .center)
+                            }
+                        }
+                    } else {
+                        ScrollView { contentBody }
                     }
                 case .fixed:
-                    body(of: content())
+                    contentBody
                 }
             }
         }
     }
 
-    @ViewBuilder
-    private func body<C: View>(of inner: C) -> some View {
-        VStack(spacing: GASpacing.sectionGap) { inner }
+    private var contentBody: some View {
+        VStack(spacing: GASpacing.sectionGap) { content() }
             .frame(maxWidth: maxWidth ?? .infinity)
             .frame(maxWidth: .infinity)
             .padding(.horizontal, horizontalPadding)

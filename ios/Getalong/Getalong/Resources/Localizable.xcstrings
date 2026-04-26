@@ -4525,6 +4525,7 @@
       }
     },
     "quickstart.age.confirmation" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4547,6 +4548,7 @@
       }
     },
     "quickstart.age.subtitle" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4799,6 +4801,7 @@
       }
     },
     "quickstart.handle.error.normalized %@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
