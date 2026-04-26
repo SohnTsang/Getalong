@@ -112,7 +112,7 @@ struct SignInView: View {
                     .foregroundStyle(GAColors.textTertiary)
             }
         }
-        .padding(GASpacing.lg)
+        .padding(GASpacing.xl)
         .background(GAColors.surface)
         .clipShape(RoundedRectangle(cornerRadius: GACornerRadius.large,
                                     style: .continuous))
@@ -120,7 +120,7 @@ struct SignInView: View {
             RoundedRectangle(cornerRadius: GACornerRadius.large,
                              style: .continuous)
                 .strokeBorder(GenderBadge.Kind.female.tint.opacity(0.30),
-                              lineWidth: 1)
+                              lineWidth: 0.25)
         )
         .shadow(color: Color.black.opacity(0.05), radius: 18, x: 0, y: 6)
     }

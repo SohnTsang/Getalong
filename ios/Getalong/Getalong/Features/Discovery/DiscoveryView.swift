@@ -192,7 +192,7 @@ private struct DiscoveryCard: View {
             .overlay(
                 RoundedRectangle(cornerRadius: GACornerRadius.large,
                                  style: .continuous)
-                    .strokeBorder(genderTintBorder, lineWidth: 0.5)
+                    .strokeBorder(genderTintBorder, lineWidth: 0.25)
             )
         }
         .buttonStyle(.plain)
