@@ -149,8 +149,7 @@ private struct DiscoveryCard: View {
     var body: some View {
         GACard(kind: .standard, padding: GASpacing.lg) {
             VStack(alignment: .leading, spacing: GASpacing.md) {
-                identityRow
-                bioRow
+                signalRow
                 if !profile.tags.isEmpty {
                     tagsBlock
                 }
@@ -172,42 +171,33 @@ private struct DiscoveryCard: View {
 
     // MARK: -
 
-    private var identityRow: some View {
-        HStack(alignment: .top, spacing: GASpacing.md) {
-            avatar
-            VStack(alignment: .leading, spacing: 2) {
-                Text(profile.displayName)
-                    .font(GATypography.title)
-                    .foregroundStyle(GAColors.textPrimary)
-                    .lineLimit(2)
-                Text("@\(profile.getalongId)")
-                    .font(GATypography.caption)
-                    .foregroundStyle(GAColors.textTertiary)
-            }
-            Spacer(minLength: 0)
+    /// Headline of the card: the user's one-line signal. No avatar, no
+    /// display name, no @handle, no region — by product direction.
+    /// The small ellipsis on the trailing side opens the report menu.
+    private var signalRow: some View {
+        HStack(alignment: .top, spacing: GASpacing.sm) {
+            signalText
+                .frame(maxWidth: .infinity, alignment: .leading)
             menuButton
+                .padding(.top, -4)
         }
     }
 
-    private var avatar: some View {
-        ZStack {
-            Circle()
-                .fill(LinearGradient(
-                    colors: [GAColors.accentSoft, GAColors.surfaceRaised],
-                    startPoint: .topLeading, endPoint: .bottomTrailing))
-            Text(initials)
+    @ViewBuilder
+    private var signalText: some View {
+        if let bio = profile.bio?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !bio.isEmpty {
+            Text(bio)
                 .font(GATypography.bodyEmphasized)
-                .foregroundStyle(GAColors.accent)
+                .foregroundStyle(GAColors.textPrimary)
+                .lineSpacing(2)
+                .lineLimit(4)
+                .fixedSize(horizontal: false, vertical: true)
+        } else {
+            Text("discovery.card.noSignal")
+                .font(GATypography.callout)
+                .foregroundStyle(GAColors.textTertiary)
         }
-        .frame(width: 44, height: 44)
-        .overlay(Circle().strokeBorder(GAColors.border, lineWidth: 0.75))
-    }
-
-    private var initials: String {
-        let words = profile.displayName.split(separator: " ").prefix(2)
-        let r = words.compactMap { $0.first.map(String.init) }.joined().uppercased()
-        if !r.isEmpty { return r }
-        return profile.getalongId.prefix(2).uppercased()
     }
 
     private var menuButton: some View {
@@ -225,22 +215,6 @@ private struct DiscoveryCard: View {
                 .frame(width: 28, height: 28)
         }
         .accessibilityLabel(String(localized: "common.more"))
-    }
-
-    @ViewBuilder
-    private var bioRow: some View {
-        if let bio = profile.bio?.trimmingCharacters(in: .whitespacesAndNewlines),
-           !bio.isEmpty {
-            Text(bio)
-                .font(GATypography.body)
-                .foregroundStyle(GAColors.textPrimary)
-                .lineSpacing(2)
-                .lineLimit(4)
-        } else {
-            Text("discovery.card.noSignal")
-                .font(GATypography.callout)
-                .foregroundStyle(GAColors.textTertiary)
-        }
     }
 
     private var tagsBlock: some View {

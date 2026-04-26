@@ -83,49 +83,24 @@ struct SignInView: View {
         }
     }
 
-    /// The teaser shows the core unit of Getalong: a *signal* — a small
-    /// thought someone shares, plus the option to respond live. The
-    /// countdown ring is tucked into the corner as a status indicator,
-    /// not the headline.
+    /// The teaser shows the core unit of Getalong: one small signal —
+    /// no avatar, no handle, no region. Just the line and a quiet LIVE
+    /// indicator. Identical structure to the Discovery card.
     private var inviteTeaser: some View {
-        VStack(alignment: .leading, spacing: GASpacing.lg) {
-            HStack(alignment: .center, spacing: GASpacing.md) {
-                avatarBubble(letter: "A")
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack(spacing: 6) {
-                        Text(verbatim: "@aria")
-                            .font(GATypography.callout.weight(.semibold))
-                            .foregroundStyle(GAColors.textPrimary)
-                        Text(verbatim: "·")
-                            .font(GATypography.caption)
-                            .foregroundStyle(GAColors.textTertiary)
-                        liveDot
-                        Text("auth.hero.teaser.label")
-                            .font(GATypography.micro)
-                            .tracking(1.6)
-                            .foregroundStyle(GAColors.accent)
-                    }
-                    Text(verbatim: "Brooklyn, NY")
-                        .font(GATypography.caption)
-                        .foregroundStyle(GAColors.textTertiary)
-                }
-                Spacer(minLength: 0)
-                VStack(spacing: 4) {
-                    PulsingCountdownRing(total: 15, size: 44, lineWidth: 2.5)
-                    Text("auth.hero.teaser.live")
-                        .font(GATypography.micro)
-                        .tracking(1.4)
-                        .foregroundStyle(GAColors.textTertiary)
-                }
-            }
-
-            // Aria's signal — a small thought, not a bio. No quotes;
-            // the layout already frames the line as a profile signal.
+        HStack(alignment: .top, spacing: GASpacing.md) {
             Text("auth.hero.teaser.message")
                 .font(GATypography.bodyEmphasized)
                 .foregroundStyle(GAColors.textPrimary)
                 .lineSpacing(2)
                 .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            VStack(spacing: 4) {
+                PulsingCountdownRing(total: 15, size: 36, lineWidth: 2.5)
+                Text("auth.hero.teaser.live")
+                    .font(GATypography.micro)
+                    .tracking(1.4)
+                    .foregroundStyle(GAColors.textTertiary)
+            }
         }
         .padding(GASpacing.lg)
         .background(GAColors.surface)
@@ -137,24 +112,6 @@ struct SignInView: View {
                 .strokeBorder(GAColors.border, lineWidth: 0.75)
         )
         .shadow(color: Color.black.opacity(0.05), radius: 18, x: 0, y: 6)
-    }
-
-    private func avatarBubble(letter: String) -> some View {
-        ZStack {
-            Circle().fill(GAColors.accentSoft)
-            Text(letter)
-                .font(.system(size: 13, weight: .bold, design: .rounded))
-                .foregroundStyle(GAColors.accent)
-        }
-        .frame(width: 28, height: 28)
-        .overlay(Circle().strokeBorder(GAColors.border, lineWidth: 0.75))
-    }
-
-    private var liveDot: some View {
-        Circle()
-            .fill(GAColors.accent)
-            .frame(width: 6, height: 6)
-            .padding(.horizontal, 4)
     }
 
     private var editorialLines: some View {
