@@ -6764,19 +6764,19 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Signals"
+            "value" : "Live"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "きっかけ"
+            "value" : "ライブ"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "訊號"
+            "value" : "即時"
           }
         }
       }

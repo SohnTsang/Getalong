@@ -139,10 +139,7 @@ final class ChatService {
 
     private func invokeCreate<B: Encodable>(body: B) async throws -> Message {
         do {
-            let raw: Data = try await Supa.client.functions.invoke(
-                "createChatMessage",
-                options: .init(body: body)
-            )
+            let raw = try await Supa.invokeRaw("createChatMessage", body: body)
             if let envelope = try? JSONDecoder.gaChat.decode(EnvelopeOK.self, from: raw) {
                 return envelope.data.message
             }

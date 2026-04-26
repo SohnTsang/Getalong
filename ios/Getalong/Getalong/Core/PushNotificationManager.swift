@@ -118,8 +118,7 @@ final class PushNotificationManager: NSObject, ObservableObject {
                 device_id: UIDevice.current.identifierForVendor?.uuidString
             )
 
-            let _: Data = try await Supa.client.functions
-                .invoke("registerDeviceToken", options: .init(body: body))
+            _ = try await Supa.invokeRaw("registerDeviceToken", body: body)
             GALog.push.info("device token registered")
         } catch {
             GALog.push.error("registerDeviceToken failed: \(error.localizedDescription)")

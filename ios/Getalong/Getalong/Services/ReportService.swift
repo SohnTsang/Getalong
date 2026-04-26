@@ -225,8 +225,7 @@ final class ReportService {
         _ name: String, body: TBody
     ) async throws -> TResp {
         do {
-            let raw: Data = try await Supa.client.functions
-                .invoke(name, options: .init(body: body))
+            let raw = try await Supa.invokeRaw(name, body: body)
             if let env = try? Self.decoder.decode(EnvelopeOK<TResp>.self, from: raw) {
                 return env.data
             }

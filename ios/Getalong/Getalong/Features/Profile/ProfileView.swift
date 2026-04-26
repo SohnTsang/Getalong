@@ -27,7 +27,9 @@ struct ProfileView: View {
 
     var body: some View {
         NavigationStack {
-            GAScreen(maxWidth: 560) {
+            VStack(spacing: 0) {
+                GAAppTopBar()
+                GAScreen(maxWidth: 560) {
                 if let profile {
                     VStack(alignment: .leading, spacing: GASpacing.sectionGap) {
                         if let note = saveSuccessNote {
@@ -46,6 +48,7 @@ struct ProfileView: View {
                 } else {
                     GAEmptyState(title: String(localized: "profile.empty.title"),
                                  systemImage: "person.crop.circle.badge.questionmark")
+                }
                 }
             }
             .navigationTitle("")

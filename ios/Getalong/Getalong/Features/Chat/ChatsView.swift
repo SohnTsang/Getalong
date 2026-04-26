@@ -7,12 +7,14 @@ struct ChatsView: View {
 
     var body: some View {
         NavigationStack {
-            GAScreen(maxWidth: 560) {
-                VStack(alignment: .leading, spacing: GASpacing.sectionGap) {
+            VStack(spacing: 0) {
+                GAAppTopBar()
+                GAScreen(maxWidth: 560) {
+                    VStack(alignment: .leading, spacing: GASpacing.sectionGap) {
 
-                    header
+                        header
 
-                    if vm.isLoading && vm.rows.isEmpty {
+                        if vm.isLoading && vm.rows.isEmpty {
                         ProgressView()
                             .frame(maxWidth: .infinity, minHeight: 80)
                     } else if vm.rows.isEmpty {
@@ -37,15 +39,16 @@ struct ChatsView: View {
                         }
                     }
 
-                    if let err = vm.errorMessage {
-                        GAErrorBanner(message: err,
-                                      onDismiss: { vm.errorMessage = nil })
+                        if let err = vm.errorMessage {
+                            GAErrorBanner(message: err,
+                                          onDismiss: { vm.errorMessage = nil })
+                        }
                     }
                 }
+                .refreshable { await vm.refresh() }
             }
             .navigationTitle("")
             .toolbar(.hidden, for: .navigationBar)
-            .refreshable { await vm.refresh() }
             .task {
                 if let uid = currentUserId { await vm.attach(userId: uid) }
             }

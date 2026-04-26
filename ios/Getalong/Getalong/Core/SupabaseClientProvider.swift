@@ -35,6 +35,31 @@ enum SupabaseConfig {
     }
 }
 
+/// Calls an Edge Function and returns the raw response bytes.
+///
+/// Why this exists: supabase-swift's `invoke<T: Decodable>` overload is
+/// picked when callers write `let raw: Data = ...invoke(...)`. That
+/// overload runs `JSONDecoder().decode(Data.self, from: response)` —
+/// which expects a base64 *string*, not a JSON object body, and fails
+/// every time with `NSCocoaErrorDomain 3840` ("data couldn't be read").
+/// Forcing the closure variant returns the raw bytes verbatim and lets
+/// each service decode our envelope shape on its own terms.
+extension Supa {
+    static func invokeRaw(
+        _ functionName: String,
+        body: some Encodable
+    ) async throws -> Data {
+        try await client.functions.invoke(
+            functionName,
+            options: .init(body: body)
+        ) { data, _ in data }
+    }
+
+    static func invokeRaw(_ functionName: String) async throws -> Data {
+        try await client.functions.invoke(functionName) { data, _ in data }
+    }
+}
+
 /// Single shared `SupabaseClient`. Services and `SessionManager` go
 /// through this. Built on first access.
 enum Supa {

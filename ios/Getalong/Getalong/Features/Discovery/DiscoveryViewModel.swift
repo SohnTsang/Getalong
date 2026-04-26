@@ -31,6 +31,19 @@ final class DiscoveryViewModel: ObservableObject {
     /// `count - prefetchTrigger` (or later) appears.
     private let prefetchTrigger = 3
 
+    /// Hard rate limit for the manual refresh button: at least this
+    /// many seconds between successful refreshes. Prevents users from
+    /// spamming the Edge Function.
+    private let manualRefreshCooldown: TimeInterval = 6
+
+    /// Last time refresh() completed successfully. Drives the
+    /// cooldown countdown on the top bar refresh button.
+    @Published private(set) var lastRefreshAt: Date?
+    /// Wall-clock now, recomputed every second only while a cooldown
+    /// is active, so `cooldownRemaining` actually changes.
+    @Published private var clockTick: Date = Date()
+    private var clockTimer: Timer?
+
     private var nextCursor: String?
 
     struct ReportContext: Identifiable, Equatable {
@@ -52,6 +65,41 @@ final class DiscoveryViewModel: ObservableObject {
         loadMoreError = nil
         defer { isRefreshing = false }
         await fetchFirstPage()
+        lastRefreshAt = Date()
+        startCooldownTickIfNeeded()
+    }
+
+    /// Manual refresh from the top-bar button. No-ops if a refresh is
+    /// already running or the cooldown window hasn't elapsed yet —
+    /// callers don't have to guard themselves.
+    func tryManualRefresh() async {
+        guard cooldownRemaining <= 0, !isRefreshing else { return }
+        await refresh()
+    }
+
+    /// Seconds remaining until the user may manually refresh again.
+    /// Zero (or negative) means "go ahead".
+    var cooldownRemaining: TimeInterval {
+        guard let last = lastRefreshAt else { return 0 }
+        let elapsed = clockTick.timeIntervalSince(last)
+        return max(0, manualRefreshCooldown - elapsed)
+    }
+
+    private func startCooldownTickIfNeeded() {
+        clockTimer?.invalidate()
+        clockTick = Date()
+        guard cooldownRemaining > 0 else { return }
+        clockTimer = Timer.scheduledTimer(
+            withTimeInterval: 1, repeats: true
+        ) { [weak self] timer in
+            guard let self else { timer.invalidate(); return }
+            Task { @MainActor in
+                self.clockTick = Date()
+                if self.cooldownRemaining <= 0 {
+                    timer.invalidate()
+                }
+            }
+        }
     }
 
     private func fetchFirstPage() async {

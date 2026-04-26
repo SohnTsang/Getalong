@@ -92,8 +92,7 @@ final class DiscoveryService {
         let body = RequestBody(tags: tags, limit: limit, cursor: cursor)
         GALog.discovery.info("fetchFeed cursor=\(cursor ?? "-") limit=\(limit)")
         do {
-            let raw: Data = try await Supa.client.functions
-                .invoke("getDiscoveryFeed", options: .init(body: body))
+            let raw = try await Supa.invokeRaw("getDiscoveryFeed", body: body)
             if let env = try? JSONDecoder().decode(
                 EnvelopeOK<DiscoveryFeedResponse>.self, from: raw) {
                 GALog.discovery.info("fetchFeed ok items=\(env.data.items.count) hasMore=\(env.data.hasMore)")

@@ -203,8 +203,7 @@ final class InviteService {
 
     private func invoke<T: Decodable>(_ name: String, body: [String: AnyJSON]) async throws -> T {
         do {
-            let raw: Data = try await Supa.client.functions
-                .invoke(name, options: .init(body: body))
+            let raw = try await Supa.invokeRaw(name, body: body)
             if let ok = try? JSONDecoder.gaInvite.decode(EnvelopeOK<T>.self, from: raw) {
                 return ok.data
             }

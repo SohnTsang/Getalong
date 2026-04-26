@@ -6,8 +6,10 @@ struct InvitesView: View {
 
     var body: some View {
         NavigationStack {
-            GAScreen(maxWidth: 560) {
-                VStack(alignment: .leading, spacing: GASpacing.sectionGap) {
+            VStack(spacing: 0) {
+                GAAppTopBar()
+                GAScreen(maxWidth: 560) {
+                    VStack(alignment: .leading, spacing: GASpacing.sectionGap) {
 
                     header
 
@@ -45,10 +47,11 @@ struct InvitesView: View {
                     DevComposeInviteCard(vm: vm)
                         .padding(.top, GASpacing.lg)
                 }
+                }
+                .refreshable { await vm.refresh() }
             }
             .navigationTitle("")
             .toolbar(.hidden, for: .navigationBar)
-            .refreshable { await vm.refresh() }
             .task {
                 if let uid = currentUserId { await vm.attach(userId: uid) }
             }

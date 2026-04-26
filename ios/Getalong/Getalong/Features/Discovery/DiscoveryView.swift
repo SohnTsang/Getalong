@@ -5,15 +5,24 @@ struct DiscoveryView: View {
 
     var body: some View {
         NavigationStack {
-            GAScreen(maxWidth: 560) {
-                VStack(alignment: .leading, spacing: GASpacing.sectionGap) {
-                    header
-                    content
+            VStack(spacing: 0) {
+                GAAppTopBar(trailing: {
+                    GATopBarRefreshButton(
+                        isBusy: vm.isRefreshing,
+                        cooldownRemaining: vm.cooldownRemaining,
+                        onTap: { Task { await vm.tryManualRefresh() } }
+                    )
+                })
+                GAScreen(maxWidth: 560) {
+                    VStack(alignment: .leading, spacing: GASpacing.sectionGap) {
+                        header
+                        content
+                    }
                 }
+                .refreshable { await vm.tryManualRefresh() }
             }
             .navigationTitle("")
             .toolbar(.hidden, for: .navigationBar)
-            .refreshable { await vm.refresh() }
             .task { await vm.loadInitial() }
             .sheet(item: $vm.pendingReport) { ctx in
                 ReportSheet(
