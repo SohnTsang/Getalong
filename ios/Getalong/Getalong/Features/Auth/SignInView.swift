@@ -18,31 +18,36 @@ struct SignInView: View {
         ZStack {
             GAColors.background.ignoresSafeArea()
 
-            VStack(alignment: .leading, spacing: 0) {
+            // Content-driven layout so the gap between hero and the
+            // provider buttons is constant across phone heights instead
+            // of stretching with available room.
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
 
-                centeredWordmark
-                    .padding(.top, GASpacing.lg)
-                    .padding(.bottom, GASpacing.xxl)
+                    centeredWordmark
+                        .padding(.top, GASpacing.lg)
+                        .padding(.bottom, GASpacing.xxl)
 
-                hero
+                    hero
 
-                Spacer(minLength: GASpacing.xl)
+                    providers
+                        .padding(.top, GASpacing.xxl)
 
-                providers
+                    if let error = vm.errorMessage {
+                        GAErrorBanner(message: error,
+                                      onDismiss: { vm.errorMessage = nil })
+                            .padding(.top, GASpacing.lg)
+                    }
 
-                if let error = vm.errorMessage {
-                    GAErrorBanner(message: error,
-                                  onDismiss: { vm.errorMessage = nil })
+                    fineprint
                         .padding(.top, GASpacing.lg)
                 }
-
-                fineprint
-                    .padding(.top, GASpacing.lg)
+                .frame(maxWidth: 460)
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, GASpacing.xl)
+                .padding(.bottom, GASpacing.xl)
             }
-            .frame(maxWidth: 460)
-            .frame(maxWidth: .infinity)
-            .padding(.horizontal, GASpacing.xl)
-            .padding(.bottom, GASpacing.xl)
+            .scrollIndicators(.hidden)
         }
     }
 
@@ -88,12 +93,15 @@ struct SignInView: View {
     /// indicator. Identical structure to the Discovery card.
     private var inviteTeaser: some View {
         HStack(alignment: .top, spacing: GASpacing.md) {
-            Text("auth.hero.teaser.message")
-                .font(GATypography.bodyEmphasized)
-                .foregroundStyle(GAColors.textPrimary)
-                .lineSpacing(2)
-                .fixedSize(horizontal: false, vertical: true)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            VStack(alignment: .leading, spacing: GASpacing.xs) {
+                GenderBadge(kind: .female)
+                Text("auth.hero.teaser.message")
+                    .font(GATypography.bodyEmphasized)
+                    .foregroundStyle(GAColors.textPrimary)
+                    .lineSpacing(2)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
             VStack(spacing: 4) {
                 PulsingCountdownRing(total: 15, size: 36, lineWidth: 2.5)
                 Text("auth.hero.teaser.live")

@@ -171,13 +171,19 @@ private struct DiscoveryCard: View {
 
     // MARK: -
 
-    /// Headline of the card: the user's one-line signal. No avatar, no
-    /// display name, no @handle, no region — by product direction.
-    /// The small ellipsis on the trailing side opens the report menu.
+    /// Headline of the card: gender badge (if visible) + one-line signal.
+    /// No avatar, no display name, no @handle, no region — by product
+    /// direction. Small ellipsis on the trailing side opens the report
+    /// menu.
     private var signalRow: some View {
         HStack(alignment: .top, spacing: GASpacing.sm) {
-            signalText
-                .frame(maxWidth: .infinity, alignment: .leading)
+            VStack(alignment: .leading, spacing: GASpacing.xs) {
+                if let kind = GenderBadge.Kind.from(rawValue: profile.gender) {
+                    GenderBadge(kind: kind)
+                }
+                signalText
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
             menuButton
                 .padding(.top, -4)
         }
