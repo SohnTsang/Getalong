@@ -176,6 +176,28 @@ final class MediaService {
         return try await invoke("openViewOnceMedia", body: Body(media_id: mediaId))
     }
 
+    /// Best-effort: tells the backend the receiver has closed the viewer so
+    /// the storage object can be removed immediately. Idempotent server-side.
+    /// Failure is logged but never surfaced to the user; the fallback
+    /// cleanup will catch unmarked rows after a 2-minute grace.
+    func finalizeViewOnce(mediaId: UUID) async {
+        struct Body: Encodable { let media_id: UUID }
+        struct Resp: Decodable {
+            let storageDeletedAt: Date?
+            let alreadyDeleted: Bool?
+            enum CodingKeys: String, CodingKey {
+                case storageDeletedAt = "storage_deleted_at"
+                case alreadyDeleted   = "already_deleted"
+            }
+        }
+        do {
+            let _: Resp = try await invoke("finalizeViewOnceMedia",
+                                           body: Body(media_id: mediaId))
+        } catch {
+            GALog.media.error("finalizeViewOnce: \(error.localizedDescription)")
+        }
+    }
+
     // MARK: - Read media metadata (for messages)
 
     func fetchAsset(id: UUID) async throws -> MediaAsset? {

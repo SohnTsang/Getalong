@@ -1,19 +1,17 @@
-// deleteExpiredMedia — Getalong Edge Function (cleanup).
+// deleteExpiredMedia — Getalong fallback cleanup.
 //
-// Idempotent. Safe to call repeatedly. Recommended cadence: every 5–15 min
-// via Supabase Scheduled Functions or pg_cron. If neither is configured,
-// invoke manually with curl + service-role bearer:
+// Primary deletion path is finalizeViewOnceMedia, called by the iOS viewer
+// when the receiver closes the preview. This function is the safety net
+// that catches:
 //
-//   curl -X POST <project>.supabase.co/functions/v1/deleteExpiredMedia \
-//        -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY"
+//   * viewed rows that never got a finalize call (app killed, network
+//     failure, etc.) — after a 2-minute grace, delete the storage object
+//     and stamp storage_deleted_at.
+//   * pending_upload rows older than 30 minutes — never uploaded.
+//   * active rows past expires_at — receiver never opened.
+//   * expired rows with storage objects still around.
 //
-// Steps:
-//   1. Mark active rows past expires_at as expired.
-//   2. Mark pending_upload rows older than PENDING_TTL_SECONDS as expired.
-//   3. Delete storage objects for viewed rows older than VIEWED_GRACE,
-//      and for expired rows. Move rows to status=deleted.
-//
-// Auth: requires service-role bearer to avoid being callable by users.
+// Idempotent. Safe to call repeatedly. Service-role only.
 
 import { ok, fail, preflight } from "../_shared/response.ts";
 import { admin } from "../_shared/auth.ts";
@@ -52,7 +50,7 @@ Deno.serve(async (req) => {
     .select("id");
   if (e1) console.warn("expireActive failed:", e1.message);
 
-  // 2. Pending → expired (older than 30 minutes, never uploaded/attached).
+  // 2. Pending → expired (older than 30 minutes, never uploaded).
   const pendingCutoff = new Date(Date.now() - PENDING_TTL_SECONDS * 1000)
     .toISOString();
   const { data: expPending, error: e2 } = await sb
@@ -63,60 +61,100 @@ Deno.serve(async (req) => {
     .select("id");
   if (e2) console.warn("expirePending failed:", e2.message);
 
-  // 3. Storage cleanup: delete files for viewed rows older than the grace
-  //    window, and for expired rows. Then mark them deleted.
+  // 3a. Viewed rows where the client never finalized (storage_deleted_at
+  //     still null) and viewed_at is older than the grace window. Remove
+  //     storage objects and stamp storage_deleted_at — keep status=viewed
+  //     so the bubble keeps showing "Viewed" / "Opened".
   const viewedCutoff = new Date(Date.now() - VIEWED_GRACE_SECONDS * 1000)
     .toISOString();
+  const finalizedFallback = await finalizeViewedFallback(sb, viewedCutoff);
 
-  const cleanup = async (statusList: string[], extraFilter?: (q: any) => any) => {
-    let q = sb
-      .from("media_assets")
-      .select("id, storage_path")
-      .in("status", statusList)
-      .limit(BATCH_SIZE);
-    if (extraFilter) q = extraFilter(q);
-    const { data: rows, error } = await q;
-    if (error) {
-      console.warn("cleanup query failed:", error.message);
-      return { deletedFiles: 0, deletedRows: 0 };
-    }
-    if (!rows || rows.length === 0) return { deletedFiles: 0, deletedRows: 0 };
-
-    const paths = rows.map((r) => r.storage_path).filter(Boolean);
-    let deletedFiles = 0;
-    if (paths.length > 0) {
-      const { error: rmErr } = await sb.storage
-        .from(MEDIA_BUCKET).remove(paths);
-      if (rmErr) {
-        console.warn("storage remove failed:", rmErr.message);
-        // Even if storage removal fails, do not flip the rows to deleted —
-        // we'll retry on the next run.
-        return { deletedFiles: 0, deletedRows: 0 };
-      }
-      deletedFiles = paths.length;
-    }
-
-    const ids = rows.map((r) => r.id);
-    const { error: upErr } = await sb
-      .from("media_assets")
-      .update({ status: "deleted" })
-      .in("id", ids);
-    if (upErr) {
-      console.warn("status flip to deleted failed:", upErr.message);
-      return { deletedFiles, deletedRows: 0 };
-    }
-    return { deletedFiles, deletedRows: ids.length };
-  };
-
-  const viewedCleanup = await cleanup(["viewed"], (q) =>
-    q.lt("viewed_at", viewedCutoff));
-  const expiredCleanup = await cleanup(["expired"]);
+  // 3b. Expired rows: remove storage objects and flip to deleted.
+  const expiredCleanup = await cleanupExpired(sb);
 
   return ok({
-    expired_active:  (expActive ?? []).length,
-    expired_pending: (expPending ?? []).length,
-    deleted_files:   viewedCleanup.deletedFiles + expiredCleanup.deletedFiles,
-    deleted_rows:    viewedCleanup.deletedRows + expiredCleanup.deletedRows,
-    ran_at:          nowIso,
+    expired_active:           (expActive ?? []).length,
+    expired_pending:          (expPending ?? []).length,
+    viewed_finalized_fallback: finalizedFallback,
+    deleted_expired:          expiredCleanup,
+    ran_at:                   nowIso,
   });
 });
+
+async function finalizeViewedFallback(
+  sb: ReturnType<typeof admin>,
+  cutoffIso: string,
+): Promise<{ rows: number; files: number }> {
+  const { data: rows, error } = await sb
+    .from("media_assets")
+    .select("id, storage_path")
+    .eq("status", "viewed")
+    .is("storage_deleted_at", null)
+    .lt("viewed_at", cutoffIso)
+    .limit(BATCH_SIZE);
+  if (error) {
+    console.warn("viewed-fallback query failed:", error.message);
+    return { rows: 0, files: 0 };
+  }
+  if (!rows || rows.length === 0) return { rows: 0, files: 0 };
+
+  const paths = rows.map((r) => r.storage_path).filter(Boolean);
+  if (paths.length > 0) {
+    const { error: rmErr } = await sb.storage
+      .from(MEDIA_BUCKET).remove(paths);
+    if (rmErr) {
+      console.warn("storage remove (viewed fallback) failed:", rmErr.message);
+      return { rows: 0, files: 0 };
+    }
+  }
+  const ids = rows.map((r) => r.id);
+  const { error: upErr } = await sb
+    .from("media_assets")
+    .update({ storage_deleted_at: new Date().toISOString() })
+    .in("id", ids);
+  if (upErr) {
+    console.warn("viewed-fallback stamp failed:", upErr.message);
+    return { rows: 0, files: paths.length };
+  }
+  return { rows: ids.length, files: paths.length };
+}
+
+async function cleanupExpired(
+  sb: ReturnType<typeof admin>,
+): Promise<{ rows: number; files: number }> {
+  const { data: rows, error } = await sb
+    .from("media_assets")
+    .select("id, storage_path, storage_deleted_at")
+    .eq("status", "expired")
+    .limit(BATCH_SIZE);
+  if (error) {
+    console.warn("expired query failed:", error.message);
+    return { rows: 0, files: 0 };
+  }
+  if (!rows || rows.length === 0) return { rows: 0, files: 0 };
+
+  const paths = rows
+    .filter((r) => !r.storage_deleted_at)
+    .map((r) => r.storage_path)
+    .filter(Boolean);
+  let files = 0;
+  if (paths.length > 0) {
+    const { error: rmErr } = await sb.storage
+      .from(MEDIA_BUCKET).remove(paths);
+    if (rmErr) {
+      console.warn("storage remove (expired) failed:", rmErr.message);
+      return { rows: 0, files: 0 };
+    }
+    files = paths.length;
+  }
+  const ids = rows.map((r) => r.id);
+  const { error: upErr } = await sb
+    .from("media_assets")
+    .update({ status: "deleted", storage_deleted_at: new Date().toISOString() })
+    .in("id", ids);
+  if (upErr) {
+    console.warn("expired status flip failed:", upErr.message);
+    return { rows: 0, files };
+  }
+  return { rows: ids.length, files };
+}

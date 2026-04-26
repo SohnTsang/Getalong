@@ -180,8 +180,14 @@ final class ChatRoomViewModel: ObservableObject {
     }
 
     func closeMediaViewer() {
-        // Refresh the asset row in case sender's bubble was open elsewhere.
-        if let id = openingMediaId {
+        // After close: the viewer has fired finalizeViewOnceMedia (server
+        // deletes the storage object immediately). Stamp the local cache
+        // so the bubble shows "No longer available" right away, then
+        // refresh from the server so the canonical state is reflected
+        // (sender bubble, etc.).
+        if let id = openingMediaId, var asset = mediaAssets[id] {
+            asset.storageDeletedAt = Date()
+            mediaAssets[id] = asset
             Task {
                 if let updated = try? await MediaService.shared.fetchAsset(id: id) {
                     mediaAssets[id] = updated

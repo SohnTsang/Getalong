@@ -80,29 +80,80 @@ struct ChatMessageBubble: View {
 
     @ViewBuilder
     private var mediaContent: some View {
-        VStack(spacing: GASpacing.sm) {
-            ZStack {
-                Circle()
-                    .fill(.ultraThinMaterial)
-                    .frame(width: 56, height: 56)
-                Image(systemName: iconName)
-                    .font(.system(size: 22, weight: .regular))
-                    .foregroundStyle(iconTint)
+        ZStack {
+            // Blurred / obscured backdrop: a soft gradient noise that
+            // looks like an out-of-focus surface, never a thumbnail of
+            // the real media.
+            obscuredBackdrop
+
+            VStack(spacing: GASpacing.sm) {
+                ZStack {
+                    Circle()
+                        .fill(.ultraThinMaterial)
+                        .frame(width: 56, height: 56)
+                    Image(systemName: iconName)
+                        .font(.system(size: 22, weight: .regular))
+                        .foregroundStyle(iconTint)
+                    if isLocked {
+                        // Tiny lock badge bottom-right of the icon circle
+                        // to signal "view once / locked".
+                        Image(systemName: "lock.fill")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundStyle(GAColors.accentText)
+                            .padding(4)
+                            .background(GAColors.accent, in: Circle())
+                            .offset(x: 18, y: 18)
+                    }
+                }
+
+                Text(viewOnceLabel)
+                    .font(GATypography.bodyEmphasized)
+                    .foregroundStyle(textColor)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, GASpacing.sm)
+
+                Text(actionLabel)
+                    .font(GATypography.caption)
+                    .foregroundStyle(textColor.opacity(0.85))
+                    .multilineTextAlignment(.center)
             }
-
-            Text(viewOnceLabel)
-                .font(GATypography.bodyEmphasized)
-                .foregroundStyle(textColor)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, GASpacing.sm)
-
-            Text(actionLabel)
-                .font(GATypography.caption)
-                .foregroundStyle(textColor.opacity(0.85))
-                .multilineTextAlignment(.center)
+            .padding(GASpacing.md)
         }
-        .padding(GASpacing.md)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    /// Soft obscured backdrop. Tinted by sender vs receiver but never
+    /// reveals any actual media — the bytes never leave storage.
+    private var obscuredBackdrop: some View {
+        let base = isMine ? GAColors.accent : GAColors.surfaceRaised
+        return ZStack {
+            base
+            LinearGradient(
+                colors: [
+                    Color.white.opacity(isMine ? 0.10 : 0.04),
+                    Color.black.opacity(0.06),
+                    Color.white.opacity(isMine ? 0.06 : 0.02),
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            // Soft repeating dots → quiet, premium, "blurred" feel.
+            GeometryReader { geo in
+                Canvas { ctx, size in
+                    let dot = Color.white.opacity(isMine ? 0.06 : 0.04)
+                    let step: CGFloat = 14
+                    for x in stride(from: CGFloat(0), to: size.width, by: step) {
+                        for y in stride(from: CGFloat(0), to: size.height, by: step) {
+                            ctx.fill(
+                                Path(ellipseIn: CGRect(x: x, y: y, width: 2, height: 2)),
+                                with: .color(dot)
+                            )
+                        }
+                    }
+                    _ = geo
+                }
+            }
+        }
     }
 
     // MARK: - Helpers
@@ -115,6 +166,16 @@ struct ChatMessageBubble: View {
               asset.viewedAt == nil
         else { return false }
         return onTapMedia != nil
+    }
+
+    /// Show the small lock badge while the receiver hasn't opened yet,
+    /// or for the sender's own bubble before the receiver opens.
+    private var isLocked: Bool {
+        guard let asset = mediaAsset else { return true }
+        return asset.viewedAt == nil
+            && asset.status != .viewed
+            && asset.status != .deleted
+            && asset.status != .expired
     }
 
     private var iconName: String {
@@ -140,12 +201,12 @@ struct ChatMessageBubble: View {
     private var actionLabel: String {
         if isMine {
             // Sender side
-            if let a = mediaAsset, a.viewedAt != nil || a.status == .viewed {
-                return String(localized: "media.opened")
-            }
             if let a = mediaAsset,
                a.status == .expired || a.status == .deleted {
                 return String(localized: "media.unavailable")
+            }
+            if let a = mediaAsset, a.viewedAt != nil || a.status == .viewed {
+                return String(localized: "media.opened")
             }
             return String(localized: "media.viewOnce.label")
         } else {
@@ -155,6 +216,13 @@ struct ChatMessageBubble: View {
             }
             if a.status == .active && a.viewedAt == nil {
                 return String(localized: "media.openOnce")
+            }
+            // Once the receiver has viewed and the storage object has been
+            // deleted, the media is gone for good. Show unavailable.
+            if a.storageDeletedAt != nil
+                || a.status == .deleted
+                || a.status == .expired {
+                return String(localized: "media.unavailable")
             }
             if a.viewedAt != nil || a.status == .viewed {
                 return String(localized: "media.viewed")

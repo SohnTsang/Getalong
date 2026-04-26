@@ -1740,6 +1740,26 @@
       "ja" :      { "stringUnit" : { "state" : "translated", "value" : "このファイル形式には対応していません。" }},
       "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "不支援這種檔案類型。" }}
     }},
+    "media.finalizing" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Closing..." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "閉じています..." }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "正在關閉..." }}
+    }},
+    "media.close" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Close" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "閉じる" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "關閉" }}
+    }},
+    "media.viewer.title" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "View once" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "一度だけ表示" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "只顯示一次" }}
+    }},
+    "media.deletedAfterView" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "This media is no longer available." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "このメディアはもう表示できません。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "這個媒體已無法查看。" }}
+    }},
     "media.privacy.note" : { "localizations" : {
       "en" :      { "stringUnit" : { "state" : "translated", "value" : "Can only be opened once. Screenshots may still be possible." }},
       "ja" :      { "stringUnit" : { "state" : "translated", "value" : "一度だけ開けます。スクリーンショットは完全には防げません。" }},

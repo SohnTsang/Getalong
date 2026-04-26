@@ -24,6 +24,7 @@ struct MediaAsset: Codable, Identifiable, Hashable {
     var expiresAt: Date?
     var uploadedAt: Date?
     var attachedMessageId: UUID?
+    var storageDeletedAt: Date?
     var createdAt: Date
 
     enum CodingKeys: String, CodingKey {
@@ -41,6 +42,7 @@ struct MediaAsset: Codable, Identifiable, Hashable {
         case expiresAt          = "expires_at"
         case uploadedAt         = "uploaded_at"
         case attachedMessageId  = "attached_message_id"
+        case storageDeletedAt   = "storage_deleted_at"
         case createdAt          = "created_at"
     }
 }

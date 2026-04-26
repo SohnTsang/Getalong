@@ -14,6 +14,11 @@ struct MediaViewerSheet: View {
     let onClose: () -> Void
 
     @State private var state: ViewerState = .opening
+    /// Tracks whether the receiver actually got a signed URL. We only call
+    /// finalize when an actual open happened — already-viewed/unavailable
+    /// states don't need a finalize call (the prior open already handled it).
+    @State private var didOpen: Bool = false
+    @State private var finalizing: Bool = false
 
     enum ViewerState {
         case opening
@@ -48,20 +53,51 @@ struct MediaViewerSheet: View {
                 HStack {
                     Spacer()
                     Button {
-                        onClose()
+                        finalizeAndClose()
                     } label: {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundStyle(.white)
-                            .padding(10)
-                            .background(.ultraThinMaterial, in: Circle())
+                        ZStack {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundStyle(.white)
+                                .opacity(finalizing ? 0 : 1)
+                            if finalizing {
+                                ProgressView().tint(.white).controlSize(.small)
+                            }
+                        }
+                        .frame(width: 36, height: 36)
+                        .background(.ultraThinMaterial, in: Circle())
                     }
+                    .accessibilityLabel(String(localized: "media.close"))
                     .padding(GASpacing.lg)
+                    .disabled(finalizing)
                 }
                 Spacer()
             }
         }
         .task { await load() }
+        .interactiveDismissDisabled(finalizing)
+        .onDisappear {
+            // Catch swipe-to-dismiss (and any other path that bypasses the
+            // close button). Idempotent server-side — the X button path
+            // already finalized, so this is a no-op or a missing-object ack.
+            if didOpen {
+                Task { await MediaService.shared.finalizeViewOnce(mediaId: mediaId) }
+            }
+        }
+    }
+
+    private func finalizeAndClose() {
+        // If the user never actually saw a signed URL (already-viewed,
+        // error, etc.), there's nothing for the server to finalize.
+        guard didOpen else { onClose(); return }
+        finalizing = true
+        Task {
+            await MediaService.shared.finalizeViewOnce(mediaId: mediaId)
+            await MainActor.run {
+                finalizing = false
+                onClose()
+            }
+        }
     }
 
     @ViewBuilder
@@ -114,6 +150,7 @@ struct MediaViewerSheet: View {
             // Notify caller so they can flip the bubble to "viewed" before
             // the user closes the sheet — we don't want a brief reopen path.
             onViewed()
+            didOpen = true
             state = .ready(url: resp.signedUrl, mime: resp.mimeType)
         } catch let e as MediaServiceError {
             switch e {
