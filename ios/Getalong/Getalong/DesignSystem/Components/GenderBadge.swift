@@ -24,6 +24,17 @@ struct GenderBadge: View {
             default:       return nil
             }
         }
+
+        /// Solid tint used for the badge's mark + label and for any
+        /// surrounding card hairline that wants to echo the gender.
+        var tint: Color {
+            switch self {
+            case .male:
+                return GAColors.secondary
+            case .female:
+                return Color(.displayP3, red: 0.74, green: 0.36, blue: 0.45, opacity: 1)
+            }
+        }
     }
 
     let kind: Kind
@@ -76,26 +87,16 @@ struct GenderBadge: View {
         }
     }
 
-    private var foreground: Color {
-        switch kind {
-        case .male:   return GAColors.secondary
-        case .female: return Color(.displayP3, red: 0.74, green: 0.36, blue: 0.45, opacity: 1)
-        }
-    }
+    private var foreground: Color { kind.tint }
 
     private var background: Color {
         switch kind {
         case .male:   return GAColors.secondarySoft
-        case .female: return Color(.displayP3, red: 0.74, green: 0.36, blue: 0.45, opacity: 0.10)
+        case .female: return kind.tint.opacity(0.10)
         }
     }
 
-    private var stroke: Color {
-        switch kind {
-        case .male:   return GAColors.secondary.opacity(0.25)
-        case .female: return Color(.displayP3, red: 0.74, green: 0.36, blue: 0.45, opacity: 0.30)
-        }
-    }
+    private var stroke: Color { kind.tint.opacity(0.25) }
 }
 
 #Preview {

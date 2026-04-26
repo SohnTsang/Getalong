@@ -159,6 +159,14 @@ private struct DiscoveryCard: View {
                 actionRow
             }
         }
+        // When the card represents a gendered identity, echo the gender
+        // colour as a thin hairline around the card so the badge and the
+        // card frame read as a single visual idea.
+        .overlay(
+            RoundedRectangle(cornerRadius: GACornerRadius.large,
+                             style: .continuous)
+                .strokeBorder(genderTintBorder, lineWidth: 1)
+        )
         .contextMenu {
             Button(role: .destructive) {
                 onReport()
@@ -167,6 +175,13 @@ private struct DiscoveryCard: View {
                       systemImage: "flag")
             }
         }
+    }
+
+    private var genderTintBorder: Color {
+        guard let kind = GenderBadge.Kind.from(rawValue: profile.gender) else {
+            return Color.clear
+        }
+        return kind.tint.opacity(0.30)
     }
 
     // MARK: -

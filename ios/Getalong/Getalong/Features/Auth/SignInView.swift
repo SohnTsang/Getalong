@@ -18,36 +18,38 @@ struct SignInView: View {
         ZStack {
             GAColors.background.ignoresSafeArea()
 
-            // Content-driven layout so the gap between hero and the
-            // provider buttons is constant across phone heights instead
-            // of stretching with available room.
-            ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
+            // Two-anchor layout: top block (wordmark + hero) sits up
+            // top, bottom block (providers + errors + fineprint) sits
+            // at the bottom of the safe area. The gap between them is
+            // a *capped* Spacer — it grows with available room so the
+            // buttons stay near the bottom on tall phones, but never
+            // exceeds `maxGap` so the hero never feels orphaned.
+            VStack(alignment: .leading, spacing: 0) {
 
-                    centeredWordmark
-                        .padding(.top, GASpacing.lg)
-                        .padding(.bottom, GASpacing.xxl)
+                centeredWordmark
+                    .padding(.top, GASpacing.lg)
+                    .padding(.bottom, GASpacing.xxl)
 
-                    hero
+                hero
 
-                    providers
-                        .padding(.top, GASpacing.xxl)
+                Spacer(minLength: GASpacing.xl)
+                    .frame(maxHeight: 120)
 
-                    if let error = vm.errorMessage {
-                        GAErrorBanner(message: error,
-                                      onDismiss: { vm.errorMessage = nil })
-                            .padding(.top, GASpacing.lg)
-                    }
+                providers
 
-                    fineprint
+                if let error = vm.errorMessage {
+                    GAErrorBanner(message: error,
+                                  onDismiss: { vm.errorMessage = nil })
                         .padding(.top, GASpacing.lg)
                 }
-                .frame(maxWidth: 460)
-                .frame(maxWidth: .infinity)
-                .padding(.horizontal, GASpacing.xl)
-                .padding(.bottom, GASpacing.xl)
+
+                fineprint
+                    .padding(.top, GASpacing.lg)
             }
-            .scrollIndicators(.hidden)
+            .frame(maxWidth: 460)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .padding(.horizontal, GASpacing.xl)
+            .padding(.bottom, GASpacing.xl)
         }
     }
 
@@ -117,7 +119,8 @@ struct SignInView: View {
         .overlay(
             RoundedRectangle(cornerRadius: GACornerRadius.large,
                              style: .continuous)
-                .strokeBorder(GAColors.border, lineWidth: 0.75)
+                .strokeBorder(GenderBadge.Kind.female.tint.opacity(0.30),
+                              lineWidth: 1)
         )
         .shadow(color: Color.black.opacity(0.05), radius: 18, x: 0, y: 6)
     }
