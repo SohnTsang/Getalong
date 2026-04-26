@@ -25,6 +25,23 @@ final class ChatRoomViewModel: ObservableObject {
     /// Cached message type for the opening sheet (drives gif/video/image render).
     @Published var openingMessageType: MessageType?
 
+    // MARK: - Safety
+
+    @Published var hasBlockedPartner: Bool = false
+    @Published var safetyError: String?
+    @Published var blockSuccessFeedback: Bool = false
+
+    /// Active report context (if any). The view presents a sheet when set.
+    @Published var pendingReport: ReportContext?
+    /// True when the block confirmation sheet is presented.
+    @Published var isBlockConfirmPresented: Bool = false
+
+    struct ReportContext: Identifiable, Equatable {
+        let id = UUID()
+        let targetType: ReportTargetType
+        let targetId: UUID
+    }
+
     init(roomId: UUID, partner: Profile?) {
         self.roomId = roomId
         self.partner = partner
@@ -40,11 +57,47 @@ final class ChatRoomViewModel: ObservableObject {
             }
         }
 
+        await refreshBlockState()
         await reload()
 
         await RealtimeChatManager.shared.start(roomId: roomId) { [weak self] in
             Task { await self?.reloadOnRealtimeInsert() }
         }
+    }
+
+    private func refreshBlockState() async {
+        guard let me = currentUserId, let p = partner else { return }
+        hasBlockedPartner = await ReportService.shared.hasBlocked(userId: p.id, by: me)
+    }
+
+    // MARK: - Safety actions
+
+    func presentReportUser() {
+        guard let p = partner else { return }
+        pendingReport = .init(targetType: .profile, targetId: p.id)
+    }
+
+    func presentReportMessage(_ message: Message) {
+        pendingReport = .init(targetType: .message, targetId: message.id)
+    }
+
+    func presentReportMedia(mediaId: UUID) {
+        pendingReport = .init(targetType: .media, targetId: mediaId)
+    }
+
+    func presentBlockConfirm() {
+        isBlockConfirmPresented = true
+    }
+
+    func confirmedBlock() async {
+        // BlockUserSheet already called the backend successfully; just
+        // reflect locally and tear down any in-flight composer.
+        hasBlockedPartner = true
+        isBlockConfirmPresented = false
+        blockSuccessFeedback = true
+        mediaController?.cancel()
+        mediaController = nil
+        await refreshBlockState()
     }
 
     func detach() async {
@@ -92,11 +145,13 @@ final class ChatRoomViewModel: ObservableObject {
     // MARK: - Send (text)
 
     var canSend: Bool {
-        !draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !isSending
+        !hasBlockedPartner
+        && !draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        && !isSending
     }
 
     var canAttachMedia: Bool {
-        mediaController == nil && !isSending
+        !hasBlockedPartner && mediaController == nil && !isSending
     }
 
     func send() async {

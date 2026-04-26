@@ -27,12 +27,16 @@ struct ChatRoomView: View {
                         .padding(.top, GASpacing.sm)
                 }
 
-                ChatInputBar(text: $vm.draft,
-                             isSending: vm.isSending,
-                             canSend: vm.canSend,
-                             canAttachMedia: vm.canAttachMedia,
-                             onSend: { Task { await vm.send() } },
-                             onAttachPicked: { src in vm.startMediaPick(src) })
+                if vm.hasBlockedPartner {
+                    blockedCard
+                } else {
+                    ChatInputBar(text: $vm.draft,
+                                 isSending: vm.isSending,
+                                 canSend: vm.canSend,
+                                 canAttachMedia: vm.canAttachMedia,
+                                 onSend: { Task { await vm.send() } },
+                                 onAttachPicked: { src in vm.startMediaPick(src) })
+                }
             }
         }
         .navigationBarBackButtonHidden(true)
@@ -51,6 +55,25 @@ struct ChatRoomView: View {
                 )
             }
         }
+        // Report sheet (profile / message / media).
+        .sheet(item: $vm.pendingReport) { ctx in
+            ReportSheet(
+                targetType: ctx.targetType,
+                targetId:   ctx.targetId,
+                onClose:    { vm.pendingReport = nil }
+            )
+        }
+        // Block confirmation.
+        .sheet(isPresented: $vm.isBlockConfirmPresented) {
+            if let p = vm.partner {
+                BlockUserSheet(
+                    userId: p.id,
+                    displayName: p.displayName,
+                    onBlocked: { Task { await vm.confirmedBlock() } },
+                    onClose:   { vm.isBlockConfirmPresented = false }
+                )
+            }
+        }
         // Viewer for receiver opening view-once media.
         .fullScreenCover(isPresented: viewerBinding) {
             if let mid = vm.openingMediaId, let mt = vm.openingMessageType {
@@ -62,6 +85,26 @@ struct ChatRoomView: View {
                 )
             }
         }
+    }
+
+    private var blockedCard: some View {
+        VStack(spacing: GASpacing.xs) {
+            Text("safety.block.blockedState")
+                .font(GATypography.bodyEmphasized)
+                .foregroundStyle(GAColors.textPrimary)
+            Text("safety.block.inputDisabled")
+                .font(GATypography.footnote)
+                .foregroundStyle(GAColors.textSecondary)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, GASpacing.lg)
+        .padding(.vertical, GASpacing.lg)
+        .background(GAColors.surfaceRaised)
+        .overlay(
+            Rectangle().fill(GAColors.border).frame(height: 0.5),
+            alignment: .top
+        )
     }
 
     private var composerBinding: Binding<Bool> {
@@ -111,10 +154,36 @@ struct ChatRoomView: View {
                 }
             }
             Spacer()
+            safetyMenu
         }
         .padding(.horizontal, GASpacing.lg)
         .padding(.vertical, GASpacing.sm)
         .background(GAColors.background)
+    }
+
+    private var safetyMenu: some View {
+        Menu {
+            Button {
+                vm.presentReportUser()
+            } label: {
+                Label(String(localized: "safety.menu.reportUser"),
+                      systemImage: "flag")
+            }
+            if !vm.hasBlockedPartner {
+                Button(role: .destructive) {
+                    vm.presentBlockConfirm()
+                } label: {
+                    Label(String(localized: "safety.menu.blockUser"),
+                          systemImage: "hand.raised")
+                }
+            }
+        } label: {
+            Image(systemName: "ellipsis")
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundStyle(GAColors.textPrimary)
+                .frame(width: 32, height: 32)
+        }
+        .accessibilityLabel(String(localized: "common.more"))
     }
 
     private var avatar: some View {
@@ -159,6 +228,27 @@ struct ChatRoomView: View {
                                 onTapMedia: vm.isMine(message) ? nil : { vm.openMedia(message) }
                             )
                             .id(message.id)
+                            .contextMenu {
+                                if !vm.isMine(message) {
+                                    if message.messageType == .text {
+                                        Button {
+                                            vm.presentReportMessage(message)
+                                        } label: {
+                                            Label(
+                                                String(localized: "safety.menu.reportMessage"),
+                                                systemImage: "flag")
+                                        }
+                                    } else if let mid = message.mediaId {
+                                        Button {
+                                            vm.presentReportMedia(mediaId: mid)
+                                        } label: {
+                                            Label(
+                                                String(localized: "safety.menu.reportMedia"),
+                                                systemImage: "flag")
+                                        }
+                                    }
+                                }
+                            }
                         }
 
                         if let controller = vm.mediaController {

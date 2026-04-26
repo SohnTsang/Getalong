@@ -40,7 +40,13 @@ export type GAErrorCode =
   | "MEDIA_TOO_LARGE"
   | "MEDIA_DURATION_TOO_LONG"
   | "MEDIA_TYPE_MISMATCH"
-  | "STORAGE_ERROR";
+  | "STORAGE_ERROR"
+  | "TARGET_NOT_FOUND"
+  | "NOT_ALLOWED"
+  | "ALREADY_REPORTED"
+  | "REPORT_FAILED"
+  | "SELF_BLOCK_NOT_ALLOWED"
+  | "BLOCK_FAILED";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",

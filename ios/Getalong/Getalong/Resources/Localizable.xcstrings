@@ -1648,6 +1648,146 @@
       "ja" :      { "stringUnit" : { "state" : "translated", "value" : "タグを削除" }},
       "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "移除標籤" }}
     }},
+    "common.close" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Close" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "閉じる" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "關閉" }}
+    }},
+    "common.more" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "More" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "その他" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "更多" }}
+    }},
+    "safety.report.title" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Report" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "報告" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "檢舉" }}
+    }},
+    "safety.report.subtitle" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Tell us what happened. We’ll review it to help keep Getalong safe." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "何があったか教えてください。Getalongを安心して使える場所にするため確認します。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "請告訴我們發生了甚麼。我們會進行檢視，協助維持 Getalong 的安全。" }}
+    }},
+    "safety.report.reason.harassment" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Harassment or abuse" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "嫌がらせ・攻撃的な内容" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "騷擾或攻擊性內容" }}
+    }},
+    "safety.report.reason.sexual" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Sexual content" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "性的な内容" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "性相關內容" }}
+    }},
+    "safety.report.reason.hate" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Hate or discrimination" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "差別的な内容" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "仇恨或歧視內容" }}
+    }},
+    "safety.report.reason.scam" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Scam or spam" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "詐欺・スパム" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "詐騙或垃圾訊息" }}
+    }},
+    "safety.report.reason.underage" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Underage user" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "未成年の可能性" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "可能是未成年使用者" }}
+    }},
+    "safety.report.reason.selfHarm" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Self-harm or danger" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "自傷や危険に関する内容" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "自我傷害或危險相關內容" }}
+    }},
+    "safety.report.reason.other" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Other" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "その他" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "其他" }}
+    }},
+    "safety.report.details.placeholder" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Add details if you want..." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "必要であれば詳しく入力してください..." }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "如有需要，可以補充更多細節..." }}
+    }},
+    "safety.report.submit" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Submit report" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "報告を送信" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "送出檢舉" }}
+    }},
+    "safety.report.success" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Thanks. Your report was sent." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "報告を送信しました。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "已送出檢舉。" }}
+    }},
+    "safety.report.error" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Couldn’t send your report. Please try again." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "報告を送信できませんでした。もう一度お試しください。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "無法送出檢舉，請再試一次。" }}
+    }},
+    "safety.report.alreadyReported" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "You’ve already reported this." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "すでに報告済みです。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "你已檢舉過此項目。" }}
+    }},
+    "safety.block.title" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Block this user?" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "このユーザーをブロックしますか？" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "要封鎖這位使用者嗎？" }}
+    }},
+    "safety.block.subtitle" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "They won’t be able to send you signals or messages. You won’t be notified about them." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "相手からのきっかけやメッセージは届かなくなります。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "對方將無法再向你送出訊號或訊息，你也不會收到相關通知。" }}
+    }},
+    "safety.block.confirm" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Block user" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "ブロックする" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "封鎖使用者" }}
+    }},
+    "safety.block.success" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "User blocked." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "ユーザーをブロックしました。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "已封鎖使用者。" }}
+    }},
+    "safety.block.error" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Couldn’t block this user. Please try again." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "ブロックできませんでした。もう一度お試しください。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "無法封鎖這位使用者，請再試一次。" }}
+    }},
+    "safety.block.selfError" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "You can’t block yourself." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "自分自身はブロックできません。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "你無法封鎖自己。" }}
+    }},
+    "safety.block.blockedState" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "You blocked this user." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "このユーザーをブロックしています。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "你已封鎖這位使用者。" }}
+    }},
+    "safety.block.inputDisabled" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Messaging is disabled for this conversation." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "この会話ではメッセージを送信できません。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "這段對話已停用訊息功能。" }}
+    }},
+    "safety.menu.reportUser" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Report user" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "ユーザーを報告" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "檢舉使用者" }}
+    }},
+    "safety.menu.reportMessage" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Report message" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "メッセージを報告" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "檢舉訊息" }}
+    }},
+    "safety.menu.reportMedia" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Report media" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "メディアを報告" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "檢舉媒體" }}
+    }},
+    "safety.menu.blockUser" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Block user" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "ユーザーをブロック" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "封鎖使用者" }}
+    }},
     "media.button.attach" : { "localizations" : {
       "en" :      { "stringUnit" : { "state" : "translated", "value" : "Add media" }},
       "ja" :      { "stringUnit" : { "state" : "translated", "value" : "メディアを追加" }},
