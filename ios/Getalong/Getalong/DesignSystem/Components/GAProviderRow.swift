@@ -24,7 +24,7 @@ struct GAProviderRow: View {
         Button(action: { if !isLoading && !isDisabled { action() } }) {
             HStack(spacing: GASpacing.lg) {
                 icon
-                    .frame(width: 22, height: 22)
+                    .frame(width: 28, height: 28)
                 Text(title)
                     .font(GATypography.body)
                     .foregroundStyle(GAColors.textPrimary)
@@ -56,7 +56,7 @@ struct GAProviderRow: View {
                 .scaledToFit()
         } else {
             Image(systemName: systemImage)
-                .font(.system(size: 18, weight: .medium))
+                .font(.system(size: 22, weight: .medium))
                 .foregroundStyle(iconTint)
         }
     }
