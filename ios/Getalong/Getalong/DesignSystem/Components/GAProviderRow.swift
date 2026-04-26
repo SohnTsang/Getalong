@@ -16,6 +16,10 @@ struct GAProviderRow: View {
     let systemImage: String
     var brandAsset: String? = nil
     var iconTint: Color = GAColors.textPrimary
+    /// Visual diameter for the leading icon. Defaults to 28pt; brand
+    /// marks with very different optical weights (e.g. the dense X
+    /// glyph vs. Google's airy "G") can override this for balance.
+    var iconSize: CGFloat = 28
     var isLoading: Bool = false
     var isDisabled: Bool = false
     let action: () -> Void
@@ -24,7 +28,7 @@ struct GAProviderRow: View {
         Button(action: { if !isLoading && !isDisabled { action() } }) {
             HStack(spacing: GASpacing.lg) {
                 icon
-                    .frame(width: 28, height: 28)
+                    .frame(width: iconSize, height: iconSize)
                 Text(title)
                     .font(GATypography.body)
                     .foregroundStyle(GAColors.textPrimary)
