@@ -302,22 +302,14 @@ private struct DiscoveryCard: View {
         }
     }
 
-    /// Quiet footer that telegraphs the per-card invite state. Whole
-    /// card is the tap target, so this is feedback rather than a
-    /// separate button.
+    /// Quiet footer that telegraphs the per-card invite state.
+    /// Idle = nothing rendered (the whole card is the tap target).
+    /// Other states show feedback only.
     @ViewBuilder
     private var stateFooter: some View {
         switch sendState {
         case .idle:
-            HStack(spacing: GASpacing.xs) {
-                Image(systemName: "dot.radiowaves.left.and.right")
-                    .font(GATypography.caption)
-                    .foregroundStyle(GAColors.accent)
-                Text("discovery.action.sendSignal")
-                    .font(GATypography.footnote.weight(.semibold))
-                    .foregroundStyle(GAColors.accent)
-                Spacer()
-            }
+            EmptyView()
         case .sending:
             HStack(spacing: GASpacing.sm) {
                 ProgressView().controlSize(.small)

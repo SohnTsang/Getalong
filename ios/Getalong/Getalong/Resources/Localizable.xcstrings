@@ -1183,7 +1183,6 @@
       }
     },
     "discovery.action.sending" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1206,7 +1205,6 @@
       }
     },
     "discovery.action.sendSignal" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
