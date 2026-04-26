@@ -23,6 +23,8 @@
 		<key>UIColorName</key>
 		<string></string>
 	</dict>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Getalong uses your location to set your region (city / country) so people on your wavelength can find you. You can turn this off any time.</string>
 	<key>UIRequiresFullScreen</key>
 	<false/>
 	<key>UIStatusBarStyle</key>

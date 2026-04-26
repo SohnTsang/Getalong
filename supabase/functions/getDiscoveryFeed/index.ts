@@ -136,17 +136,11 @@ Deno.serve(async (req) => {
       excludeIds.add(r.user_a === userId ? r.user_b : r.user_a);
     }
   }
-  {
-    const { data, error } = await sb
-      .from("invites")
-      .select("sender_id, receiver_id")
-      .eq("status", "live_pending")
-      .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`);
-    if (error) console.warn("live invites:", error.message);
-    for (const r of data ?? []) {
-      excludeIds.add(r.sender_id === userId ? r.receiver_id : r.sender_id);
-    }
-  }
+  // NOTE: we deliberately do NOT exclude profiles with an active
+  // live_pending invite. If the caller has just tapped "Send invite",
+  // we want the receiver to remain visible (with their countdown ring
+  // running). Active chat rooms above already keep us from showing
+  // people who've moved past the invite stage.
 
   // 2. Tag intent: caller-supplied filters take precedence; otherwise we
   //    use the caller's own tags so people see folks who share their

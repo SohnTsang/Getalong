@@ -1,12 +1,22 @@
 import SwiftUI
 
+/// Region is GPS-driven only. The sheet exposes one toggle:
+///
+///   ON  – ask iOS for location → reverse-geocode → save city + country.
+///   OFF – clear city + country on the user's profile.
+///
+/// We never let the user type a city/country manually; that was the
+/// product call. iOS does not expose "the system's most recent
+/// location" without active permission, so the off branch genuinely
+/// shows nothing — there is no fallback we can use without a fresh
+/// authorization grant.
 struct EditRegionSheet: View {
     let initial: Profile
     let onSaved: (Profile) -> Void
     let onClose: () -> Void
 
-    @State private var city: String
-    @State private var country: String
+    @StateObject private var location = LocationCoordinator()
+    @State private var enabled: Bool
     @State private var phase: SavePhase = .editing
 
     init(initial: Profile,
@@ -15,34 +25,39 @@ struct EditRegionSheet: View {
         self.initial = initial
         self.onSaved = onSaved
         self.onClose = onClose
-        _city    = State(initialValue: initial.city ?? "")
-        _country = State(initialValue: initial.country ?? "")
+        // The toggle reflects whether we already have a saved region.
+        let hasRegion = (initial.city?.isEmpty == false)
+            || (initial.country?.isEmpty == false)
+        _enabled = State(initialValue: hasRegion)
     }
 
     var body: some View {
         NavigationStack {
             GAScreen(maxWidth: 560) {
                 VStack(alignment: .leading, spacing: GASpacing.lg) {
-                    GATextField(
-                        title: String(localized: "profile.city.label"),
-                        text: $city,
-                        placeholder: String(localized: "profile.city.placeholder")
-                    )
-                    if let m = cityError {
-                        Text(m)
-                            .font(GATypography.footnote)
-                            .foregroundStyle(GAColors.danger)
-                    }
+                    GACard {
+                        VStack(alignment: .leading, spacing: GASpacing.md) {
+                            Toggle(isOn: $enabled) {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("profile.region.gps.toggle.title")
+                                        .font(GATypography.body)
+                                        .foregroundStyle(GAColors.textPrimary)
+                                    Text("profile.region.gps.toggle.subtitle")
+                                        .font(GATypography.footnote)
+                                        .foregroundStyle(GAColors.textSecondary)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
+                            }
+                            .tint(GAColors.accent)
+                            .onChange(of: enabled) { newValue in
+                                Task { await onToggleChanged(newValue) }
+                            }
 
-                    GATextField(
-                        title: String(localized: "profile.country.label"),
-                        text: $country,
-                        placeholder: String(localized: "profile.country.placeholder")
-                    )
-                    if let m = countryError {
-                        Text(m)
-                            .font(GATypography.footnote)
-                            .foregroundStyle(GAColors.danger)
+                            if enabled {
+                                statusRow
+                            }
+                        }
+                        .padding(.vertical, GASpacing.xs)
                     }
 
                     if case .error(let message) = phase {
@@ -51,66 +66,95 @@ struct EditRegionSheet: View {
                     }
 
                     Spacer(minLength: GASpacing.md)
-                    saveButton
                 }
             }
             .navigationTitle(String(localized: "profile.edit.region"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button(String(localized: "common.cancel"), action: onClose)
-                        .disabled(phase == .saving)
+                    Button(String(localized: "common.close"), action: onClose)
                 }
             }
-            .interactiveDismissDisabled(phase == .saving)
         }
     }
 
-    private var saveButton: some View {
-        GAButton(
-            title: String(localized: phase == .saving
-                          ? "profile.edit.saving"
-                          : "profile.edit.save"),
-            kind: .primary,
-            isLoading: phase == .saving,
-            isDisabled: phase == .saving || !isValid
-        ) {
-            Task { await save() }
+    // MARK: - Status row
+
+    @ViewBuilder
+    private var statusRow: some View {
+        Divider().background(GAColors.border)
+        switch location.phase {
+        case .idle, .requestingPermission, .locating, .geocoding:
+            HStack(spacing: GASpacing.sm) {
+                ProgressView().controlSize(.small)
+                Text(progressText)
+                    .font(GATypography.footnote)
+                    .foregroundStyle(GAColors.textSecondary)
+                Spacer()
+            }
+        case .success(let city, let country):
+            // The profile was already updated; show the resolved value.
+            HStack(alignment: .firstTextBaseline) {
+                Image(systemName: "mappin.circle.fill")
+                    .foregroundStyle(GAColors.success)
+                Text(displayLocation(city: city, country: country))
+                    .font(GATypography.body)
+                    .foregroundStyle(GAColors.textPrimary)
+                Spacer()
+            }
+        case .error(let m):
+            HStack(spacing: GASpacing.sm) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundStyle(GAColors.danger)
+                Text(m)
+                    .font(GATypography.footnote)
+                    .foregroundStyle(GAColors.danger)
+                    .lineLimit(2)
+                Spacer()
+            }
         }
     }
 
-    private var trimmedCity: String {
-        city.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-    private var trimmedCountry: String {
-        country.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-
-    private var cityError: String? {
-        trimmedCity.count > ProfileLimits.cityMax
-            ? String(localized: "profile.validation.cityTooLong") : nil
-    }
-    private var countryError: String? {
-        trimmedCountry.count > ProfileLimits.countryMax
-            ? String(localized: "profile.validation.countryTooLong") : nil
-    }
-    private var isValid: Bool {
-        cityError == nil && countryError == nil
+    private var progressText: String {
+        switch location.phase {
+        case .requestingPermission: return String(localized: "profile.region.gps.requestingPermission")
+        case .locating:             return String(localized: "profile.region.gps.locating")
+        case .geocoding:            return String(localized: "profile.region.gps.geocoding")
+        default:                    return String(localized: "profile.region.gps.locating")
+        }
     }
 
-    private func save() async {
-        guard isValid, phase != .saving else { return }
-        phase = .saving
+    private func displayLocation(city: String?, country: String?) -> String {
+        let parts = [city, country].compactMap { $0?.isEmpty == false ? $0 : nil }
+        return parts.isEmpty
+            ? String(localized: "profile.region.gps.noResult")
+            : parts.joined(separator: ", ")
+    }
+
+    // MARK: - Actions
+
+    private func onToggleChanged(_ on: Bool) async {
+        if on {
+            await location.resolveRegion()
+            // When CoreLocation reports success, push the values to
+            // the profile.
+            if case .success(let city, let country) = location.phase {
+                await save(city: city, country: country)
+            }
+        } else {
+            // OFF -> clear region.
+            await save(city: nil, country: nil)
+        }
+    }
+
+    private func save(city: String?, country: String?) async {
         var patch = ProfilePatch()
-        patch.city    = trimmedCity.isEmpty    ? nil : trimmedCity
-        patch.country = trimmedCountry.isEmpty ? nil : trimmedCountry
+        patch.city    = city?.isEmpty == false ? city : nil
+        patch.country = country?.isEmpty == false ? country : nil
         do {
             let updated = try await ProfileService.shared.updateMyProfile(patch)
             Haptics.success()
             onSaved(updated)
-        } catch let e as ProfileError {
-            phase = .error(e.errorDescription ?? String(localized: "profile.edit.error"))
-            Haptics.error()
         } catch {
             phase = .error(String(localized: "profile.edit.error"))
             Haptics.error()

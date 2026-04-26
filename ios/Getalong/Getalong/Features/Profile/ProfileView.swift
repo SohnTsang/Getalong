@@ -38,9 +38,7 @@ struct ProfileView: View {
                         signalSection(profile)
                         tagsSection
                         regionSection(profile)
-                        genderSection(profile)
-                        visibilitySection(profile)
-                        interestSection(profile)
+                        preferencesSection(profile)
                         appearanceSection
                         safetySection
                         legalSection
@@ -193,18 +191,21 @@ struct ProfileView: View {
         .buttonStyle(.plain)
     }
 
-    /// Region is read-only for v1 — the user told us it should be GPS-driven
-    /// only, never manually edited. The card therefore has no tap target;
-    /// it only displays whatever the backend has on file (city, country
-    /// joined onto a single line). The GPS toggle is a separate follow-up.
+    /// Region card opens the GPS sheet. We never let the user type a
+    /// city/country by hand — region is GPS-derived or empty.
     private func regionSection(_ p: Profile) -> some View {
-        VStack(alignment: .leading, spacing: GASpacing.sm) {
-            GASectionHeader(title: String(localized: "profile.region.title"))
-            GACard {
-                detailRow(label: String(localized: "profile.region.title"),
-                          value: regionText(p))
+        Button {
+            isRegionPresented = true
+        } label: {
+            VStack(alignment: .leading, spacing: GASpacing.sm) {
+                GASectionHeader(title: String(localized: "profile.region.title"))
+                GACard {
+                    detailRow(label: String(localized: "profile.region.title"),
+                              value: regionText(p))
+                }
             }
         }
+        .buttonStyle(.plain)
     }
 
     private func regionText(_ p: Profile) -> String? {
@@ -215,54 +216,31 @@ struct ProfileView: View {
         return parts.isEmpty ? nil : parts.joined(separator: ", ")
     }
 
-    /// Each preference now has its own card so they don't read as one
-    /// dense list. Tapping any card opens the same EditPreferencesSheet —
-    /// which itself separates gender / visibility / want-to-see into
-    /// distinct visual blocks.
-    private func genderSection(_ p: Profile) -> some View {
+    /// Single Preferences card grouping gender / visibility / want-to-see.
+    /// Tap opens the unified EditPreferencesSheet which keeps each as a
+    /// separately spaced sub-card.
+    private func preferencesSection(_ p: Profile) -> some View {
         Button {
             isPreferencesPresented = true
         } label: {
             VStack(alignment: .leading, spacing: GASpacing.sm) {
-                GASectionHeader(title: String(localized: "profile.gender.label"))
+                GASectionHeader(title: String(localized: "profile.preferences.title"))
                 GACard {
-                    detailRow(label: String(localized: "profile.gender.iAm"),
-                              value: p.gender.flatMap { Gender(rawValue: $0)?.localizedLabel })
-                }
-            }
-        }
-        .buttonStyle(.plain)
-    }
-
-    private func visibilitySection(_ p: Profile) -> some View {
-        Button {
-            isPreferencesPresented = true
-        } label: {
-            VStack(alignment: .leading, spacing: GASpacing.sm) {
-                GASectionHeader(title: String(localized: "profile.gender.visible"))
-                GACard {
-                    detailRow(
-                        label: String(localized: "profile.gender.visibleOnDiscover"),
-                        value: p.gender == nil ? nil
-                            : String(localized: p.genderVisible
-                                     ? "profile.gender.yes"
-                                     : "profile.gender.no")
-                    )
-                }
-            }
-        }
-        .buttonStyle(.plain)
-    }
-
-    private func interestSection(_ p: Profile) -> some View {
-        Button {
-            isPreferencesPresented = true
-        } label: {
-            VStack(alignment: .leading, spacing: GASpacing.sm) {
-                GASectionHeader(title: String(localized: "profile.gender.wantToSee"))
-                GACard {
-                    detailRow(label: String(localized: "profile.gender.wantToSee"),
-                              value: p.interestedInGender.flatMap { InterestedInGender(rawValue: $0)?.localizedLabel })
+                    VStack(spacing: 0) {
+                        detailRow(label: String(localized: "profile.gender.iAm"),
+                                  value: p.gender.flatMap { Gender(rawValue: $0)?.localizedLabel })
+                        divider
+                        detailRow(
+                            label: String(localized: "profile.gender.visibleOnDiscover"),
+                            value: p.gender == nil ? nil
+                                : String(localized: p.genderVisible
+                                         ? "profile.gender.yes"
+                                         : "profile.gender.no")
+                        )
+                        divider
+                        detailRow(label: String(localized: "profile.gender.wantToSee"),
+                                  value: p.interestedInGender.flatMap { InterestedInGender(rawValue: $0)?.localizedLabel })
+                    }
                 }
             }
         }

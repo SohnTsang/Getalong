@@ -1183,6 +1183,7 @@
       }
     },
     "discovery.action.sending" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1228,6 +1229,7 @@
       }
     },
     "discovery.action.sent" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1500,6 +1502,7 @@
       }
     },
     "discovery.signal.liveFor" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3493,6 +3496,66 @@
         }
       }
     },
+    "profile.tags.featured.title" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Featured" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "人気のタグ" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "熱門標籤" }}
+    }},
+    "profile.tags.featured.subtitle" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Tags other people are using." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "他のユーザーが使っているタグ。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "其他人正在使用的標籤。" }}
+    }},
+    "profile.tags.recent.title" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Recent" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "最近のタグ" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "最近使用過" }}
+    }},
+    "profile.tags.recent.subtitle" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Tags you’ve added before." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "あなたが過去に使ったタグ。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "你之前用過的標籤。" }}
+    }},
+    "profile.region.gps.toggle.title" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Use my location" }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "現在地を使う" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "使用我的位置" }}
+    }},
+    "profile.region.gps.toggle.subtitle" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Sets your city and country from GPS. Turn off to clear region." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "GPSから市区町村と国を設定します。オフにすると地域はクリアされます。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "從 GPS 取得你的城市與國家。關閉時將清除地區。" }}
+    }},
+    "profile.region.gps.requestingPermission" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Asking for location permission..." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "位置情報の許可を確認中..." }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "正在請求位置權限..." }}
+    }},
+    "profile.region.gps.locating" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Finding your location..." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "現在地を取得中..." }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "正在取得你的位置..." }}
+    }},
+    "profile.region.gps.geocoding" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Looking up city..." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "市区町村を調べています..." }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "正在查詢城市..." }}
+    }},
+    "profile.region.gps.permissionDenied" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Location is off in iOS Settings. Turn it on to set your region." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "iOSの設定で位置情報がオフになっています。地域を設定するにはオンにしてください。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "位置權限已在 iOS 設定中關閉。請開啟以設定地區。" }}
+    }},
+    "profile.region.gps.lookupFailed" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "Couldn’t look up your location. Please try again." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "位置を取得できませんでした。もう一度お試しください。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "無法取得你的位置，請再試一次。" }}
+    }},
+    "profile.region.gps.noResult" : { "localizations" : {
+      "en" :      { "stringUnit" : { "state" : "translated", "value" : "No region available for this location." }},
+      "ja" :      { "stringUnit" : { "state" : "translated", "value" : "この位置の地域情報が見つかりません。" }},
+      "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "此位置沒有對應的地區資料。" }}
+    }},
     "profile.gender.wantToSee" : {
       "extractionState" : "stale",
       "localizations" : {

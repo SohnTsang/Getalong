@@ -27,6 +27,40 @@ final class ProfileTagService {
     static let maxTagsPerProfile = 10
     static let maxTagLength = 30
 
+    // MARK: - Tag suggestions (featured + recent)
+
+    struct TagSuggestion: Decodable, Hashable {
+        let tag: String
+        let count: Int?
+        let normalizedTag: String?
+        enum CodingKeys: String, CodingKey {
+            case tag
+            case count
+            case normalizedTag = "normalized_tag"
+        }
+    }
+
+    struct TagSuggestions: Decodable {
+        let featured: [TagSuggestion]
+        let recent: [TagSuggestion]
+    }
+
+    /// Calls the getTagSuggestions Edge Function. Returns featured (top
+    /// 20 across the platform) and recent (caller's last 20). Failures
+    /// surface as empty lists so the editor still works.
+    func fetchSuggestions() async -> TagSuggestions {
+        struct Body: Encodable {}
+        do {
+            let raw = try await Supa.invokeRaw("getTagSuggestions", body: Body())
+            struct Envelope: Decodable { let ok: Bool; let data: TagSuggestions }
+            let env = try JSONDecoder().decode(Envelope.self, from: raw)
+            return env.data
+        } catch {
+            GALog.profile.error("getTagSuggestions: \(error.localizedDescription)")
+            return TagSuggestions(featured: [], recent: [])
+        }
+    }
+
     /// Read tags for a given profile.
     func fetchTags(for profileId: UUID) async throws -> [ProfileTag] {
         try await Supa.client
