@@ -52,6 +52,7 @@ export function mapPgError(err: unknown): { code: GAErrorCode; message: string }
     "MISSED_INVITE_EXPIRED",
     "MISSED_ACCEPT_LIMIT_REACHED",
     "ACTIVE_CHAT_LIMIT_REACHED",
+    "PRIORITY_INVITE_LIMIT_REACHED",
     "CHAT_ALREADY_EXISTS",
   ];
   for (const code of known) {

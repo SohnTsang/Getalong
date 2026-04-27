@@ -109,6 +109,36 @@ Used only for:
 
 Do not use Realtime for discovery feed.
 
+## Discovery feed
+
+The Discovery feed is served by the `getDiscoveryFeed` Edge Function.
+Default page size is **10** profiles (`DEFAULT_LIMIT = 10`, max 50).
+Smaller pages keep the post-fetch overlap sort cheap and let pull-to-
+refresh surface fresh candidates faster.
+
+**Exclusion rules** (every page excludes these user_ids):
+- self
+- deleted / banned profiles
+- profiles I have blocked
+- profiles that have blocked me
+- partners with whom I have an `active` chat room
+
+`live_pending` invite partners are intentionally **not** excluded — when
+the caller has just sent an invite, the receiver should remain visible
+with their countdown ring running. Once the chat room exists, the
+active-room rule above takes over.
+
+**Sort order** (deterministic — not random):
+1. Tag-overlap count desc — caller-supplied filters take precedence,
+   otherwise we use the caller's own `profile_tags`.
+2. `profiles.updated_at` desc.
+3. `profiles.created_at` desc.
+4. `profiles.id` desc as final tiebreaker.
+
+**No Gold boost today.** TODO: Gold may receive a small ranking boost
+later, but it must not overpower tag relevance — the feed's value is
+shared interests, not paid placement.
+
 ## Security Boundary
 
 Client is not trusted.

@@ -6,49 +6,28 @@ struct InvitesView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                GAAppTopBar()
-                GAScreen(maxWidth: 560) {
-                    VStack(alignment: .leading, spacing: GASpacing.sectionGap) {
+            ZStack {
+                GAColors.background.ignoresSafeArea()
+                VStack(spacing: 0) {
+                    GAAppTopBar()
+                    GAScreen(maxWidth: 560) {
+                        VStack(alignment: .leading, spacing: GASpacing.sectionGap) {
+                            header
+                            segment
 
-                    header
+                            switch vm.tab {
+                            case .live:   liveTabBody
+                            case .missed: missedTabBody
+                            }
 
-                    if let invite = vm.incomingLive {
-                        IncomingLiveInviteView(
-                            invite: invite,
-                            onAccept:  { Task { await vm.acceptLive(invite) } },
-                            onDecline: { Task { await vm.declineLive(invite) } },
-                            onExpired: { Task { await vm.liveCountdownExpired(invite) } },
-                            isBusy: vm.processingInviteId == invite.id,
-                            onReport: { vm.presentReportInvite(invite) }
-                        )
+                            if let err = vm.errorMessage {
+                                GAErrorBanner(message: err,
+                                              onDismiss: { vm.errorMessage = nil })
+                            }
+                        }
                     }
-
-                    if let outgoing = vm.outgoingLive {
-                        OutgoingLiveInviteCard(
-                            invite: outgoing,
-                            onCancel: { Task { await vm.cancelOutgoing(outgoing) } },
-                            isBusy: vm.processingInviteId == outgoing.id
-                        )
-                    }
-
-                    segment
-
-                    switch vm.tab {
-                    case .live:   liveTabBody
-                    case .missed: missedTabBody
-                    }
-
-                    if let err = vm.errorMessage {
-                        GAErrorBanner(message: err,
-                                      onDismiss: { vm.errorMessage = nil })
-                    }
-
-                    DevComposeInviteCard(vm: vm)
-                        .padding(.top, GASpacing.lg)
+                    .refreshable { await vm.refresh() }
                 }
-                }
-                .refreshable { await vm.refresh() }
             }
             .navigationTitle("")
             .toolbar(.hidden, for: .navigationBar)
@@ -98,9 +77,13 @@ struct InvitesView: View {
         .pickerStyle(.segmented)
     }
 
+    /// Live tab: every incoming live-pending invite renders as its own
+    /// 1-line user card with its own 15-second countdown. When a card
+    /// hits 0 it drops from this list (the VM marks it missed; it'll
+    /// reappear on the Missed tab).
     @ViewBuilder
     private var liveTabBody: some View {
-        if vm.incomingLive == nil && vm.outgoingLive == nil {
+        if vm.incomingLive.isEmpty {
             GACard(kind: .standard) {
                 GAEmptyState(
                     title: String(localized: "signals.live.empty.title"),
@@ -109,10 +92,28 @@ struct InvitesView: View {
                 )
             }
         } else {
-            EmptyView()
+            VStack(spacing: GASpacing.md) {
+                ForEach(vm.incomingLive) { item in
+                    InviteUserCard(
+                        invite: item.invite,
+                        sender: item.sender,
+                        mode:   .live(liveExpiresAt: item.invite.liveExpiresAt),
+                        isBusy: vm.processingInviteId == item.invite.id,
+                        onAccept:  { Task { await vm.acceptLive(item.invite) } },
+                        onDecline: { Task { await vm.declineLive(item.invite) } },
+                        onReport:  { vm.presentReportInvite(item.invite) },
+                        onCountdownEnd: {
+                            Task { await vm.liveCountdownExpired(item) }
+                        }
+                    )
+                }
+            }
         }
     }
 
+    /// Missed tab: invites the user didn't catch in 15s. Same card style,
+    /// no timer; a single Accept button (server enforces the daily/plan
+    /// missed-accept limit). Long-press for report or decline.
     @ViewBuilder
     private var missedTabBody: some View {
         if vm.missed.isEmpty {
@@ -125,14 +126,31 @@ struct InvitesView: View {
             }
         } else {
             VStack(spacing: GASpacing.md) {
-                ForEach(vm.missed) { invite in
-                    MissedInviteCard(
-                        invite: invite,
-                        onAccept:  { Task { await vm.acceptMissed(invite) } },
-                        onDecline: { Task { await vm.decline(invite) } },
-                        isBusy: vm.processingInviteId == invite.id,
-                        onReport: { vm.presentReportInvite(invite) }
-                    )
+                ForEach(vm.missed) { item in
+                    VStack(alignment: .leading, spacing: GASpacing.sm) {
+                        InviteUserCard(
+                            invite: item.invite,
+                            sender: item.sender,
+                            mode:   .missed,
+                            isBusy: vm.processingInviteId == item.invite.id,
+                            onAccept:  { Task { await vm.acceptMissed(item.invite) } },
+                            onDecline: { Task { await vm.decline(item.invite) } },
+                            onReport:  { vm.presentReportInvite(item.invite) }
+                        )
+                        HStack(spacing: GASpacing.sm) {
+                            GAButton(title: String(localized: "signals.decline.notNow"),
+                                     kind: .ghost, size: .compact,
+                                     isDisabled: vm.processingInviteId == item.invite.id) {
+                                Task { await vm.decline(item.invite) }
+                            }
+                            GAButton(title: String(localized: "signals.accept.start"),
+                                     kind: .primary, size: .compact,
+                                     isLoading: vm.processingInviteId == item.invite.id,
+                                     isDisabled: vm.processingInviteId == item.invite.id) {
+                                Task { await vm.acceptMissed(item.invite) }
+                            }
+                        }
+                    }
                 }
             }
         }

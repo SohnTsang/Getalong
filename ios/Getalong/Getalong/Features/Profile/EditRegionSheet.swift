@@ -33,7 +33,7 @@ struct EditRegionSheet: View {
 
     var body: some View {
         NavigationStack {
-            GAScreen(maxWidth: 560) {
+            GAScreen(maxWidth: 560, topPadding: GASpacing.xxl) {
                 VStack(alignment: .leading, spacing: GASpacing.lg) {
                     GACard {
                         VStack(alignment: .leading, spacing: GASpacing.md) {

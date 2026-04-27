@@ -85,11 +85,12 @@
 
 ### Monetization
 
-- Free missed-invite accept limit
-- Silver paid missed-invite acceptance
-- Gold two concurrent live invites
-- Gold higher/unlimited active chats
-- Backend-enforced plan limits
+- Free: 1 outgoing live invite, 1 missed-invite accept/day, 5 active chats, 1 priority invite per 2-day window
+- Gold: 2 outgoing live invites, unlimited missed-invite accepts, unlimited active chats, 3 priority invites per day
+- Tags capped at 3 for everyone (no plan upsell on tags)
+- Safety / view-once media / basic chat after mutual connection are never paywalled
+- Backend-enforced plan limits — client never trusts a cached plan
+- No AdMob / Google Ads SDK in the binary; Google Ads as external acquisition channel only (post-TestFlight)
 
 ## Not MVP
 
@@ -122,6 +123,8 @@ The correct model is:
 - concurrent live invite slots
 - 15-second live acceptance
 - missed-invite accept limits
+- active chat caps
+- priority-invite rolling-window quotas
 
 ## MVP Success Criteria
 

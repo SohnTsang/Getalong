@@ -16,22 +16,19 @@ final class InvitesViewModel: ObservableObject {
         }
     }
 
-    // Inbound
-    @Published var incomingLive: Invite?
-    @Published var missed: [Invite] = []
-
-    // Outbound
-    @Published var outgoingLive: Invite?
+    // Live invites coming in (multiple cards stack on the Live tab).
+    @Published var incomingLive: [InviteWithSender] = []
+    // Missed invites the user can still act on.
+    @Published var missed: [InviteWithSender] = []
 
     // UI
     @Published var tab: Tab = .live
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
     @Published var lastChatRoomId: UUID?
-    @Published var lastChatPartner: String?
-    /// Invite id for which a network action (accept/decline/cancel) is
-    /// currently in flight. Cards observe this to disable themselves and
-    /// show a spinner. Only one signal action runs at a time per VM.
+    /// Invite id for which a network action (accept/decline) is currently
+    /// in flight. Cards observe this to disable themselves and show a
+    /// spinner.
     @Published var processingInviteId: UUID?
 
     /// Active report context (drives the .sheet(item:) on InvitesView).
@@ -47,7 +44,7 @@ final class InvitesViewModel: ObservableObject {
         pendingReport = .init(targetType: .invite, targetId: invite.id)
     }
 
-    // Dev compose form (handle only — invites are a single tap)
+    // Dev compose form (sender side, used from a small debug card).
     @Published var composeHandle: String = ""
     @Published var composeIsSending: Bool = false
     @Published var composeError: String?
@@ -75,17 +72,14 @@ final class InvitesViewModel: ObservableObject {
         isLoading = true
         defer { isLoading = false }
         do {
-            async let inbox      = InviteService.shared.fetchIncomingLivePending(userId: uid)
-            async let missedList = InviteService.shared.fetchMissedInvites(userId: uid)
-            async let outbox     = InviteService.shared.fetchOutgoingLivePending(userId: uid)
-            let (i, m, o) = try await (inbox, missedList, outbox)
-            // The most recent live_pending receiver-side wins. The UI only
-            // shows one banner at a time.
-            incomingLive = i.first
+            async let inboxList  = InviteService.shared.fetchIncomingLivePendingWithSender(userId: uid)
+            async let missedList = InviteService.shared.fetchMissedInvitesWithSender(userId: uid)
+            let (i, m) = try await (inboxList, missedList)
+            incomingLive = i
             missed       = m
-            outgoingLive = o.first
+            GALog.invite.info("invites.refresh ok live=\(i.count, privacy: .public) missed=\(m.count, privacy: .public)")
         } catch {
-            GALog.invite.error("refresh: \(error.localizedDescription)")
+            GALog.invite.error("invites.refresh failed: \(error.localizedDescription, privacy: .public)")
         }
     }
 
@@ -99,10 +93,12 @@ final class InvitesViewModel: ObservableObject {
         do {
             let resp = try await InviteService.shared.acceptLiveInvite(inviteId: invite.id)
             lastChatRoomId  = resp.chatRoomId
-            lastChatPartner = "@…"  // partner handle could be loaded separately
-            incomingLive = nil
+            incomingLive.removeAll { $0.id == invite.id }
             await refresh()
             Haptics.success()
+        } catch let e as InviteServiceError {
+            errorMessage = e.errorDescription
+            Haptics.error()
         } catch {
             errorMessage = error.localizedDescription
             Haptics.error()
@@ -119,7 +115,11 @@ final class InvitesViewModel: ObservableObject {
         defer { processingInviteId = nil }
         do {
             try await InviteService.shared.declineInvite(inviteId: invite.id)
+            incomingLive.removeAll { $0.id == invite.id }
+            missed.removeAll       { $0.id == invite.id }
             await refresh()
+        } catch let e as InviteServiceError {
+            errorMessage = e.errorDescription
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -132,39 +132,37 @@ final class InvitesViewModel: ObservableObject {
         errorMessage = nil
         do {
             let resp = try await InviteService.shared.acceptMissedInvite(inviteId: invite.id)
-            lastChatRoomId  = resp.chatRoomId
-            lastChatPartner = "@…"
+            lastChatRoomId = resp.chatRoomId
+            missed.removeAll { $0.id == invite.id }
             await refresh()
             Haptics.success()
+        } catch let e as InviteServiceError {
+            // Server is the source of truth for the daily / plan-based
+            // missed-accept limit; surface its message.
+            errorMessage = e.errorDescription
+            Haptics.error()
         } catch {
             errorMessage = error.localizedDescription
             Haptics.error()
         }
     }
 
-    /// Fired by the receiver UI when its countdown reaches zero.
-    func liveCountdownExpired(_ invite: Invite) async {
+    /// Fired by the live card when its 15-second countdown reaches zero.
+    /// We mark the invite missed server-side (idempotent — the backend
+    /// also expires it) and drop it from the local Live list immediately
+    /// so the UI doesn't sit on a 0s card.
+    func liveCountdownExpired(_ inviteWithSender: InviteWithSender) async {
+        let id = inviteWithSender.invite.id
+        incomingLive.removeAll { $0.id == id }
         do {
-            try await InviteService.shared.markLiveInviteMissed(inviteId: invite.id)
+            try await InviteService.shared.markLiveInviteMissed(inviteId: id)
         } catch {
-            GALog.invite.error("markLiveInviteMissed: \(error.localizedDescription)")
+            GALog.invite.error("markLiveInviteMissed: \(error.localizedDescription, privacy: .public)")
         }
         await refresh()
     }
 
-    // MARK: - Sender actions
-
-    func cancelOutgoing(_ invite: Invite) async {
-        guard processingInviteId == nil else { return }
-        processingInviteId = invite.id
-        defer { processingInviteId = nil }
-        do {
-            try await InviteService.shared.cancelLiveInvite(inviteId: invite.id)
-            await refresh()
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-    }
+    // MARK: - Dev compose
 
     func sendDevCompose() async {
         composeError = nil
@@ -193,6 +191,5 @@ final class InvitesViewModel: ObservableObject {
 
     func clearLastChat() {
         lastChatRoomId = nil
-        lastChatPartner = nil
     }
 }

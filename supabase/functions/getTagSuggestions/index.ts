@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
 
   // --- Featured: top tags across all profiles ---------------------------
   // PostgREST doesn't aggregate well from the client, so we read a wide
-  // page and tally in JS. With profile_tags capped at ~10 per user this
+  // page and tally in JS. With profile_tags capped at 3 per user this
   // stays cheap until we have tens of thousands of users; at that point
   // we'll move this to a materialised view.
   const featured: Array<{ tag: string; count: number }> = [];

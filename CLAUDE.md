@@ -40,7 +40,7 @@ Getalong uses a real-time live invitation system.
 - Receiver has 15 seconds to accept.
 - If receiver accepts within 15 seconds, a chat room is created immediately.
 - A live accept does not consume the receiver's missed-invite accept quota.
-- Free/Silver users can have only 1 outgoing live invite active at a time.
+- Free users can have only 1 outgoing live invite active at a time.
 - Gold users can have 2 outgoing live invites active at a time.
 
 ### Missed Invite
@@ -100,6 +100,25 @@ Start with:
 5. Placeholder Supabase client setup.
 6. Correct invite tables for 15-second live invites.
 7. No Android implementation yet.
+
+## Plan Limits (final)
+
+| | Free | Gold |
+| --- | --- | --- |
+| Outgoing live invite slots | 1 | 2 |
+| Missed-invite accepts | 1/day | unlimited |
+| Active chats | 5 | unlimited |
+| Profile tags | 3 | 3 (no upsell) |
+| Priority Invites | 1 / 2-day rolling | 3 / 1-day rolling |
+| View-once media / safety | allowed | allowed |
+
+Backend is the source of truth (`_ga_*` Postgres helpers + RPCs). Client never trusts a cached plan.
+
+## Ads
+
+- No AdMob SDK / Google Ads SDK / IDFA tracking in the app binary.
+- No in-app ads in MVP.
+- Google Ads / Apple Search Ads as **external** acquisition channels are allowed post-TestFlight (they don't change app code).
 
 ## Non-MVP Features
 

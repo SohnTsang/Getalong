@@ -285,8 +285,8 @@ export async function pushToUser(
 
 export const PUSH_LIVE_SIGNAL_RECEIVED: PushPerLocaleAlert = {
   en: {
-    title: "New Live Signal",
-    body:  "Someone sent you a signal. Respond before it fades.",
+    title: "New live invite",
+    body:  "Someone sent you an invite. Respond before it fades.",
   },
   ja: {
     title: "ライブのきっかけが届きました",
@@ -301,7 +301,7 @@ export const PUSH_LIVE_SIGNAL_RECEIVED: PushPerLocaleAlert = {
 export const PUSH_CONVERSATION_STARTED: PushPerLocaleAlert = {
   en: {
     title: "Conversation started",
-    body:  "Your signal clicked. Start talking when you're ready.",
+    body:  "Your invite clicked. Start talking when you're ready.",
   },
   ja: {
     title: "会話がはじまりました",

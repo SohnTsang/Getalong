@@ -60,7 +60,12 @@ interface DiscoveryProfile {
   shared_tags: string[];
 }
 
-const DEFAULT_LIMIT = 20;
+// Discovery returns 10 cards per page by default. Smaller pages mean the
+// user sees fresher candidates after each refresh and the post-fetch
+// tag-overlap sort runs over a smaller set (cheaper). Clients may
+// override up to MAX_LIMIT for a denser scroll, but the iOS app uses
+// the default.
+const DEFAULT_LIMIT = 10;
 const MAX_LIMIT     = 50;
 
 function decodeCursor(cursor: string | undefined): { offset: number } {

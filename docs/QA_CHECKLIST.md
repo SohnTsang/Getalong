@@ -22,7 +22,7 @@
 - User can open the tag editor from Profile.
 - User can add a tag (1–30 chars).
 - User cannot add a duplicate tag (case-insensitive normalization).
-- User cannot exceed 10 tags per profile.
+- User cannot exceed 3 tags per profile.
 - User can remove a tag.
 - Tags persist across launches.
 - Tags are visible only on non-deleted, non-banned profiles.

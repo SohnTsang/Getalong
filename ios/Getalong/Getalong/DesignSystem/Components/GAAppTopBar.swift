@@ -21,24 +21,33 @@ struct GAAppTopBar<Leading: View, Trailing: View>: View {
     }
 
     var body: some View {
-        ZStack {
-            HStack {
-                leading()
-                Spacer()
-                trailing()
+        // The bottom hairline is a real sibling rectangle (not an
+        // overlay) so adjacent ScrollViews / GAScreen backgrounds in
+        // the parent VStack can never paint over it. Otherwise the
+        // border would render on Discovery but get clipped by the
+        // GAScreen's `ignoresSafeArea()` background on the other tabs.
+        VStack(spacing: 0) {
+            ZStack {
+                HStack {
+                    leading()
+                    Spacer()
+                    trailing()
+                }
+                // Anchored to the centre regardless of leading/trailing
+                // content widths.
+                BrandMark()
             }
-            // Anchored to the centre regardless of leading/trailing
-            // content widths.
-            BrandMark()
-        }
-        .frame(height: 44)
-        .padding(.horizontal, GASpacing.lg)
-        .background(GAColors.background)
-        .overlay(alignment: .bottom) {
+            .frame(height: 44)
+            .padding(.horizontal, GASpacing.lg)
+
             Rectangle()
                 .fill(GAColors.border)
                 .frame(height: 1)
         }
+        // Paint the top safe area with the page background so the bar
+        // and the screen below it read as one continuous surface on
+        // every tab.
+        .background(GAColors.background.ignoresSafeArea(edges: .top))
     }
 }
 

@@ -122,7 +122,14 @@ final class DiscoveryViewModel: ObservableObject {
             hasMore = resp.hasMore
             loadError = nil
         } catch let e as DiscoveryServiceError {
-            loadError = e.errorDescription
+            // Cancellation = the SwiftUI Task was torn down or a newer
+            // request superseded this one. Don't surface that to the
+            // user, and don't blow away an already-good `profiles` list.
+            if e == .cancelled {
+                GALog.discovery.info("vm.firstPage cancelled — keeping current state")
+            } else {
+                loadError = e.errorDescription
+            }
         } catch {
             loadError = String(localized: "discovery.error.loadFailed")
         }
@@ -157,7 +164,11 @@ final class DiscoveryViewModel: ObservableObject {
             nextCursor = resp.nextCursor
             hasMore = resp.hasMore
         } catch let e as DiscoveryServiceError {
-            loadMoreError = e.errorDescription
+            if e == .cancelled {
+                GALog.discovery.info("vm.loadMore cancelled — keeping current state")
+            } else {
+                loadMoreError = e.errorDescription
+            }
         } catch {
             loadMoreError = String(localized: "discovery.loadMoreError")
         }
@@ -194,6 +205,19 @@ final class DiscoveryViewModel: ObservableObject {
 
     func sendState(for profile: DiscoveryProfile) -> CardSendState {
         sendStates[profile.id] ?? .idle
+    }
+
+    /// Called by the card when its 15-second countdown ring reaches zero.
+    /// At that point the live invite has either been accepted (a chat room
+    /// will open via the realtime listener) or has lapsed into a missed
+    /// invite — either way we no longer want this card sitting in the
+    /// Discover list. A subsequent refresh may bring the same user back
+    /// since the backend doesn't permanently filter them out.
+    func expireSentCard(_ profile: DiscoveryProfile) {
+        guard sendStates[profile.id] == .sent else { return }
+        GALog.discovery.info("vm.expireSentCard id=\(profile.id.uuidString, privacy: .public)")
+        profiles.removeAll { $0.id == profile.id }
+        sendStates.removeValue(forKey: profile.id)
     }
 
     // MARK: - Report

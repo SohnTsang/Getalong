@@ -1,4 +1,6 @@
 import SwiftUI
+import UIKit
+import UserNotifications
 
 struct ProfileView: View {
     @EnvironmentObject private var session: SessionManager
@@ -11,6 +13,7 @@ struct ProfileView: View {
     @State private var isDeleteConfirmPresented: Bool = false
     @State private var isDeleting: Bool = false
     @State private var deleteError: String?
+    @State private var notificationStatus: UNAuthorizationStatus = .notDetermined
     @AppStorage("ga.appearance") private var appearanceRaw: String = GAAppearance.system.rawValue
 
     private var appearance: Binding<GAAppearance> {
@@ -27,9 +30,11 @@ struct ProfileView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                GAAppTopBar()
-                GAScreen(maxWidth: 560) {
+            ZStack {
+                GAColors.background.ignoresSafeArea()
+                VStack(spacing: 0) {
+                    GAAppTopBar()
+                    GAScreen(maxWidth: 560) {
                 if let profile {
                     VStack(alignment: .leading, spacing: GASpacing.sectionGap) {
                         if let note = saveSuccessNote {
@@ -39,6 +44,7 @@ struct ProfileView: View {
                         tagsSection
                         regionSection(profile)
                         preferencesSection(profile)
+                        notificationsSection
                         appearanceSection
                         safetySection
                         legalSection
@@ -49,10 +55,19 @@ struct ProfileView: View {
                                  systemImage: "person.crop.circle.badge.questionmark")
                 }
                 }
+                }
             }
             .navigationTitle("")
             .toolbar(.hidden, for: .navigationBar)
-            .task { if let p = profile { await vm.loadTags(for: p.id) } }
+            .task {
+                if let p = profile { await vm.loadTags(for: p.id) }
+                await refreshNotificationStatus()
+            }
+            .onReceive(NotificationCenter.default.publisher(
+                for: UIApplication.willEnterForegroundNotification
+            )) { _ in
+                Task { await refreshNotificationStatus() }
+            }
             .sheet(isPresented: $isTagEditorPresented) {
                 if let p = profile {
                     TagEditorSheet(profileId: p.id,
@@ -245,6 +260,90 @@ struct ProfileView: View {
             }
         }
         .buttonStyle(.plain)
+    }
+
+    /// System-level notification status. iOS only allows third-party apps
+    /// to *request* permission once; after that the user has to flip it in
+    /// Settings, so the action depends on the current authorization state.
+    private var notificationsSection: some View {
+        VStack(alignment: .leading, spacing: GASpacing.sm) {
+            GASectionHeader(title: String(localized: "profile.notifications.title"),
+                            subtitle: String(localized: "profile.notifications.subtitle"))
+            GACard {
+                HStack(alignment: .center, spacing: GASpacing.md) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(notificationStatusLabel)
+                            .font(GATypography.body)
+                            .foregroundStyle(GAColors.textPrimary)
+                        Text(notificationStatusHint)
+                            .font(GATypography.caption)
+                            .foregroundStyle(GAColors.textTertiary)
+                    }
+                    Spacer()
+                    Button(action: notificationButtonTapped) {
+                        Text(notificationButtonTitle)
+                            .font(GATypography.footnote.weight(.semibold))
+                            .foregroundStyle(GAColors.accent)
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(.vertical, GASpacing.xs)
+            }
+        }
+    }
+
+    private var notificationStatusLabel: String {
+        switch notificationStatus {
+        case .authorized, .provisional, .ephemeral:
+            return String(localized: "profile.notifications.status.on")
+        case .denied:
+            return String(localized: "profile.notifications.status.off")
+        case .notDetermined:
+            return String(localized: "profile.notifications.status.notSet")
+        @unknown default:
+            return String(localized: "profile.notifications.status.notSet")
+        }
+    }
+
+    private var notificationStatusHint: String {
+        switch notificationStatus {
+        case .authorized, .provisional, .ephemeral:
+            return String(localized: "profile.notifications.hint.on")
+        case .denied:
+            return String(localized: "profile.notifications.hint.off")
+        case .notDetermined:
+            return String(localized: "profile.notifications.hint.notSet")
+        @unknown default:
+            return String(localized: "profile.notifications.hint.notSet")
+        }
+    }
+
+    private var notificationButtonTitle: String {
+        switch notificationStatus {
+        case .notDetermined:
+            return String(localized: "profile.notifications.action.enable")
+        default:
+            return String(localized: "profile.notifications.action.openSettings")
+        }
+    }
+
+    private func notificationButtonTapped() {
+        switch notificationStatus {
+        case .notDetermined:
+            Task {
+                await PushNotificationManager.shared.requestAuthorizationIfNeeded()
+                await refreshNotificationStatus()
+            }
+        default:
+            if let url = URL(string: UIApplication.openSettingsURLString) {
+                UIApplication.shared.open(url)
+            }
+        }
+    }
+
+    private func refreshNotificationStatus() async {
+        let settings = await UNUserNotificationCenter.current().notificationSettings()
+        notificationStatus = settings.authorizationStatus
     }
 
     private var appearanceSection: some View {

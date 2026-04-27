@@ -1,13 +1,13 @@
 import SwiftUI
 
-/// Edit display name + one-line signal (bio).
+/// Edit the one-line bio ("your line"). Display name was removed —
+/// Getalong's profile no longer surfaces it anywhere user-facing.
 struct EditProfileBasicsSheet: View {
     let initial: Profile
     let onSaved: (Profile) -> Void
     let onClose: () -> Void
 
-    @State private var displayName: String
-    @State private var signal: String
+    @State private var line: String
     @State private var phase: SavePhase = .editing
 
     init(initial: Profile,
@@ -16,37 +16,25 @@ struct EditProfileBasicsSheet: View {
         self.initial = initial
         self.onSaved = onSaved
         self.onClose = onClose
-        _displayName = State(initialValue: initial.displayName)
-        _signal      = State(initialValue: initial.bio ?? "")
+        _line = State(initialValue: initial.bio ?? "")
     }
 
     var body: some View {
         NavigationStack {
-            GAScreen(maxWidth: 560) {
+            GAScreen(maxWidth: 560, topPadding: GASpacing.xxl) {
                 VStack(alignment: .leading, spacing: GASpacing.lg) {
-                    GATextField(
-                        title: String(localized: "profile.displayName.label"),
-                        text: $displayName,
-                        placeholder: String(localized: "profile.displayName.placeholder")
-                    )
-                    if let m = displayNameError {
-                        Text(m)
-                            .font(GATypography.footnote)
-                            .foregroundStyle(GAColors.danger)
-                    }
-
                     VStack(alignment: .leading, spacing: GASpacing.xs) {
                         Text("profile.signal.label")
                             .font(GATypography.sectionTitle)
                             .foregroundStyle(GAColors.textSecondary)
                             .textCase(.uppercase)
-                        signalEditor
-                        Text("\(trimmedSignal.count) / \(ProfileLimits.signalMax)")
+                        lineEditor
+                        Text("\(trimmedLine.count) / \(ProfileLimits.signalMax)")
                             .font(GATypography.caption)
-                            .foregroundStyle(signalCountColor)
+                            .foregroundStyle(lineCountColor)
                             .frame(maxWidth: .infinity, alignment: .trailing)
                     }
-                    if let m = signalError {
+                    if let m = lineError {
                         Text(m)
                             .font(GATypography.footnote)
                             .foregroundStyle(GAColors.danger)
@@ -71,15 +59,13 @@ struct EditProfileBasicsSheet: View {
             }
             .interactiveDismissDisabled(phase == .saving)
         }
-        // Half-sheet by default; the user can drag to large if they need
-        // more vertical room while typing on a smaller phone.
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
     }
 
-    private var signalEditor: some View {
+    private var lineEditor: some View {
         ZStack(alignment: .topLeading) {
-            if signal.isEmpty {
+            if line.isEmpty {
                 Text("profile.signal.placeholder")
                     .font(GATypography.body)
                     .foregroundStyle(GAColors.textTertiary)
@@ -87,12 +73,12 @@ struct EditProfileBasicsSheet: View {
                     .padding(.vertical, 10)
                     .allowsHitTesting(false)
             }
-            TextEditor(text: $signal)
+            TextEditor(text: $line)
                 .font(GATypography.body)
                 .scrollContentBackground(.hidden)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 6)
-                .frame(minHeight: 120)
+                .frame(minHeight: 64)
         }
         .background(GAColors.surfaceRaised)
         .clipShape(RoundedRectangle(cornerRadius: GACornerRadius.large,
@@ -119,36 +105,21 @@ struct EditProfileBasicsSheet: View {
 
     // MARK: - Validation
 
-    private var trimmedDisplayName: String {
-        displayName.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-    private var trimmedSignal: String {
-        signal.trimmingCharacters(in: .whitespacesAndNewlines)
+    private var trimmedLine: String {
+        line.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    private var displayNameError: String? {
-        if trimmedDisplayName.isEmpty {
-            return String(localized: "profile.validation.displayNameRequired")
-        }
-        if trimmedDisplayName.count > ProfileLimits.displayNameMax {
-            return String(localized: "profile.validation.displayNameTooLong")
-        }
-        return nil
-    }
-
-    private var signalError: String? {
-        if trimmedSignal.count > ProfileLimits.signalMax {
+    private var lineError: String? {
+        if trimmedLine.count > ProfileLimits.signalMax {
             return String(localized: "profile.validation.signalTooLong")
         }
         return nil
     }
 
-    private var isValid: Bool {
-        displayNameError == nil && signalError == nil
-    }
+    private var isValid: Bool { lineError == nil }
 
-    private var signalCountColor: Color {
-        trimmedSignal.count > ProfileLimits.signalMax
+    private var lineCountColor: Color {
+        trimmedLine.count > ProfileLimits.signalMax
             ? GAColors.danger : GAColors.textTertiary
     }
 
@@ -158,8 +129,7 @@ struct EditProfileBasicsSheet: View {
         guard isValid, phase != .saving else { return }
         phase = .saving
         var patch = ProfilePatch()
-        patch.displayName = trimmedDisplayName
-        patch.bio = trimmedSignal.isEmpty ? nil : trimmedSignal
+        patch.bio = trimmedLine.isEmpty ? nil : trimmedLine
         do {
             let updated = try await ProfileService.shared.updateMyProfile(patch)
             Haptics.success()

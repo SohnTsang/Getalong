@@ -1,11 +1,12 @@
 import SwiftUI
 
+/// Edit visibility + want-to-see preferences. Gender itself is set
+/// once during onboarding and is intentionally not editable here.
 struct EditPreferencesSheet: View {
     let initial: Profile
     let onSaved: (Profile) -> Void
     let onClose: () -> Void
 
-    @State private var gender: Gender?
     @State private var genderVisible: Bool
     @State private var interestedIn: InterestedInGender?
     @State private var phase: SavePhase = .editing
@@ -16,17 +17,19 @@ struct EditPreferencesSheet: View {
         self.initial = initial
         self.onSaved = onSaved
         self.onClose = onClose
-        _gender = State(initialValue: initial.gender.flatMap(Gender.init(rawValue:)))
         _genderVisible = State(initialValue: initial.genderVisible)
         _interestedIn = State(initialValue:
             initial.interestedInGender.flatMap(InterestedInGender.init(rawValue:)))
     }
 
+    private var hasGender: Bool {
+        initial.gender.flatMap(Gender.init(rawValue:)) != nil
+    }
+
     var body: some View {
         NavigationStack {
-            GAScreen(maxWidth: 560) {
+            GAScreen(maxWidth: 560, topPadding: GASpacing.xxl) {
                 VStack(alignment: .leading, spacing: GASpacing.xl) {
-                    genderCard
                     visibilityCard
                     interestedInCard
 
@@ -53,29 +56,6 @@ struct EditPreferencesSheet: View {
 
     // MARK: - Sections
 
-    private var genderCard: some View {
-        VStack(alignment: .leading, spacing: GASpacing.sm) {
-            GASectionHeader(title: String(localized: "profile.gender.label"))
-            GACard {
-                HStack(spacing: GASpacing.sm) {
-                    ForEach(Gender.allCases) { g in
-                        choiceChip(label: g.localizedLabel,
-                                   selected: gender == g) {
-                            gender = (gender == g ? nil : g)
-                        }
-                    }
-                    choiceChip(label: String(localized: "profile.gender.placeholder"),
-                               selected: gender == nil) {
-                        gender = nil
-                    }
-                }
-                .padding(.vertical, GASpacing.xs)
-            }
-        }
-    }
-
-    /// Visibility lives in its own card so it doesn't read as a sub-line
-    /// of the gender chip row. Disabled when no gender is picked.
     private var visibilityCard: some View {
         VStack(alignment: .leading, spacing: GASpacing.sm) {
             GASectionHeader(title: String(localized: "profile.gender.visible"))
@@ -93,8 +73,8 @@ struct EditPreferencesSheet: View {
                     }
                 }
                 .tint(GAColors.accent)
-                .disabled(gender == nil)
-                .opacity(gender == nil ? 0.5 : 1)
+                .disabled(!hasGender)
+                .opacity(hasGender ? 1 : 0.5)
                 .padding(.vertical, GASpacing.xs)
             }
         }
@@ -156,10 +136,7 @@ struct EditPreferencesSheet: View {
         guard phase != .saving else { return }
         phase = .saving
         var patch = ProfilePatch()
-        patch.gender             = gender?.rawValue
-        // If gender is cleared, force visibility off so we never advertise
-        // a hidden value.
-        patch.genderVisible      = gender == nil ? false : genderVisible
+        patch.genderVisible      = hasGender ? genderVisible : false
         patch.interestedInGender = interestedIn?.rawValue
         do {
             let updated = try await ProfileService.shared.updateMyProfile(patch)

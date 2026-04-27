@@ -165,6 +165,34 @@ final class InviteService {
             .value
     }
 
+    /// Pending live invites with the sender's profile fields embedded.
+    /// Drives the user-card style list on the Invites tab.
+    private static let inviteWithSenderSelect =
+        "*, sender:profiles!sender_id(id, bio, gender, gender_visible, profile_tags(tag))"
+
+    func fetchIncomingLivePendingWithSender(userId: UUID) async throws -> [InviteWithSender] {
+        try await Supa.client
+            .from("invites")
+            .select(Self.inviteWithSenderSelect)
+            .eq("receiver_id", value: userId)
+            .eq("status", value: "live_pending")
+            .gt("live_expires_at", value: Date())
+            .order("created_at", ascending: false)
+            .execute()
+            .value
+    }
+
+    func fetchMissedInvitesWithSender(userId: UUID) async throws -> [InviteWithSender] {
+        try await Supa.client
+            .from("invites")
+            .select(Self.inviteWithSenderSelect)
+            .eq("receiver_id", value: userId)
+            .eq("status", value: "missed")
+            .order("created_at", ascending: false)
+            .execute()
+            .value
+    }
+
     func fetchMissedInvites(userId: UUID) async throws -> [Invite] {
         try await Supa.client
             .from("invites")

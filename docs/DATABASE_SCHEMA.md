@@ -37,7 +37,7 @@ Important fields:
 Constraints:
 - `unique (profile_id, normalized_tag)` — no duplicate tags per profile
 - length checks on `tag` and `normalized_tag`
-- 10-tag-per-profile cap enforced via a `before insert` trigger
+- 3-tag-per-profile cap enforced via a `before insert` trigger
 
 ### posts
 
@@ -154,14 +154,14 @@ create table public.profile_tags (
   check (char_length(normalized_tag) between 1 and 30)
 );
 
--- 10-tag-per-profile cap enforced server-side
+-- 3-tag-per-profile cap enforced server-side
 create or replace function public._ga_check_profile_tag_limit()
 returns trigger language plpgsql as $$
 declare v_count int;
 begin
   select count(*) into v_count
     from public.profile_tags where profile_id = NEW.profile_id;
-  if v_count >= 10 then
+  if v_count >= 3 then
     raise exception 'TAG_LIMIT_REACHED' using errcode = 'P0001';
   end if;
   return NEW;

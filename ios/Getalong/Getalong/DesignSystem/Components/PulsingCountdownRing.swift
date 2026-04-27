@@ -16,9 +16,13 @@ struct PulsingCountdownRing: View {
     /// When false the ring runs once from `total` to 0 and stops there.
     /// When true (default, used by the auth hero) it loops forever.
     var loops: Bool = true
+    /// Fires exactly once when a non-looping ring reaches zero. Ignored
+    /// when `loops` is true (it would fire forever).
+    var onComplete: (() -> Void)? = nil
 
     @State private var elapsed: Double = 0
     @State private var pulse: Bool = false
+    @State private var didFireComplete: Bool = false
     private let timer = Timer.publish(every: 0.05, on: .main, in: .common).autoconnect()
 
     private var remaining: Double { max(0, total - elapsed) }
@@ -58,7 +62,13 @@ struct PulsingCountdownRing: View {
             // Stop at zero when not looping, otherwise pause for a beat
             // and loop back to `total`.
             if !loops {
-                if elapsed < total { elapsed += 0.05 }
+                if elapsed < total {
+                    elapsed += 0.05
+                    if elapsed >= total, !didFireComplete {
+                        didFireComplete = true
+                        onComplete?()
+                    }
+                }
             } else {
                 elapsed += 0.05
                 if elapsed >= total + 0.8 { elapsed = 0 }

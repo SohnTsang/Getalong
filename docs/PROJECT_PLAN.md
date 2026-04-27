@@ -157,12 +157,15 @@ The MVP is successful if a user can:
 
 ### Phase 8 — Subscription
 
-- Free/Silver/Gold plan limits.
-- StoreKit 2 or RevenueCat.
-- Backend subscription sync.
-- Paywall.
-- Missed invite acceptance gates.
-- Gold two-live-invite benefit.
+- Free/Gold plan limits (final values in `MONETIZATION_PLAN.md`).
+  - Free: 1 outgoing live invite, 1 missed-invite accept/day, 5 active chats, 1 priority invite per 2 days.
+  - Gold: 2 outgoing live invites, unlimited missed-invite accepts, unlimited active chats, 3 priority invites/day.
+  - Tags stay capped at 3 for everyone.
+- Backend enforcement only — client never trusts a cached plan.
+- StoreKit 2 or RevenueCat decision deferred. Do not implement RevenueCat yet.
+- Paywall UI deferred until plan limits show measurable conversion intent.
+- No AdMob / Google Ads SDK in the binary.
+- Google Ads / Apple Search Ads as external acquisition channels post-TestFlight.
 
 ### Phase 9 — TestFlight
 

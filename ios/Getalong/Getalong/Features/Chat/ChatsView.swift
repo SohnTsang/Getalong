@@ -7,9 +7,11 @@ struct ChatsView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                GAAppTopBar()
-                GAScreen(maxWidth: 560) {
+            ZStack {
+                GAColors.background.ignoresSafeArea()
+                VStack(spacing: 0) {
+                    GAAppTopBar()
+                    GAScreen(maxWidth: 560) {
                     VStack(alignment: .leading, spacing: GASpacing.sectionGap) {
 
                         header
@@ -46,6 +48,7 @@ struct ChatsView: View {
                     }
                 }
                 .refreshable { await vm.refresh() }
+                }
             }
             .navigationTitle("")
             .toolbar(.hidden, for: .navigationBar)

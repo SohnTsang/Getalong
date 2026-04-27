@@ -24,7 +24,7 @@ final class ProfileTagService {
     static let shared = ProfileTagService()
     private init() {}
 
-    static let maxTagsPerProfile = 10
+    static let maxTagsPerProfile = 3
     static let maxTagLength = 30
 
     // MARK: - Tag suggestions (featured + recent)
@@ -79,22 +79,28 @@ final class ProfileTagService {
 
     /// Insert one tag for the current user. Validates locally first.
     func addTag(_ raw: String, existing: [ProfileTag]) async throws -> ProfileTag {
+        GALog.profile.info("addTag start raw=\"\(raw, privacy: .public)\" existing=\(existing.count, privacy: .public)")
         guard let display = ProfileTag.display(raw),
               let normalized = ProfileTag.normalize(raw) else {
+            GALog.profile.warning("addTag rejected: empty/normalize-failed")
             throw ProfileTagError.empty
         }
         guard display.count <= Self.maxTagLength,
               normalized.count <= Self.maxTagLength else {
+            GALog.profile.warning("addTag rejected: tooLong display=\(display.count) normalized=\(normalized.count)")
             throw ProfileTagError.tooLong
         }
         guard !existing.contains(where: { $0.normalizedTag == normalized }) else {
+            GALog.profile.warning("addTag rejected: duplicate normalized=\"\(normalized, privacy: .public)\"")
             throw ProfileTagError.duplicate
         }
         guard existing.count < Self.maxTagsPerProfile else {
+            GALog.profile.warning("addTag rejected: limitReached at \(existing.count)/\(Self.maxTagsPerProfile)")
             throw ProfileTagError.limitReached
         }
 
         guard let uid = try? await Supa.client.auth.session.user.id else {
+            GALog.profile.error("addTag failed: no session uid")
             throw ProfileTagError.underlying
         }
 
@@ -114,27 +120,33 @@ final class ProfileTagService {
                 .single()
                 .execute()
                 .value
+            GALog.profile.info("addTag ok id=\(inserted.id.uuidString, privacy: .public) tag=\"\(display, privacy: .public)\"")
             return inserted
         } catch {
-            let lower = (error as NSError).localizedDescription.lowercased()
+            let ns = error as NSError
+            let raw = ns.localizedDescription
+            GALog.profile.error("addTag failed: domain=\(ns.domain, privacy: .public) code=\(ns.code, privacy: .public) info=\(ns.userInfo.description, privacy: .public) message=\"\(raw, privacy: .public)\"")
+            let lower = raw.lowercased()
             if lower.contains("tag_limit_reached") { throw ProfileTagError.limitReached }
             if lower.contains("duplicate") || lower.contains("unique") {
                 throw ProfileTagError.duplicate
             }
-            GALog.app.error("addTag failed: \(error.localizedDescription)")
             throw ProfileTagError.underlying
         }
     }
 
     func deleteTag(id: UUID) async throws {
+        GALog.profile.info("deleteTag start id=\(id.uuidString, privacy: .public)")
         do {
             try await Supa.client
                 .from("profile_tags")
                 .delete()
                 .eq("id", value: id)
                 .execute()
+            GALog.profile.info("deleteTag ok id=\(id.uuidString, privacy: .public)")
         } catch {
-            GALog.app.error("deleteTag failed: \(error.localizedDescription)")
+            let ns = error as NSError
+            GALog.profile.error("deleteTag failed: code=\(ns.code, privacy: .public) message=\"\(ns.localizedDescription, privacy: .public)\"")
             throw ProfileTagError.underlying
         }
     }

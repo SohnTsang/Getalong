@@ -119,8 +119,7 @@ struct SignInView: View {
         .overlay(
             RoundedRectangle(cornerRadius: GACornerRadius.large,
                              style: .continuous)
-                .strokeBorder(GenderBadge.Kind.female.tint.opacity(0.30),
-                              lineWidth: 0.25)
+                .strokeBorder(GAColors.accent, lineWidth: 0.6)
         )
         .shadow(color: Color.black.opacity(0.05), radius: 18, x: 0, y: 6)
     }

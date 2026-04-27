@@ -5,21 +5,24 @@ struct DiscoveryView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                GAAppTopBar(trailing: {
-                    GATopBarRefreshButton(
-                        isBusy: vm.isRefreshing,
-                        cooldownRemaining: vm.cooldownRemaining,
-                        onTap: { Task { await vm.tryManualRefresh() } }
-                    )
-                })
-                GAScreen(maxWidth: 560) {
-                    VStack(alignment: .leading, spacing: GASpacing.sectionGap) {
-                        header
-                        content
+            ZStack {
+                GAColors.background.ignoresSafeArea()
+                VStack(spacing: 0) {
+                    GAAppTopBar(trailing: {
+                        GATopBarRefreshButton(
+                            isBusy: vm.isRefreshing,
+                            cooldownRemaining: vm.cooldownRemaining,
+                            onTap: { Task { await vm.tryManualRefresh() } }
+                        )
+                    })
+                    GAScreen(maxWidth: 560) {
+                        VStack(alignment: .leading, spacing: GASpacing.sectionGap) {
+                            header
+                            content
+                        }
                     }
+                    .refreshable { await vm.tryManualRefresh() }
                 }
-                .refreshable { await vm.tryManualRefresh() }
             }
             .navigationTitle("")
             .toolbar(.hidden, for: .navigationBar)
@@ -76,7 +79,8 @@ struct DiscoveryView: View {
                         sendState: vm.sendState(for: profile),
                         onSend:    { Task { await vm.sendSignal(to: profile) } },
                         onReport:  { vm.presentReport(profile) },
-                        onBlock:   { vm.presentBlock(profile) }
+                        onBlock:   { vm.presentBlock(profile) },
+                        onCountdownEnd: { vm.expireSentCard(profile) }
                     )
                     .onAppear {
                         Task { await vm.loadMoreIfNeeded(currentItem: profile) }
@@ -164,6 +168,10 @@ private struct DiscoveryCard: View {
     let onSend: () -> Void
     let onReport: () -> Void
     let onBlock: () -> Void
+    /// Fires once when the live-invite countdown ring reaches zero. The
+    /// VM uses this to drop the card from the local list — refresh may
+    /// bring the same profile back later.
+    let onCountdownEnd: () -> Void
 
     private var isInteractive: Bool {
         switch sendState {
@@ -217,25 +225,25 @@ private struct DiscoveryCard: View {
         }
     }
 
-    /// Border colour + thickness shifts with state so the gendered
-    /// hairline grows into a "live" frame while a sent invite ticks
-    /// down. Always uses the user's gender tint when available.
+    /// Border picks up the live countdown ring's accent colour the
+    /// moment the invite goes out, so the whole card reads as "live".
+    /// Idle / sending stay on the quiet gender hairline.
     private var borderColor: Color {
-        guard let kind = GenderBadge.Kind.from(rawValue: profile.gender) else {
-            return Color.clear
-        }
         switch sendState {
-        case .sent:    return kind.tint.opacity(0.85)
-        case .sending: return kind.tint.opacity(0.55)
-        default:       return kind.tint.opacity(0.30)
+        case .sent:
+            return GAColors.accent
+        case .idle, .sending, .failed:
+            guard let kind = GenderBadge.Kind.from(rawValue: profile.gender) else {
+                return Color.clear
+            }
+            return kind.tint.opacity(0.30)
         }
     }
 
     private var borderWidth: CGFloat {
         switch sendState {
-        case .sent:    return 1.25
-        case .sending: return 0.75
-        default:       return 0.25
+        case .sent: return 0.6
+        default:    return 0.25
         }
     }
 
@@ -263,9 +271,11 @@ private struct DiscoveryCard: View {
     private var trailingControl: some View {
         switch sendState {
         case .sent:
-            // One-shot countdown — ring runs from 15 to 0 and stops.
+            // One-shot countdown — ring runs from 15 to 0, then onCountdownEnd
+            // drops the card from the Discover list.
             PulsingCountdownRing(total: 15, size: 36, lineWidth: 2.5,
-                                 loops: false)
+                                 loops: false,
+                                 onComplete: onCountdownEnd)
         case .sending:
             ProgressView()
                 .controlSize(.small)
