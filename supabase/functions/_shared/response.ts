@@ -47,7 +47,8 @@ export type GAErrorCode =
   | "ALREADY_REPORTED"
   | "REPORT_FAILED"
   | "SELF_BLOCK_NOT_ALLOWED"
-  | "BLOCK_FAILED";
+  | "BLOCK_FAILED"
+  | "DELETE_FAILED";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",

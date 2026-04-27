@@ -112,21 +112,26 @@ Do not use Realtime for discovery feed.
 ## Discovery feed
 
 The Discovery feed is served by the `getDiscoveryFeed` Edge Function.
-Default page size is **10** profiles (`DEFAULT_LIMIT = 10`, max 50).
-Smaller pages keep the post-fetch overlap sort cheap and let pull-to-
-refresh surface fresh candidates faster.
+**It is a 10-card batch, not an infinite feed.** The iOS client requests
+`limit = 10`, never paginates with `cursor`, and replaces its entire
+visible list on every refresh. There is no "load more", no last-card
+paging, and no `next_cursor` consumption on iOS. The backend still
+exposes `next_cursor` / `has_more` for completeness but the client
+ignores them.
 
-**Exclusion rules** (every page excludes these user_ids):
+**Exclusion rules** (every batch excludes these user_ids):
 - self
 - deleted / banned profiles
 - profiles I have blocked
 - profiles that have blocked me
 - partners with whom I have an `active` chat room
-
-`live_pending` invite partners are intentionally **not** excluded — when
-the caller has just sent an invite, the receiver should remain visible
-with their countdown ring running. Once the chat room exists, the
-active-room rule above takes over.
+- partners with whom I have a `live_pending` invite in either direction
+  (so the same user doesn't reappear as sendable while their countdown
+  is still ticking; the Invite tab is the right place to see them)
+- best-effort: profiles already visible in the caller's current list,
+  passed up via `exclude_ids`. Applied **only** when enough alternates
+  exist; the server falls back to repeats rather than returning an
+  empty batch.
 
 **Sort order** (deterministic — not random):
 1. Tag-overlap count desc — caller-supplied filters take precedence,
@@ -138,6 +143,26 @@ active-room rule above takes over.
 **No Gold boost today.** TODO: Gold may receive a small ranking boost
 later, but it must not overpower tag relevance — the feed's value is
 shared interests, not paid placement.
+
+## Chat lifecycle
+
+`chat_rooms.status` accepts `'active' | 'archived' | 'blocked' | 'deleted'`.
+The `deleteConversation` Edge Function flips a participant-owned room
+from `active` to `deleted` (idempotent), stamping `deleted_at` and
+`deleted_by`. Soft-delete only — messages, media, and reports are
+preserved for moderation and the cleanup cron.
+
+A deleted room:
+- disappears from `ChatService.fetchRooms()` (filters `status='active'`)
+- stops counting against `_ga_count_active_chats` (also filters `'active'`),
+  so the user gets their slot back under the Free 5-chat cap
+- rejects new messages (`createChatMessage` requires `status='active'`)
+- rejects new media uploads (`requestMediaUpload` requires `'active'`)
+- rejects view-once unlocks (`openViewOnceMedia` requires `'active'`)
+
+There is no archive feature. The user-facing action is "Delete
+conversation"; the row-level state is shared between participants —
+when one user deletes, the conversation disappears for both.
 
 ## Security Boundary
 

@@ -59,7 +59,7 @@ locally cached plan.
 | Concurrent live invite slots | `_ga_concurrent_live_slots(plan)` checked in `send_live_invite` | `LIVE_INVITE_SLOT_FULL` |
 | Live invite expiry | `_ga_live_seconds()` + `expire_live_invites()` cron | `LIVE_INVITE_EXPIRED` |
 | Missed-invite accept quota | `_ga_missed_accept_quota(plan)` checked in `accept_missed_invite` | `MISSED_ACCEPT_LIMIT_REACHED` |
-| Active chat cap | `_ga_assert_active_chat_room_capacity(uid)` checked in `accept_live_invite` *and* `accept_missed_invite` for **both** sender and receiver | `ACTIVE_CHAT_LIMIT_REACHED` |
+| Active chat cap | `_ga_assert_active_chat_room_capacity(uid)` checked in `accept_live_invite` *and* `accept_missed_invite` for **both** sender and receiver. Counts only `chat_rooms.status='active'`; a soft-deleted room frees its slot. | `ACTIVE_CHAT_LIMIT_REACHED` |
 | Priority invite quota | `_ga_assert_priority_quota(uid)` (rolling window per plan) | `PRIORITY_INVITE_LIMIT_REACHED` |
 | Tag cap (3) | `_ga_check_profile_tag_limit` BEFORE INSERT trigger | `TAG_LIMIT_REACHED` |
 

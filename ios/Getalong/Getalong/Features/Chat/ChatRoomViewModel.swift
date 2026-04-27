@@ -35,6 +35,15 @@ final class ChatRoomViewModel: ObservableObject {
     @Published var pendingReport: ReportContext?
     /// True when the block confirmation sheet is presented.
     @Published var isBlockConfirmPresented: Bool = false
+    /// True while the .confirmationDialog for "Delete conversation" is open.
+    @Published var isDeleteConfirmPresented: Bool = false
+    /// In-flight indicator for the delete-conversation network call.
+    @Published var isDeleting: Bool = false
+    /// Set to true when the conversation has been successfully deleted —
+    /// the view dismisses itself back to ChatsView when this flips.
+    @Published var didDelete: Bool = false
+    /// Localized error from the most recent failed delete attempt.
+    @Published var deleteError: String?
 
     struct ReportContext: Identifiable, Equatable {
         let id = UUID()
@@ -87,6 +96,30 @@ final class ChatRoomViewModel: ObservableObject {
 
     func presentBlockConfirm() {
         isBlockConfirmPresented = true
+    }
+
+    /// Show the system confirmationDialog. The actual delete fires only
+    /// when the user taps the destructive action.
+    func presentDeleteConfirm() {
+        isDeleteConfirmPresented = true
+    }
+
+    func confirmDeleteConversation() async {
+        guard !isDeleting && !didDelete else { return }
+        isDeleting = true
+        defer { isDeleting = false }
+        deleteError = nil
+        do {
+            _ = try await ChatService.shared.deleteConversation(roomId: roomId)
+            didDelete = true
+            Haptics.success()
+        } catch let e as ChatServiceError {
+            deleteError = e.errorDescription
+            Haptics.error()
+        } catch {
+            deleteError = String(localized: "chat.delete.error")
+            Haptics.error()
+        }
     }
 
     func confirmedBlock() async {

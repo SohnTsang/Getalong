@@ -11,6 +11,7 @@ enum ChatServiceError: LocalizedError, Equatable {
     case emptyMessage
     case messageTooLong
     case insertFailed
+    case deleteFailed
     case loadFailed
     case other
 
@@ -25,6 +26,7 @@ enum ChatServiceError: LocalizedError, Equatable {
         case "EMPTY_MESSAGE":         self = .emptyMessage
         case "MESSAGE_TOO_LONG":      self = .messageTooLong
         case "INSERT_FAILED":         self = .insertFailed
+        case "DELETE_FAILED":         self = .deleteFailed
         default:                      self = .other
         }
     }
@@ -39,6 +41,8 @@ enum ChatServiceError: LocalizedError, Equatable {
             return String(localized: "chat.error.sendFailed")
         case .messageTooLong:
             return String(localized: "chat.error.sendFailed")
+        case .deleteFailed:
+            return String(localized: "chat.delete.error")
         case .loadFailed:
             return String(localized: "chat.error.loadFailed")
         case .authRequired:
@@ -160,6 +164,47 @@ final class ChatService {
             }
             GALog.chat.error("createChatMessage transport: \(error.localizedDescription)")
             throw ChatServiceError.other
+        }
+    }
+
+    // MARK: - Delete conversation
+
+    /// Soft-deletes the chat room for both participants. The row stays in
+    /// the database (so messages, media, and reports remain auditable),
+    /// but its status flips to 'deleted' which removes it from
+    /// `fetchRooms()` and from the active-chat-limit count.
+    /// Idempotent — calling twice returns success the second time.
+    @discardableResult
+    func deleteConversation(roomId: UUID) async throws -> UUID {
+        struct Body: Encodable { let room_id: UUID }
+        struct DeleteEnvelope: Decodable {
+            struct DataPart: Decodable { let room_id: UUID }
+            let ok: Bool; let data: DataPart
+        }
+        GALog.chat.info("deleteConversation start id=\(roomId.uuidString, privacy: .public)")
+        do {
+            let raw = try await Supa.invokeRaw(
+                "deleteConversation", body: Body(room_id: roomId)
+            )
+            if let env = try? JSONDecoder().decode(DeleteEnvelope.self, from: raw) {
+                GALog.chat.info("deleteConversation ok id=\(roomId.uuidString, privacy: .public)")
+                return env.data.room_id
+            }
+            if let err = try? JSONDecoder().decode(EnvelopeErr.self, from: raw) {
+                GALog.chat.error("deleteConversation server code=\(err.error_code ?? "-", privacy: .public)")
+                throw ChatServiceError(code: err.error_code)
+            }
+            throw ChatServiceError.deleteFailed
+        } catch let e as ChatServiceError {
+            throw e
+        } catch {
+            if let data = Supa.errorBody(from: error),
+               let err = try? JSONDecoder().decode(EnvelopeErr.self, from: data) {
+                GALog.chat.error("deleteConversation http code=\(err.error_code ?? "-", privacy: .public)")
+                throw ChatServiceError(code: err.error_code)
+            }
+            GALog.chat.error("deleteConversation transport: \(error.localizedDescription, privacy: .public)")
+            throw ChatServiceError.deleteFailed
         }
     }
 

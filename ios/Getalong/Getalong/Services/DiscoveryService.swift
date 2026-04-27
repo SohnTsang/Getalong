@@ -99,6 +99,7 @@ final class DiscoveryService {
         let tags: [String]?
         let limit: Int
         let cursor: String?
+        let exclude_ids: [String]?
     }
 
     private struct EnvelopeOK<T: Decodable>: Decodable { let ok: Bool; let data: T }
@@ -106,16 +107,25 @@ final class DiscoveryService {
         let ok: Bool; let error_code: String?; let message: String?
     }
 
-    /// Fetch a page of Discovery profiles. `cursor` is the opaque value
-    /// returned by a previous call.
-    func fetchFeed(cursor: String? = nil,
-                   limit: Int = 10,
-                   tags: [String]? = nil) async throws -> DiscoveryFeedResponse {
-        let body = RequestBody(tags: tags, limit: limit, cursor: cursor)
+    /// Fetch a single 10-card Discovery batch. `excludeIds` (typically the
+    /// IDs the user is currently looking at) is forwarded so the backend
+    /// can prefer fresh candidates on refresh; the server falls back to
+    /// repeats if there aren't enough alternatives.
+    func fetchFeed(limit: Int = 10,
+                   tags: [String]? = nil,
+                   excludeIds: [UUID] = []) async throws -> DiscoveryFeedResponse {
+        let body = RequestBody(
+            tags: tags,
+            limit: limit,
+            cursor: nil,
+            exclude_ids: excludeIds.isEmpty
+                ? nil
+                : excludeIds.map { $0.uuidString }
+        )
         let started = Date()
-        let situation = cursor == nil ? "first-page" : "next-page"
+        let situation = excludeIds.isEmpty ? "fresh-batch" : "refresh-batch"
         GALog.discovery.info(
-            "fetchFeed.start situation=\(situation, privacy: .public) cursor=\(cursor ?? "-", privacy: .public) limit=\(limit, privacy: .public) tags=\(tags?.count ?? 0, privacy: .public)"
+            "fetchFeed.start situation=\(situation, privacy: .public) limit=\(limit, privacy: .public) tags=\(tags?.count ?? 0, privacy: .public) exclude=\(excludeIds.count, privacy: .public)"
         )
         do {
             let raw = try await Supa.invokeRaw("getDiscoveryFeed", body: body)

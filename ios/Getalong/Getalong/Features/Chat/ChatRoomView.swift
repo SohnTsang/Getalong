@@ -82,6 +82,25 @@ struct ChatRoomView: View {
                 )
             }
         }
+        // Delete-conversation confirmation. The destructive action calls
+        // the Edge Function; on success `didDelete` flips and the view
+        // dismisses back to ChatsView.
+        .confirmationDialog(
+            String(localized: "chat.delete.title"),
+            isPresented: $vm.isDeleteConfirmPresented,
+            titleVisibility: .visible
+        ) {
+            Button(String(localized: "chat.delete.action"),
+                   role: .destructive) {
+                Task { await vm.confirmDeleteConversation() }
+            }
+            Button(String(localized: "common.cancel"), role: .cancel) {}
+        } message: {
+            Text("chat.delete.message")
+        }
+        .onChange(of: vm.didDelete) { didDelete in
+            if didDelete { dismiss() }
+        }
         // Viewer for receiver opening view-once media.
         .fullScreenCover(isPresented: viewerBinding) {
             if let mid = vm.openingMediaId, let mt = vm.openingMessageType {
@@ -184,6 +203,12 @@ struct ChatRoomView: View {
                     Label(String(localized: "safety.menu.blockUser"),
                           systemImage: "hand.raised")
                 }
+            }
+            Button(role: .destructive) {
+                vm.presentDeleteConfirm()
+            } label: {
+                Label(String(localized: "chat.delete.action"),
+                      systemImage: "trash")
             }
         } label: {
             Image(systemName: "ellipsis")

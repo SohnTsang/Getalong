@@ -22,7 +22,11 @@
 //   * profiles I have blocked
 //   * profiles that have blocked me
 //   * profiles with whom I have an active chat room (status = 'active')
-//   * profiles with an active live_pending invite either way
+//   * profiles with whom I have a live_pending invite either direction
+//     (so the same user doesn't show up as sendable on a refresh while
+//      the invite is still ticking down)
+//   * profiles already visible in the caller's current list
+//     (best-effort, only if enough other candidates exist)
 //
 // Sort order (stable):
 //   1. tag overlap count desc (only when caller supplies `tags` OR we
@@ -42,6 +46,11 @@ interface Body {
   tags?: string[];
   limit?: number;
   cursor?: string;
+  /// IDs the iOS client is currently displaying. Excluded for refresh
+  /// diversity *only when there are enough other candidates* — if we'd
+  /// run out of profiles, we relax this and let already-visible IDs
+  /// come back.
+  exclude_ids?: string[];
 }
 
 interface DiscoveryProfile {
@@ -141,11 +150,25 @@ Deno.serve(async (req) => {
       excludeIds.add(r.user_a === userId ? r.user_b : r.user_a);
     }
   }
-  // NOTE: we deliberately do NOT exclude profiles with an active
-  // live_pending invite. If the caller has just tapped "Send invite",
-  // we want the receiver to remain visible (with their countdown ring
-  // running). Active chat rooms above already keep us from showing
-  // people who've moved past the invite stage.
+
+  // Live-pending invite partners (either direction). Discovery should
+  // not surface the same user as sendable while a 15-second invite is
+  // still ticking — otherwise tapping "Send invite", refreshing, and
+  // tapping again would race against the in-flight invite. The Invite
+  // tab is the right place to see live-pending counterparties.
+  {
+    const nowIso = new Date().toISOString();
+    const { data, error } = await sb
+      .from("invites")
+      .select("sender_id, receiver_id")
+      .eq("status", "live_pending")
+      .gt("live_expires_at", nowIso)
+      .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`);
+    if (error) console.warn("live_pending invites:", error.message);
+    for (const r of data ?? []) {
+      excludeIds.add(r.sender_id === userId ? r.receiver_id : r.sender_id);
+    }
+  }
 
   // 2. Tag intent: caller-supplied filters take precedence; otherwise we
   //    use the caller's own tags so people see folks who share their
@@ -168,6 +191,18 @@ Deno.serve(async (req) => {
   //    after exclusion + sorting we still have a stable page worth of
   //    results.
   const fetchSize = Math.min(MAX_LIMIT * 4, 200);
+
+  // Refresh-diversity exclude: caller's currently-visible IDs. Applied
+  // *only* if removing them still leaves us with at least `limit`
+  // candidates after the hard exclusions (self/blocks/active-rooms/
+  // live-pending). When we'd otherwise return too few, we relax this
+  // and let some already-seen profiles come back rather than hand
+  // back an empty feed.
+  const visibleIds = new Set(
+    Array.isArray(body.exclude_ids)
+      ? body.exclude_ids.filter((s) => typeof s === "string").slice(0, 50)
+      : []
+  );
   const excludeArr = [...excludeIds];
 
   // Flat select — PostgREST tolerates whitespace, but we keep this
@@ -231,8 +266,24 @@ Deno.serve(async (req) => {
   //    updated_at desc, created_at desc, id desc).
   enriched.sort((a, b) => b.overlap - a.overlap);
 
-  const page = enriched.slice(0, limit);
-  const hasMore = enriched.length > limit
+  // 4a. Refresh-diversity step: if the caller passed exclude_ids and
+  //     enough alternates exist, prefer fresh candidates over repeating
+  //     last refresh's set. Otherwise fall through and include everyone.
+  let candidates = enriched;
+  if (visibleIds.size > 0) {
+    const fresh  = enriched.filter((e) => !visibleIds.has(e.row.id));
+    const repeat = enriched.filter((e) =>  visibleIds.has(e.row.id));
+    if (fresh.length >= limit) {
+      candidates = fresh;
+    } else {
+      // Not enough fresh candidates — top up with repeats so we still
+      // return up to `limit` rather than returning an empty page.
+      candidates = [...fresh, ...repeat];
+    }
+  }
+
+  const page = candidates.slice(0, limit);
+  const hasMore = candidates.length > limit
                 || (rows?.length ?? 0) === fetchSize;
 
   const items: DiscoveryProfile[] = page.map(({ row, sharedTags }) => ({

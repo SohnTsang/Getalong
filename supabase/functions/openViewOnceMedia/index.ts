@@ -51,16 +51,19 @@ Deno.serve(async (req) => {
   if (m.expires_at && new Date(m.expires_at).getTime() < Date.now())
     return fail("MEDIA_EXPIRED", "Media has expired.", 410);
 
-  // Participant check.
+  // Participant check + active-room guard. A deleted/archived room
+  // shouldn't permit a fresh view-once unlock.
   const { data: room, error: rErr } = await sb
     .from("chat_rooms")
-    .select("user_a, user_b")
+    .select("user_a, user_b, status")
     .eq("id", m.room_id)
     .maybeSingle();
   if (rErr) return fail("INTERNAL_ERROR", rErr.message, 500);
   if (!room) return fail("ROOM_NOT_FOUND", "Chat room not found.", 404);
   if (room.user_a !== userId && room.user_b !== userId)
     return fail("NOT_ROOM_PARTICIPANT", "You are not a participant in this chat.", 403);
+  if (room.status !== "active")
+    return fail("ROOM_NOT_ACTIVE", "This chat is not active.", 409);
 
   // Block check (either direction).
   const partnerId = m.owner_id;

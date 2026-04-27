@@ -381,6 +381,41 @@
         }
       }
     },
+    "chat.delete.action" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Delete conversation" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "会話を削除" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "刪除對話" } }
+      }
+    },
+    "chat.delete.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Delete conversation?" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "会話を削除しますか？" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "要刪除這段對話嗎？" } }
+      }
+    },
+    "chat.delete.message" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "This conversation will be removed from your chats and will no longer count toward your active chat limit." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "この会話はチャット一覧から削除され、利用中の会話数には含まれなくなります。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "這段對話會從你的對話列表中移除，並且不再計入你的使用中對話上限。" } }
+      }
+    },
+    "chat.delete.success" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Conversation deleted." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "会話を削除しました。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "對話已刪除。" } }
+      }
+    },
+    "chat.delete.error" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Couldn’t delete the conversation. Please try again." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "会話を削除できませんでした。もう一度お試しください。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "無法刪除這段對話，請再試一次。" } }
+      }
+    },
     "chat.empty.title" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1573,19 +1608,19 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You’ve reached the free chat limit. Close an old chat or upgrade when Gold is available."
+            "value" : "You’ve reached the free chat limit. Delete an old conversation to start a new one."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "無料プランで作成できる会話数の上限に達しました。不要な会話を整理するか、Goldの提供開始後にアップグレードしてください。"
+            "value" : "無料プランで作成できる会話数の上限に達しました。新しい会話を始めるには、不要な会話を削除してください。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "你已達到免費方案的對話上限。請先整理不需要的對話，或在 Gold 開放後升級。"
+            "value" : "你已達到免費方案的對話上限。請先刪除不需要的對話，才能開始新的對話。"
           }
         }
       }
@@ -4478,6 +4513,7 @@
       }
     },
     "profile.tags.limitReached" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {

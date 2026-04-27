@@ -61,6 +61,7 @@
 - Pagination
 - Report message
 - Block user
+- Delete conversation (soft delete; both participants lose the room; row preserved for moderation; freed slot stops counting toward the Free active-chat cap). No archive feature.
 
 ### One-Time Media
 
