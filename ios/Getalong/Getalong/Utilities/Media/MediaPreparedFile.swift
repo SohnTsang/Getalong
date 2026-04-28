@@ -97,4 +97,16 @@ enum MediaTempFile {
         let name = UUID().uuidString + "." + ext
         return dir.appendingPathComponent(name)
     }
+
+    /// Wipes the media temp dir. Run on launch so any files that
+    /// would normally have been removed at the end of `sendMessage`
+    /// — but didn't, because the process crashed or got jetsammed
+    /// mid-send — don't accumulate across sessions. Cheap: it's a
+    /// flat directory of small JPEGs / videos, all expendable.
+    static func purgeAll() {
+        let dir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("getalong-media", isDirectory: true)
+        guard FileManager.default.fileExists(atPath: dir.path) else { return }
+        try? FileManager.default.removeItem(at: dir)
+    }
 }

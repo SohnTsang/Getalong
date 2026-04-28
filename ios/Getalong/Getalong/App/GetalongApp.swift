@@ -21,7 +21,13 @@ struct GetalongApp: App {
                 .tint(GAColors.accent)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(GAColors.background.ignoresSafeArea())
-                .task { await session.bootstrap() }
+                .task {
+                    // Wipe any stranded media temp files from a
+                    // previous session that crashed or got jetsammed
+                    // mid-send. Cheap, expendable, runs once.
+                    MediaTempFile.purgeAll()
+                    await session.bootstrap()
+                }
                 .onOpenURL { url in
                     // Fallback for when an OAuth provider redirects via the
                     // system browser instead of completing inside

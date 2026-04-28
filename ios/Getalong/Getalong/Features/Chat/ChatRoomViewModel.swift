@@ -297,6 +297,14 @@ final class ChatRoomViewModel: ObservableObject {
         case .mediaUpdated(let asset):
             if let asset, asset.roomId == roomId {
                 mediaAssets[asset.id] = asset
+                // Once the asset has been consumed (viewed / expired
+                // / storage deleted), drop the sender's in-memory
+                // thumbnail so the original image is no longer cached
+                // anywhere on the device. Matches the
+                // "completely removed after viewing" guarantee.
+                if Self.isTerminal(asset) {
+                    localMediaThumbnails.removeValue(forKey: asset.id)
+                }
             }
         }
     }
@@ -333,10 +341,17 @@ final class ChatRoomViewModel: ObservableObject {
         let mids = Set(messages.compactMap { $0.mediaId })
         for id in mids {
             if let cached = mediaAssets[id], Self.isTerminal(cached) {
+                // Already consumed — purge any retained sender
+                // thumbnail so the bitmap doesn't sit in memory
+                // after the bytes are gone server-side.
+                localMediaThumbnails.removeValue(forKey: id)
                 continue
             }
             if let asset = try? await MediaService.shared.fetchAsset(id: id) {
                 mediaAssets[id] = asset
+                if Self.isTerminal(asset) {
+                    localMediaThumbnails.removeValue(forKey: id)
+                }
             }
         }
     }
