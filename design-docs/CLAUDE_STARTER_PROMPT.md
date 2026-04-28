@@ -7,13 +7,13 @@ We are building Getalong, an iOS-first SwiftUI + Supabase social discovery app.
 
 Before coding, read:
 - CLAUDE.md
-- docs/PROJECT_PLAN.md
-- docs/MVP_SCOPE.md
-- docs/SYSTEM_ARCHITECTURE.md
-- docs/DATABASE_SCHEMA.md
-- docs/EDGE_FUNCTIONS.md
-- docs/ONE_TIME_MEDIA_SECURITY.md
-- docs/MONETIZATION_PLAN.md
+- design-docs/PROJECT_PLAN.md
+- design-docs/MVP_SCOPE.md
+- design-docs/SYSTEM_ARCHITECTURE.md
+- design-docs/DATABASE_SCHEMA.md
+- design-docs/EDGE_FUNCTIONS.md
+- design-docs/ONE_TIME_MEDIA_SECURITY.md
+- design-docs/MONETIZATION_PLAN.md
 - all files in /agents
 
 Important update:
@@ -31,7 +31,7 @@ Rules:
 - Do not implement the main invite model as simple daily sent-invite limits.
 
 Your first task:
-1. Create the initial Supabase migration for the database schema in docs/DATABASE_SCHEMA.md.
+1. Create the initial Supabase migration for the database schema in design-docs/DATABASE_SCHEMA.md.
 2. Enable RLS on every table.
 3. Add safe starter RLS policies.
 4. Create the iOS SwiftUI project shell structure.

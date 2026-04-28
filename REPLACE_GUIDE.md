@@ -24,5 +24,5 @@ unzip getalong_15s_invite_md_replacements.zip -d /path/to/getalong-project
 Then ask Claude Code:
 
 ```md
-Please reread CLAUDE.md, docs/MVP_SCOPE.md, docs/DATABASE_SCHEMA.md, docs/EDGE_FUNCTIONS.md, docs/MONETIZATION_PLAN.md, and the updated agent files. The invite model has changed to a 15-second live invitation system. Update any implementation plans, schema, Edge Function contracts, and tests to follow this model. Do not use daily sent-invite limits as the main mechanic.
+Please reread CLAUDE.md, design-docs/MVP_SCOPE.md, design-docs/DATABASE_SCHEMA.md, design-docs/EDGE_FUNCTIONS.md, design-docs/MONETIZATION_PLAN.md, and the updated agent files. The invite model has changed to a 15-second live invitation system. Update any implementation plans, schema, Edge Function contracts, and tests to follow this model. Do not use daily sent-invite limits as the main mechanic.
 ```

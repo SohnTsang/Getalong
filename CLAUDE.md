@@ -64,15 +64,17 @@ Usage limits can exist for abuse prevention, but the core product mechanic is co
 
 Read these files first:
 
-- `docs/PROJECT_PLAN.md`
-- `docs/MVP_SCOPE.md`
-- `docs/SYSTEM_ARCHITECTURE.md`
-- `docs/DATABASE_SCHEMA.md`
-- `docs/EDGE_FUNCTIONS.md`
-- `docs/ONE_TIME_MEDIA_SECURITY.md`
-- `docs/MONETIZATION_PLAN.md`
-- `docs/QA_CHECKLIST.md`
+- `design-docs/PROJECT_PLAN.md`
+- `design-docs/MVP_SCOPE.md`
+- `design-docs/SYSTEM_ARCHITECTURE.md`
+- `design-docs/DATABASE_SCHEMA.md`
+- `design-docs/EDGE_FUNCTIONS.md`
+- `design-docs/ONE_TIME_MEDIA_SECURITY.md`
+- `design-docs/MONETIZATION_PLAN.md`
+- `design-docs/QA_CHECKLIST.md`
 - every file in `/agents`
+
+Note: internal architecture / safety / business docs live in `/design-docs/`. The `/docs/` folder is reserved for the public GitHub Pages site (index.html + privacy/terms/support/assets only) and must not contain internal documents.
 
 ## Development Rules
 
