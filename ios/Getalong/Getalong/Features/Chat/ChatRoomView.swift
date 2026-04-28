@@ -301,6 +301,21 @@ struct ChatRoomView: View {
                         .padding(.horizontal, GASpacing.lg)
                 }
             }
+            // Tap anywhere in the message list to dismiss the
+            // keyboard. `simultaneousGesture` so taps on bubbles
+            // (e.g. opening view-once media) still reach their
+            // buttons. `.scrollDismissesKeyboard(.interactively)`
+            // lets users drag the keyboard down by scrolling — what
+            // every native chat app does.
+            .scrollDismissesKeyboard(.interactively)
+            .simultaneousGesture(
+                TapGesture().onEnded { _ in
+                    UIApplication.shared.sendAction(
+                        #selector(UIResponder.resignFirstResponder),
+                        to: nil, from: nil, for: nil
+                    )
+                }
+            )
             .onChange(of: vm.messages.last?.id) { newId in
                 guard let id = newId, id != lastMessageId else { return }
                 lastMessageId = id
