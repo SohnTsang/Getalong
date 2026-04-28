@@ -335,6 +335,11 @@ final class ChatRoomViewModel: ObservableObject {
     /// schema mismatch can never make the chat go silent.
     private func handleRealtime(event: RealtimeChatManager.Event) async {
         switch event {
+        case .subscribed:
+            // Channel just (re)subscribed — pick up anything that
+            // landed during the subscribe window. One delta query,
+            // not a 50-row reload.
+            await catchUpMessages()
         case .messageInserted(let msg):
             if let msg, msg.roomId == roomId {
                 if !messages.contains(where: { $0.id == msg.id }) {

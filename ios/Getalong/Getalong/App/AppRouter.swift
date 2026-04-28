@@ -30,6 +30,23 @@ struct AppRouter: View {
             }
         }
         .animation(.snappy, value: stateToken)
+        // Sign-out / banned / deleted: stop every realtime channel so
+        // there are no zombie listeners or retry tasks left from the
+        // previous session. MainTabView's own .task(id:) detach lines
+        // don't run when the view is being torn down (only when its
+        // userId changes), so we need an authoritative cleanup here.
+        .onChange(of: stateToken) { newToken in
+            switch newToken {
+            case "unauth", "banned", "deleted", "error":
+                Task {
+                    await RealtimeInviteManager.shared.stop()
+                    await RealtimeChatRoomsManager.shared.stop()
+                    await RealtimeChatManager.shared.stop()
+                }
+            default:
+                break
+            }
+        }
     }
 
     private func statusScreen(title: String, message: String, systemImage: String) -> some View {
