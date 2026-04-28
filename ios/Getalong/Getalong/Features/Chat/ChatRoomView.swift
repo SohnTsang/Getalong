@@ -31,7 +31,7 @@ struct ChatRoomView: View {
     }
 
     var body: some View {
-        ZStack {
+        ZStack(alignment: .top) {
             GAColors.background.ignoresSafeArea()
 
             VStack(spacing: 0) {
@@ -39,13 +39,6 @@ struct ChatRoomView: View {
                 Divider().background(GAColors.border)
 
                 messagesScroll
-
-                if let err = vm.sendError {
-                    GAErrorBanner(message: err,
-                                  onDismiss: { vm.sendError = nil })
-                        .padding(.horizontal, GASpacing.lg)
-                        .padding(.top, GASpacing.sm)
-                }
 
                 if vm.hasBlockedPartner {
                     blockedCard
@@ -58,7 +51,19 @@ struct ChatRoomView: View {
                                  onAttachPicked: { src in vm.startMediaPick(src) })
                 }
             }
+
+            // Top-of-screen toast. Auto-dismisses after 3s; swipe up
+            // to dismiss early. Sits in the ZStack overlay so it can
+            // float above the header without pushing layout.
+            if let err = vm.sendError {
+                ChatErrorToast(message: err) { vm.sendError = nil }
+                    .padding(.horizontal, GASpacing.lg)
+                    .padding(.top, GASpacing.sm)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .zIndex(10)
+            }
         }
+        .animation(.easeOut(duration: 0.22), value: vm.sendError)
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)
         .task {
@@ -388,5 +393,50 @@ struct ChatRoomView: View {
     private var currentUserId: UUID? {
         if case .authenticated(let p) = session.state { return p.id }
         return nil
+    }
+}
+
+// MARK: - Toast
+
+/// Top-of-screen error toast wrapping `GAErrorBanner` with two
+/// behaviours we want for in-chat feedback (e.g. the per-room
+/// pending-media cap):
+///   * auto-dismiss after 3 seconds — long enough to read, short
+///     enough to get out of the way,
+///   * upward drag gesture to dismiss early.
+private struct ChatErrorToast: View {
+    let message: String
+    let onDismiss: () -> Void
+
+    @State private var dragY: CGFloat = 0
+
+    var body: some View {
+        GAErrorBanner(message: message, onDismiss: onDismiss)
+            .offset(y: min(dragY, 0))
+            .gesture(
+                DragGesture(minimumDistance: 4)
+                    .onChanged { v in
+                        // Track upward translation only — downward
+                        // drags shouldn't pull the toast off-screen.
+                        dragY = min(v.translation.height, 0)
+                    }
+                    .onEnded { v in
+                        if v.translation.height < -28 {
+                            onDismiss()
+                        } else {
+                            withAnimation(.easeOut(duration: 0.18)) {
+                                dragY = 0
+                            }
+                        }
+                    }
+            )
+            // `.task(id: message)` restarts the timer if a new error
+            // string replaces the current one without the view going
+            // away — fresh 3 s for the fresh content.
+            .task(id: message) {
+                try? await Task.sleep(nanoseconds: 3_000_000_000)
+                guard !Task.isCancelled else { return }
+                onDismiss()
+            }
     }
 }

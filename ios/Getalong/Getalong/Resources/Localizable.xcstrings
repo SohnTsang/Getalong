@@ -2495,6 +2495,29 @@
         }
       }
     },
+    "media.error.pendingLimit" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can only have 5 unopened photos at a time. Wait for them to be viewed."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未開封の写真は同時に5枚までです。相手が開封するのをお待ちください。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未開啟的照片最多 5 張。請等對方開啟後再傳送。"
+          }
+        }
+      }
+    },
     "media.error.tooLarge" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -2537,28 +2560,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "不支援這種檔案類型。"
-          }
-        }
-      }
-    },
-    "media.error.pendingLimit" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "You can only have 5 unopened photos at a time. Wait for them to be viewed."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "未開封の写真は同時に5枚までです。相手が開封するのをお待ちください。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "未開啟的照片最多 5 張。請等對方開啟後再傳送。"
           }
         }
       }
