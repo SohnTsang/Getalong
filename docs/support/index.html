@@ -10,36 +10,49 @@
   <link rel="stylesheet" href="../assets/styles.css" />
 </head>
 <body>
-  <header class="container site-header">
-    <a class="wordmark" href="../" aria-label="Getalong home">
-      <span class="mark-dot" aria-hidden="true"></span>
-      <span class="name">GETALONG</span>
-    </a>
-    <nav class="nav" aria-label="Primary">
-      <a class="subtle" href="../privacy/">Privacy</a>
-      <a class="subtle" href="../terms/">Terms</a>
-      <a class="subtle" href="../support/">Support</a>
-    </nav>
+  <header class="site-nav" role="banner">
+    <div class="container nav-inner">
+      <a class="wordmark" href="../" aria-label="Getalong home">
+        <span class="mark-dot" aria-hidden="true"></span>
+        <span class="name">GETALONG</span>
+      </a>
+      <nav aria-label="Primary">
+        <ul class="nav-links">
+          <li><a href="../#product">Product</a></li>
+          <li><a href="../#safety">Safety</a></li>
+          <li><a href="../privacy/">Privacy</a></li>
+          <li><a href="../terms/">Terms</a></li>
+          <li><a href="../support/">Support</a></li>
+        </ul>
+      </nav>
+      <ul class="nav-langs" aria-label="Languages">
+        <li><a class="is-current" href="../">EN</a></li>
+        <li><a href="../privacy/ja/">JP</a></li>
+        <li><a href="../privacy/zh-Hant/">繁</a></li>
+      </ul>
+    </div>
   </header>
 
   <main class="prose support-page">
-    <p class="eyebrow">Support</p>
-    <h1>How can we help?</h1>
-    <p>
-      If you need help, want to report a problem, or have a question about your account, send us an email. We read every message from a real person on the team and reply as quickly as we can.
-    </p>
+    <article class="support-doc">
+      <p class="eyebrow">Support</p>
+      <h1>How can we help?</h1>
+      <p>
+        If you need help, want to report a problem, or have a question about your account, send us an email. We read every message from a real person on the team and reply as quickly as we can.
+      </p>
 
-    <div class="support-card">
-      <h2>Contact</h2>
-      <a class="email" href="mailto:support@getalong.app">support@getalong.app</a>
-      <p class="hours">English · 日本語 · 繁體中文 — please write in whichever you’re most comfortable with.</p>
-    </div>
+      <div class="support-card">
+        <h2>Contact</h2>
+        <a class="email" href="mailto:support@getalong.app">support@getalong.app</a>
+        <p class="hours">English · 日本語 · 繁體中文 — please write in whichever you’re most comfortable with.</p>
+      </div>
 
-    <div class="support-links">
-      <a href="../privacy/">Privacy Policy</a>
-      <a href="../terms/">Terms of Service</a>
-      <a href="../">Back to home</a>
-    </div>
+      <div class="support-links">
+        <a href="../privacy/">Privacy Policy</a>
+        <a href="../terms/">Terms of Service</a>
+        <a href="../">Back to home</a>
+      </div>
+    </article>
   </main>
 
   <footer class="site-footer">
@@ -49,10 +62,8 @@
           <span class="mark-dot" aria-hidden="true"></span>
           <span class="name">GETALONG</span>
         </a>
-        <p class="foot-meta">
-          A calmer way to notice people you might get along with.<br />
-          <a href="mailto:support@getalong.app">support@getalong.app</a>
-        </p>
+        <p class="foot-blurb">A calmer way to notice people you might get along with.</p>
+        <p class="foot-blurb"><a href="mailto:support@getalong.app">support@getalong.app</a></p>
       </div>
       <div>
         <h4>Pages</h4>
@@ -63,6 +74,14 @@
         </ul>
       </div>
       <div>
+        <h4>Product</h4>
+        <ul>
+          <li><a href="../#product">The idea</a></li>
+          <li><a href="../#safety">Safety</a></li>
+          <li><a href="mailto:support@getalong.app?subject=Getalong%20%E2%80%94%20keep%20me%20posted">Get notified</a></li>
+        </ul>
+      </div>
+      <div class="foot-langs">
         <h4>Languages</h4>
         <ul>
           <li><a href="../privacy/">English</a></li>
@@ -73,7 +92,7 @@
     </div>
     <div class="container foot-bottom">
       <span>© Getalong. All rights reserved.</span>
-      <span>iOS first. Coming soon.</span>
+      <span>iOS first · Coming soon</span>
     </div>
   </footer>
 </body>

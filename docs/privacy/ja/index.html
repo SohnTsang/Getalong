@@ -10,16 +10,27 @@
   <link rel="stylesheet" href="../../assets/styles.css" />
 </head>
 <body>
-  <header class="container site-header">
-    <a class="wordmark" href="../../" aria-label="Getalong home">
-      <span class="mark-dot" aria-hidden="true"></span>
-      <span class="name">GETALONG</span>
-    </a>
-    <nav class="nav" aria-label="Primary">
-      <a class="subtle" href="../../privacy/ja/">プライバシー</a>
-      <a class="subtle" href="../../terms/ja/">利用規約</a>
-      <a class="subtle" href="../../support/">サポート</a>
-    </nav>
+  <header class="site-nav" role="banner">
+    <div class="container nav-inner">
+      <a class="wordmark" href="../../" aria-label="Getalong home">
+        <span class="mark-dot" aria-hidden="true"></span>
+        <span class="name">GETALONG</span>
+      </a>
+      <nav aria-label="Primary">
+        <ul class="nav-links">
+          <li><a href="../../#product">プロダクト</a></li>
+          <li><a href="../../#safety">安全</a></li>
+          <li><a href="../../privacy/ja/">プライバシー</a></li>
+          <li><a href="../../terms/ja/">利用規約</a></li>
+          <li><a href="../../support/">サポート</a></li>
+        </ul>
+      </nav>
+      <ul class="nav-langs" aria-label="Languages">
+        <li><a href="../../privacy/">EN</a></li>
+        <li><a class="is-current" href="../../privacy/ja/">JP</a></li>
+        <li><a href="../../privacy/zh-Hant/">繁</a></li>
+      </ul>
+    </div>
   </header>
 
   <main class="prose legal-page">
@@ -29,80 +40,82 @@
       <a href="../../privacy/zh-Hant/">繁體中文</a>
     </nav>
 
-    <header class="legal-head">
-      <h1>プライバシーポリシー</h1>
-      <p class="updated">最終更新日：2026年4月29日</p>
-    </header>
+    <article class="legal-doc">
+      <header class="legal-head">
+        <h1>プライバシーポリシー</h1>
+        <p class="updated">最終更新日：2026年4月29日</p>
+      </header>
 
-    <p>このページでは、Getalongが収集する情報、その利用方法、利用者の選択肢について説明します。</p>
+      <p>このページでは、Getalongが収集する情報、その利用方法、利用者の選択肢について説明します。</p>
 
-    <h2>1. 提供者</h2>
-    <p>GetalongはGetalongチームが運営しています。お問い合わせ：<a href="mailto:support@getalong.app">support@getalong.app</a></p>
+      <h2>1. 提供者</h2>
+      <p>GetalongはGetalongチームが運営しています。お問い合わせ：<a href="mailto:support@getalong.app">support@getalong.app</a></p>
 
-    <h2>2. 収集する情報</h2>
-    <p>アカウント作成・利用にあたり、以下の情報を取得します。</p>
-    <ul>
-      <li><strong>アカウント情報</strong>：Apple、Google、Xのサインイン識別子。パスワードは取得しません。</li>
-      <li><strong>プロフィール情報</strong>：ハンドル、表示名、任意の一言、任意の性別、任意の「見たい相手」、任意の地域・言語、任意のタグ。</li>
-      <li><strong>招待情報</strong>：送信したライブ招待、見逃した招待、それぞれの送受信時刻と結果。</li>
-      <li><strong>会話</strong>：1対1のプライベートチャットでやり取りされたメッセージ。通常の運用において内容を閲覧することはありません。</li>
-      <li><strong>1回かぎりのメディア</strong>：送信した画像・GIF・短い動画。アプリ内で一度だけ開けます。安全対策、不正利用防止、モデレーションのため、アップロードまたは表示後から最大24時間、非公開で保持される場合があります。コンテンツ、会話、またはユーザーが報告された場合は、確認や安全上・法的な対応のため、関連する内容をより長く保持することがあります。</li>
-      <li><strong>端末情報</strong>：アプリのバージョン、OS、機種、ロケール、通知を許可した場合の通知トークン。</li>
-      <li><strong>診断情報</strong>：クラッシュレポートおよび限定的なエラーログ。</li>
-    </ul>
-    <p>以下は<strong>取得しません</strong>：連絡先、写真ライブラリ全体、正確な位置情報、広告識別子、生体情報。</p>
+      <h2>2. 収集する情報</h2>
+      <p>アカウント作成・利用にあたり、以下の情報を取得します。</p>
+      <ul>
+        <li><strong>アカウント情報</strong>：Apple、Google、Xのサインイン識別子。パスワードは取得しません。</li>
+        <li><strong>プロフィール情報</strong>：ハンドル、表示名、任意の一言、任意の性別、任意の「見たい相手」、任意の地域・言語、任意のタグ。</li>
+        <li><strong>招待情報</strong>：送信したライブ招待、見逃した招待、それぞれの送受信時刻と結果。</li>
+        <li><strong>会話</strong>：1対1のプライベートチャットでやり取りされたメッセージ。通常の運用において内容を閲覧することはありません。</li>
+        <li><strong>1回かぎりのメディア</strong>：送信した画像・GIF・短い動画。アプリ内で一度だけ開けます。安全対策、不正利用防止、モデレーションのため、アップロードまたは表示後から最大24時間、非公開で保持される場合があります。コンテンツ、会話、またはユーザーが報告された場合は、確認や安全上・法的な対応のため、関連する内容をより長く保持することがあります。</li>
+        <li><strong>端末情報</strong>：アプリのバージョン、OS、機種、ロケール、通知を許可した場合の通知トークン。</li>
+        <li><strong>診断情報</strong>：クラッシュレポートおよび限定的なエラーログ。</li>
+      </ul>
+      <p>以下は<strong>取得しません</strong>：連絡先、写真ライブラリ全体、正確な位置情報、広告識別子、生体情報。</p>
 
-    <h2>3. 利用目的</h2>
-    <ul>
-      <li>サービスの提供（アカウント、招待、会話、メディア配信）</li>
-      <li>安全性の確保（ブロック、通報、不正アカウントへの対応）</li>
-      <li>通知許可をいただいた方への通知配信</li>
-      <li>クラッシュ調査およびアプリ改善</li>
-      <li>法令の遵守</li>
-    </ul>
-    <p>広告目的での利用はしません。データを販売することもありません。</p>
+      <h2>3. 利用目的</h2>
+      <ul>
+        <li>サービスの提供（アカウント、招待、会話、メディア配信）</li>
+        <li>安全性の確保（ブロック、通報、不正アカウントへの対応）</li>
+        <li>通知許可をいただいた方への通知配信</li>
+        <li>クラッシュ調査およびアプリ改善</li>
+        <li>法令の遵守</li>
+      </ul>
+      <p>広告目的での利用はしません。データを販売することもありません。</p>
 
-    <h2>4. 第三者提供事業者</h2>
-    <ul>
-      <li><strong>Supabase</strong>：データベース・認証・ストレージ・Edge Functions</li>
-      <li><strong>Apple Push Notification service（APNs）</strong>：プッシュ通知の配信</li>
-      <li><strong>Apple、Google、X</strong>：サインイン認証（受け取るのは識別子のみ）</li>
-    </ul>
-    <p>各社の利用条件・プライバシーポリシーが適用されます。</p>
+      <h2>4. 第三者提供事業者</h2>
+      <ul>
+        <li><strong>Supabase</strong>：データベース・認証・ストレージ・Edge Functions</li>
+        <li><strong>Apple Push Notification service（APNs）</strong>：プッシュ通知の配信</li>
+        <li><strong>Apple、Google、X</strong>：サインイン認証（受け取るのは識別子のみ）</li>
+      </ul>
+      <p>各社の利用条件・プライバシーポリシーが適用されます。</p>
 
-    <h2>5. 利用者の権利</h2>
-    <p>居住地域により、以下の権利がある場合があります。</p>
-    <ul>
-      <li>当方が保有する情報へのアクセス</li>
-      <li>不正確な情報の訂正</li>
-      <li>アカウントおよび関連データの削除</li>
-      <li>一部の処理に対する異議申し立て・制限</li>
-      <li>各国の個人情報保護機関への申し立て</li>
-    </ul>
-    <p>アカウントは「プロフィール」→「アカウントを削除」、または<a href="mailto:support@getalong.app">support@getalong.app</a>へのご連絡で削除できます。</p>
+      <h2>5. 利用者の権利</h2>
+      <p>居住地域により、以下の権利がある場合があります。</p>
+      <ul>
+        <li>当方が保有する情報へのアクセス</li>
+        <li>不正確な情報の訂正</li>
+        <li>アカウントおよび関連データの削除</li>
+        <li>一部の処理に対する異議申し立て・制限</li>
+        <li>各国の個人情報保護機関への申し立て</li>
+      </ul>
+      <p>アカウントは「プロフィール」→「アカウントを削除」、または<a href="mailto:support@getalong.app">support@getalong.app</a>へのご連絡で削除できます。</p>
 
-    <h2>6. 児童について</h2>
-    <p>Getalongは18歳以上向けのアプリです。18歳未満の情報を意図的に取得することはありません。もし未成年の登録に気づかれた場合は<a href="mailto:support@getalong.app">support@getalong.app</a>までご連絡ください。</p>
+      <h2>6. 児童について</h2>
+      <p>Getalongは18歳以上向けのアプリです。18歳未満の情報を意図的に取得することはありません。もし未成年の登録に気づかれた場合は<a href="mailto:support@getalong.app">support@getalong.app</a>までご連絡ください。</p>
 
-    <h2>7. 保存期間</h2>
-    <ul>
-      <li>プロフィール、招待、会話のメタ情報：アカウントが有効な間。アカウント削除後30日以内に削除（不正調査のため一部ログは最大90日間保持）</li>
-      <li>会話メッセージ：会話ルームまたはアカウントの削除と同時に削除</li>
-      <li>1回かぎりのメディア：アプリ内で一度だけ開けます。安全対策、不正利用防止、モデレーションのため、アップロードまたは表示後から最大24時間、非公開で保持される場合があります。未閲覧の場合は30日以内に削除。コンテンツ、会話、またはユーザーが報告された場合は、確認や安全上・法的な対応のため、関連する内容をより長く保持することがあります。</li>
-      <li>診断情報：最大90日間保持後、集約または削除</li>
-    </ul>
+      <h2>7. 保存期間</h2>
+      <ul>
+        <li>プロフィール、招待、会話のメタ情報：アカウントが有効な間。アカウント削除後30日以内に削除（不正調査のため一部ログは最大90日間保持）</li>
+        <li>会話メッセージ：会話ルームまたはアカウントの削除と同時に削除</li>
+        <li>1回かぎりのメディア：アプリ内で一度だけ開けます。安全対策、不正利用防止、モデレーションのため、アップロードまたは表示後から最大24時間、非公開で保持される場合があります。未閲覧の場合は30日以内に削除。コンテンツ、会話、またはユーザーが報告された場合は、確認や安全上・法的な対応のため、関連する内容をより長く保持することがあります。</li>
+        <li>診断情報：最大90日間保持後、集約または削除</li>
+      </ul>
 
-    <h2>8. セキュリティ</h2>
-    <p>通信のセキュリティはAppleプラットフォーム標準、サーバ側ではRow-Level Securityを採用、メディアは署名付きURLで配信します。完全なシステムは存在しないため、端末のロックとサインインアカウントの管理にもご協力ください。</p>
+      <h2>8. セキュリティ</h2>
+      <p>通信のセキュリティはAppleプラットフォーム標準、サーバ側ではRow-Level Securityを採用、メディアは署名付きURLで配信します。完全なシステムは存在しないため、端末のロックとサインインアカウントの管理にもご協力ください。</p>
 
-    <h2>9. 国際移転</h2>
-    <p>データはホスティングプロバイダのサーバ（居住国外を含む）で処理される場合があります。必要に応じて標準契約条項などを用います。</p>
+      <h2>9. 国際移転</h2>
+      <p>データはホスティングプロバイダのサーバ（居住国外を含む）で処理される場合があります。必要に応じて標準契約条項などを用います。</p>
 
-    <h2>10. 変更について</h2>
-    <p>重要な変更はこのページで告知し、必要に応じてアプリ内でも通知します。</p>
+      <h2>10. 変更について</h2>
+      <p>重要な変更はこのページで告知し、必要に応じてアプリ内でも通知します。</p>
 
-    <h2>11. お問い合わせ</h2>
-    <p>ご質問・ご依頼・苦情：<a href="mailto:support@getalong.app">support@getalong.app</a></p>
+      <h2>11. お問い合わせ</h2>
+      <p>ご質問・ご依頼・苦情：<a href="mailto:support@getalong.app">support@getalong.app</a></p>
+    </article>
   </main>
 
   <footer class="site-footer">
@@ -112,10 +125,8 @@
           <span class="mark-dot" aria-hidden="true"></span>
           <span class="name">GETALONG</span>
         </a>
-        <p class="foot-meta">
-          自然に「気が合う」と感じられる人と出会うための、静かな場所。<br />
-          <a href="mailto:support@getalong.app">support@getalong.app</a>
-        </p>
+        <p class="foot-blurb">自然に「気が合う」と感じられる人と出会うための、静かな場所。</p>
+        <p class="foot-blurb"><a href="mailto:support@getalong.app">support@getalong.app</a></p>
       </div>
       <div>
         <h4>ページ</h4>
@@ -126,6 +137,14 @@
         </ul>
       </div>
       <div>
+        <h4>プロダクト</h4>
+        <ul>
+          <li><a href="../../#product">アイデア</a></li>
+          <li><a href="../../#safety">安全</a></li>
+          <li><a href="mailto:support@getalong.app?subject=Getalong%20%E2%80%94%20keep%20me%20posted">お知らせを受け取る</a></li>
+        </ul>
+      </div>
+      <div class="foot-langs">
         <h4>言語</h4>
         <ul>
           <li><a href="../../privacy/">English</a></li>
