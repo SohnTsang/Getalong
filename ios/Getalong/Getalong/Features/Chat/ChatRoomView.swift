@@ -12,6 +12,20 @@ struct ChatRoomView: View {
     /// new-message scrolls keep the smooth ease-out.
     @State private var didInitialScroll: Bool = false
 
+    private static let bottomAnchorId = "ga.chat.bottom-anchor"
+
+    private func pinToBottom(proxy: ScrollViewProxy, animated: Bool? = nil) {
+        let useAnimation = animated ?? didInitialScroll
+        if useAnimation {
+            withAnimation(.easeOut(duration: 0.18)) {
+                proxy.scrollTo(Self.bottomAnchorId, anchor: .bottom)
+            }
+        } else {
+            proxy.scrollTo(Self.bottomAnchorId, anchor: .bottom)
+        }
+        didInitialScroll = true
+    }
+
     init(roomId: UUID, partner: Profile?) {
         _vm = StateObject(wrappedValue: ChatRoomViewModel(roomId: roomId, partner: partner))
     }
@@ -294,6 +308,15 @@ struct ChatRoomView: View {
                             )
                             .id(item.id)
                         }
+
+                        // Sentinel anchor at the very bottom of the
+                        // scrollable content. Always scrollTo this id
+                        // — guaranteed to exist (the last message id
+                        // races with LazyVStack rendering), so the
+                        // pin-to-bottom never silently no-ops.
+                        Color.clear
+                            .frame(height: 1)
+                            .id(Self.bottomAnchorId)
                     }
                     .padding(.horizontal, GASpacing.lg)
                     .padding(.vertical, GASpacing.lg)
@@ -321,28 +344,31 @@ struct ChatRoomView: View {
                     )
                 }
             )
-            .onChange(of: vm.messages.last?.id) { newId in
-                guard let id = newId, id != lastMessageId else { return }
-                lastMessageId = id
-                if !didInitialScroll {
-                    // First batch of messages just landed — pin to
-                    // bottom instantly so the room opens already at
-                    // the latest message.
-                    proxy.scrollTo(id, anchor: .bottom)
-                    didInitialScroll = true
-                } else {
-                    withAnimation(.easeOut(duration: 0.15)) {
-                        proxy.scrollTo(id, anchor: .bottom)
-                    }
-                }
+            // Whenever the message count, the loading state, or a
+            // pending optimistic bubble changes, pin to the sentinel
+            // anchor. The first scroll runs without animation so the
+            // room opens already at the bottom; subsequent ones use
+            // the smooth ease-out.
+            .onChange(of: vm.messages.count) { _ in
+                pinToBottom(proxy: proxy)
+            }
+            .onChange(of: vm.isLoadingInitial) { loading in
+                if !loading { pinToBottom(proxy: proxy) }
+            }
+            .onChange(of: vm.pendingMedia.count) { _ in
+                pinToBottom(proxy: proxy)
             }
             .onAppear {
-                // If messages were already in the cache (e.g. quick
-                // re-entry into the same room), pin to bottom right
-                // away without waiting for the .onChange.
-                if let id = vm.messages.last?.id {
-                    proxy.scrollTo(id, anchor: .bottom)
-                    didInitialScroll = true
+                pinToBottom(proxy: proxy, animated: false)
+            }
+            .task(id: vm.isLoadingInitial) {
+                // After the initial fetch resolves, give LazyVStack a
+                // tick to render the rows then pin. The first .onAppear
+                // can fire before the message rows materialise; this
+                // is the belt-and-braces path.
+                if !vm.isLoadingInitial {
+                    try? await Task.sleep(nanoseconds: 30_000_000)
+                    pinToBottom(proxy: proxy, animated: false)
                 }
             }
         }
