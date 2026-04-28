@@ -81,6 +81,8 @@ final class ChatRoomViewModel: ObservableObject {
     /// detach. We use it to auto-bounce the partner if the other user
     /// leaves the chat while we have it open.
     private var roomsListenerToken: UUID?
+    /// Realtime token for the per-room messages INSERT stream.
+    private var messagesListenerToken: UUID?
 
     struct ReportContext: Identifiable, Equatable {
         let id = UUID()
@@ -106,18 +108,30 @@ final class ChatRoomViewModel: ObservableObject {
         await refreshBlockState()
         await reload()
 
-        await RealtimeChatManager.shared.start(roomId: roomId) { [weak self] in
-            Task { await self?.reloadOnRealtimeInsert() }
+        // Subscribing must outlive SwiftUI's .task body — that body's
+        // Task gets cancelled on every view re-render, and Task
+        // cancellation propagates into await chains, which would tear
+        // down `subscribeWithError` mid-handshake. Spawn unstructured
+        // Tasks so the realtime sockets survive the view churn.
+        Task { [weak self, roomId] in
+            guard let self else { return }
+            let token = await RealtimeChatManager.shared.addListener(
+                roomId: roomId
+            ) { [weak self] in
+                Task { @MainActor in await self?.reloadOnRealtimeInsert() }
+            }
+            await MainActor.run { self.messagesListenerToken = token }
         }
 
-        // Listen for chat_rooms updates so we can auto-bounce when the
-        // partner leaves the chat while we have this view open. The
-        // shared manager is already attached app-wide via MainTabView,
-        // so we only register a listener here.
-        roomsListenerToken = await RealtimeChatRoomsManager.shared
-            .addListener(userId: currentUserId) { [weak self] in
-                Task { await self?.checkRoomActive() }
+        Task { [weak self, currentUserId] in
+            guard let self else { return }
+            let token = await RealtimeChatRoomsManager.shared.addListener(
+                userId: currentUserId
+            ) { [weak self] in
+                Task { @MainActor in await self?.checkRoomActive() }
             }
+            await MainActor.run { self.roomsListenerToken = token }
+        }
     }
 
     /// Re-fetches the room status and flips `didDelete` to true if the
@@ -193,7 +207,10 @@ final class ChatRoomViewModel: ObservableObject {
     }
 
     func detach() async {
-        await RealtimeChatManager.shared.stop()
+        if let token = messagesListenerToken {
+            RealtimeChatManager.shared.removeListener(token)
+            messagesListenerToken = nil
+        }
         if let token = roomsListenerToken {
             RealtimeChatRoomsManager.shared.removeListener(token)
             roomsListenerToken = nil

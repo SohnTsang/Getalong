@@ -70,8 +70,17 @@ final class RealtimeInviteManager {
     }
 
     private func connect(userId: UUID) async {
+        // Channel topic carries a per-attempt UUID so a previous
+        // failed subscribe (CancellationError, network blip, etc.)
+        // can never leave a cached half-subscribed channel under a
+        // stable name. The supabase-swift SDK caches channels by
+        // topic; without uniqueness the next connect would reuse the
+        // stale instance and `postgresChange` would print
+        // "Cannot add postgres_changes after subscribe()".
         let uid = userId.uuidString.lowercased()
-        let ch = Supa.client.realtimeV2.channel("invites:user=\(uid)")
+        let ch = Supa.client.realtimeV2.channel(
+            "invites:user=\(uid):\(UUID().uuidString.prefix(8))"
+        )
 
         let receiverInserts = ch.postgresChange(
             InsertAction.self,
@@ -102,6 +111,9 @@ final class RealtimeInviteManager {
             try await ch.subscribeWithError()
         } catch {
             GALog.invite.error("realtime subscribe failed: \(error.localizedDescription)")
+            // Release the half-subscribed channel from the SDK cache
+            // so a retry doesn't reuse it.
+            await Supa.client.realtimeV2.removeChannel(ch)
             return
         }
         channel = ch
@@ -129,24 +141,67 @@ final class RealtimeInviteManager {
         task = nil
         listeners.removeAll()
         attachedUserId = nil
-        if let channel { await channel.unsubscribe() }
+        // removeChannel both unsubscribes AND drops the entry from the
+        // SDK's name->channel cache. unsubscribe() alone leaves the
+        // entry, which is what produced the "after subscribe()" warnings.
+        if let channel { await Supa.client.realtimeV2.removeChannel(channel) }
         channel = nil
     }
 }
 
-/// Subscribes to message inserts for a single chat room.
+/// Per-room message INSERT subscription with the same multi-listener
+/// + serialised-connect pattern as the invite/rooms managers. Multiple
+/// views opening the same room share a single websocket; the channel
+/// stays attached as long as at least one listener is registered.
+///
+/// Important: `messages` must be in the `supabase_realtime` publication
+/// (see migration 0021) — otherwise subscribe succeeds but no events
+/// ever fire and chat shows new rows only after a manual refresh.
 @MainActor
 final class RealtimeChatManager {
     static let shared = RealtimeChatManager()
     private init() {}
 
+    typealias Listener = () -> Void
+
     private var channel: RealtimeChannelV2?
     private var task: Task<Void, Never>?
+    private var listeners: [UUID: Listener] = [:]
+    private var attachedRoomId: UUID?
+    private var connectTask: Task<Void, Never>?
 
-    func start(roomId: UUID, onInsert: @escaping () -> Void) async {
-        await stop()
+    @discardableResult
+    func addListener(roomId: UUID, onInsert: @escaping Listener) async -> UUID {
+        if let inflight = connectTask { await inflight.value }
+        if attachedRoomId != roomId {
+            let task = Task { @MainActor [weak self] in
+                guard let self else { return }
+                await self.stop()
+                await self.connect(roomId: roomId)
+            }
+            connectTask = task
+            await task.value
+            connectTask = nil
+        }
+        let token = UUID()
+        listeners[token] = onInsert
+        return token
+    }
+
+    func removeListener(_ token: UUID) {
+        listeners.removeValue(forKey: token)
+        // Tear the channel down once the last listener is gone — saves
+        // a websocket while the user isn't in any room.
+        if listeners.isEmpty {
+            Task { @MainActor [weak self] in await self?.stop() }
+        }
+    }
+
+    private func connect(roomId: UUID) async {
         let rid = roomId.uuidString.lowercased()
-        let ch = Supa.client.realtimeV2.channel("chat:room=\(rid)")
+        let ch = Supa.client.realtimeV2.channel(
+            "chat:room=\(rid):\(UUID().uuidString.prefix(8))"
+        )
 
         let inserts = ch.postgresChange(
             InsertAction.self,
@@ -158,21 +213,30 @@ final class RealtimeChatManager {
         do { try await ch.subscribeWithError() }
         catch {
             GALog.chat.error("realtime chat subscribe failed: \(error.localizedDescription)")
+            await Supa.client.realtimeV2.removeChannel(ch)
             return
         }
         channel = ch
+        attachedRoomId = roomId
 
-        task = Task {
+        task = Task { [weak self] in
             for await _ in inserts {
-                await MainActor.run { onInsert() }
+                await self?.fanout()
             }
         }
+    }
+
+    private func fanout() async {
+        let snapshot = Array(listeners.values)
+        for listener in snapshot { listener() }
     }
 
     func stop() async {
         task?.cancel()
         task = nil
-        if let channel { await channel.unsubscribe() }
+        listeners.removeAll()
+        attachedRoomId = nil
+        if let channel { await Supa.client.realtimeV2.removeChannel(channel) }
         channel = nil
     }
 }
@@ -219,7 +283,9 @@ final class RealtimeChatRoomsManager {
 
     private func connect(userId: UUID) async {
         let uid = userId.uuidString.lowercased()
-        let ch = Supa.client.realtimeV2.channel("chat_rooms:user=\(uid)")
+        let ch = Supa.client.realtimeV2.channel(
+            "chat_rooms:user=\(uid):\(UUID().uuidString.prefix(8))"
+        )
 
         let aInserts = ch.postgresChange(
             InsertAction.self, schema: "public", table: "chat_rooms",
@@ -241,6 +307,7 @@ final class RealtimeChatRoomsManager {
         do { try await ch.subscribeWithError() }
         catch {
             GALog.chat.error("realtime chat_rooms subscribe failed: \(error.localizedDescription)")
+            await Supa.client.realtimeV2.removeChannel(ch)
             return
         }
         channel = ch
@@ -265,7 +332,7 @@ final class RealtimeChatRoomsManager {
         task?.cancel(); task = nil
         listeners.removeAll()
         attachedUserId = nil
-        if let channel { await channel.unsubscribe() }
+        if let channel { await Supa.client.realtimeV2.removeChannel(channel) }
         channel = nil
     }
 }
