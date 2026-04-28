@@ -365,6 +365,16 @@ final class ChatRoomViewModel: ObservableObject {
         }
     }
 
+    /// Number of media bubbles that have collapsed from a 220×220
+    /// image into the small "Expired photo" chip. Drives a
+    /// scroll-to-bottom in ChatRoomView so the gap left behind by the
+    /// shrunk bubble doesn't sit between the messages and the input.
+    /// Recomputed from `mediaAssets`, which is @Published — SwiftUI
+    /// will re-read it on every change.
+    var collapsedMediaBubbleCount: Int {
+        mediaAssets.values.filter { Self.isTerminal($0) }.count
+    }
+
     // MARK: - Send (text)
 
     var canSend: Bool {

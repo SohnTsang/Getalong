@@ -363,6 +363,17 @@ struct ChatRoomView: View {
             .onChange(of: vm.pendingMedia.count) { _ in
                 pinToBottom(proxy: proxy)
             }
+            // A view-once media bubble can shrink in place (220×220
+            // image → small "Expired photo" chip) when the receiver
+            // opens it. messages.count doesn't change, so the
+            // existing triggers won't fire — but the layout above
+            // has shortened and we'd otherwise be left with a blank
+            // strip between the chat content and the input bar.
+            // Re-pin every time another bubble crosses into a
+            // terminal state.
+            .onChange(of: vm.collapsedMediaBubbleCount) { _ in
+                pinToBottom(proxy: proxy)
+            }
             .onAppear {
                 pinToBottom(proxy: proxy, animated: false)
             }
