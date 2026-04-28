@@ -236,6 +236,14 @@ final class ChatRoomViewModel: ObservableObject {
     }
 
     func detach() async {
+        // On exit, mark read up to whatever's currently on screen.
+        // Belt-and-braces against a message that landed between the
+        // last poll/realtime fire and the user backing out.
+        if let lastAt = messages.last?.createdAt {
+            ChatReadState.shared.markRead(roomId, at: lastAt)
+        } else {
+            ChatReadState.shared.markRead(roomId)
+        }
         ChatPresence.shared.leave(roomId)
         fallbackPollTask?.cancel()
         fallbackPollTask = nil
@@ -299,6 +307,14 @@ final class ChatRoomViewModel: ObservableObject {
             let latest = try await ChatService.shared.fetchMessages(roomId: roomId, limit: 50)
             messages = latest
             await hydrateMediaAssets()
+            // We're sitting inside this room — anything that arrived
+            // is already on screen. Mark read up to the newest
+            // message so returning to ChatsView doesn't show a red
+            // dot for messages we just saw. The realtime path does
+            // this in handleRealtime; this is the poll path.
+            if let lastAt = latest.last?.createdAt {
+                ChatReadState.shared.markRead(roomId, at: lastAt)
+            }
             GALog.chat.info("realtime reload ok count=\(latest.count, privacy: .public)")
         } catch {
             GALog.chat.error("realtime reload: \(error.localizedDescription)")
