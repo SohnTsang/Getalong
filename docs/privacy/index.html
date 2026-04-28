@@ -5,12 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Getalong — Privacy Policy</title>
   <meta name="description" content="Getalong privacy policy: what we collect, how we use it, your rights." />
+  <meta name="theme-color" content="#F7F2E8" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#0E0F13" media="(prefers-color-scheme: dark)" />
   <link rel="stylesheet" href="../assets/styles.css" />
 </head>
 <body>
   <header class="container site-header">
     <a class="wordmark" href="../" aria-label="Getalong home">
-      <span class="signal-dot" aria-hidden="true"></span>
+      <span class="mark-dot" aria-hidden="true"></span>
       <span class="name">GETALONG</span>
     </a>
     <nav class="nav" aria-label="Primary">
@@ -20,7 +22,7 @@
     </nav>
   </header>
 
-  <main class="legal legal-page">
+  <main class="prose legal-page">
     <nav class="lang-switch" aria-label="Languages">
       <a class="is-current" href="../privacy/">English</a>
       <a href="../privacy/ja/">日本語</a>
@@ -29,7 +31,7 @@
 
     <header class="legal-head">
       <h1>Privacy Policy</h1>
-      <p class="updated">Last updated: 2026-04-26</p>
+      <p class="updated">Last updated: 2026-04-29</p>
     </header>
 
     <p>This page explains what information Getalong collects, how it’s used, and the choices you have. Plain English first.</p>
@@ -41,8 +43,8 @@
     <p>When you create an account and use Getalong, we collect:</p>
     <ul>
       <li><strong>Account information.</strong> Your sign-in identifier from Apple, Google, or X. We do not see your password.</li>
-      <li><strong>Profile information.</strong> Your handle, display name, optional one-line signal, optional gender, optional “want to see” preference, optional region, optional language, optional tags.</li>
-      <li><strong>Signals you send.</strong> Live signals, missed signals, and the timestamps and outcomes of each.</li>
+      <li><strong>Profile information.</strong> Your handle, display name, optional one-line line, optional gender, optional “want to see” preference, optional region, optional language, optional tags.</li>
+      <li><strong>Invites you send.</strong> Live invites, missed invites, and the timestamps and outcomes of each.</li>
       <li><strong>Chats.</strong> Messages you send in private one-to-one chats. We don’t read them in the normal course of operating the service.</li>
       <li><strong>One-time-view media.</strong> Images, GIFs, and short videos you choose to send. View-once media can only be opened once in the app. For safety, abuse prevention, and moderation purposes, view-once media may be retained privately for up to 24 hours after upload or viewing, and longer if the content, conversation, or user is reported.</li>
       <li><strong>Device info.</strong> App version, OS version, device model, locale, push notification token if you opt in.</li>
@@ -52,7 +54,7 @@
 
     <h2>3. How we use it</h2>
     <ul>
-      <li>To provide the service: account, signals, chats, media delivery.</li>
+      <li>To provide the service: account, invites, chats, media delivery.</li>
       <li>To enforce safety: blocking, reporting, banning abusive accounts.</li>
       <li>To send notifications you opt into.</li>
       <li>To diagnose crashes and improve the app.</li>
@@ -84,7 +86,7 @@
 
     <h2>7. Retention</h2>
     <ul>
-      <li>Profile, signals, chat metadata: kept while your account is active. Deleted within 30 days of account deletion (some logs retained up to 90 days for fraud and abuse investigation).</li>
+      <li>Profile, invites, chat metadata: kept while your account is active. Deleted within 30 days of account deletion (some logs retained up to 90 days for fraud and abuse investigation).</li>
       <li>Chat messages: deleted with the chat room or with your account.</li>
       <li>One-time-view media: can only be opened once in the app. For safety, abuse prevention, and moderation purposes, view-once media may be retained privately for up to 24 hours after upload or viewing. Unviewed media is deleted within 30 days. If the content, a conversation, or a user is reported, related content may be retained longer while we review the report or comply with safety/legal obligations.</li>
       <li>Diagnostics: kept up to 90 days, then aggregated or deleted.</li>
@@ -104,19 +106,37 @@
   </main>
 
   <footer class="site-footer">
-    <div class="container foot-cols">
+    <div class="container foot-grid">
       <div>
         <a class="wordmark" href="../" aria-label="Getalong home">
-          <span class="signal-dot" aria-hidden="true"></span>
+          <span class="mark-dot" aria-hidden="true"></span>
           <span class="name">GETALONG</span>
         </a>
-        <p class="foot-meta">© Getalong. All rights reserved.</p>
+        <p class="foot-meta">
+          A calmer way to notice people you might get along with.<br />
+          <a href="mailto:support@getalong.app">support@getalong.app</a>
+        </p>
       </div>
-      <ul aria-label="Pages">
-        <li><a href="../privacy/">Privacy Policy</a></li>
-        <li><a href="../terms/">Terms of Service</a></li>
-        <li><a href="../support/">Support</a></li>
-      </ul>
+      <div>
+        <h4>Pages</h4>
+        <ul>
+          <li><a href="../privacy/">Privacy</a></li>
+          <li><a href="../terms/">Terms</a></li>
+          <li><a href="../support/">Support</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Languages</h4>
+        <ul>
+          <li><a href="../privacy/">English</a></li>
+          <li><a href="../privacy/ja/">日本語</a></li>
+          <li><a href="../privacy/zh-Hant/">繁體中文</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="container foot-bottom">
+      <span>© Getalong. All rights reserved.</span>
+      <span>iOS first. Coming soon.</span>
     </div>
   </footer>
 </body>

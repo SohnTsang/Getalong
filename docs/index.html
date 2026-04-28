@@ -4,11 +4,11 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Getalong — Find someone you just get along with</title>
-  <meta name="description" content="Getalong is a social discovery app for finding people you naturally click with — through small signals, tags, and real conversations." />
-  <meta name="theme-color" content="#FAF8F3" media="(prefers-color-scheme: light)" />
-  <meta name="theme-color" content="#0B0D11" media="(prefers-color-scheme: dark)" />
+  <meta name="description" content="A social discovery app built around short lines, live invites, and conversations that feel natural. iOS first." />
+  <meta name="theme-color" content="#F7F2E8" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#0E0F13" media="(prefers-color-scheme: dark)" />
   <meta property="og:title" content="Getalong — Find someone you just get along with" />
-  <meta property="og:description" content="Start with a small signal. If it clicks, talk live." />
+  <meta property="og:description" content="A calmer way to notice people you might click with. Short lines. Live invites. Real conversation." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://getalong.app/" />
   <meta name="twitter:card" content="summary" />
@@ -18,119 +18,220 @@
 
   <header class="container site-header">
     <a class="wordmark" href="./" aria-label="Getalong home">
-      <span class="signal-dot" aria-hidden="true"></span>
+      <span class="mark-dot" aria-hidden="true"></span>
       <span class="name">GETALONG</span>
     </a>
     <nav class="nav" aria-label="Primary">
       <a class="subtle" href="./privacy/">Privacy</a>
       <a class="subtle" href="./terms/">Terms</a>
       <a class="subtle" href="./support/">Support</a>
+      <span class="status-pill" aria-label="iOS first, coming soon">iOS · Coming soon</span>
     </nav>
   </header>
 
   <main class="container">
 
     <section class="hero" aria-labelledby="hero-title">
-      <p class="pill">iOS first</p>
-      <h1 id="hero-title" class="hero-title">
-        Find someone you<br />
-        <span class="accent">just get along with.</span>
-      </h1>
-      <p class="hero-sub">
-        Getalong is a social discovery app for finding people you naturally click with — through small signals, tags, and real conversations. Not another swipe.
-      </p>
+      <div>
+        <p class="hero-eyebrow">A social discovery app</p>
+        <h1 id="hero-title" class="hero-title">
+          Find someone you<br />
+          <span class="ember">just get along with.</span>
+        </h1>
+        <p class="hero-sub">
+          A social discovery app built around short lines, live invites, and conversations that feel natural.
+        </p>
+        <p class="hero-fine">
+          No endless swiping. No pressure to perform. Just a calmer way to notice people you might click with.
+        </p>
 
-      <div class="hero-row">
-        <a class="cta" href="mailto:support@getalong.app?subject=Getalong%20TestFlight">
-          Coming soon on iPhone
-        </a>
-        <span class="cta-meta">For 18+. English, 日本語, 繁體中文.</span>
+        <div class="hero-row">
+          <a class="cta" href="mailto:support@getalong.app?subject=Getalong%20%E2%80%94%20keep%20me%20posted">
+            Coming soon on iPhone
+            <span class="arrow" aria-hidden="true">→</span>
+          </a>
+          <span class="cta-meta">For 18+ · English · 日本語 · 繁體中文</span>
+        </div>
       </div>
 
-      <article class="moment" aria-label="Example signal">
-        <div class="moment-head">
-          <div class="avatar" aria-hidden="true">A</div>
-          <div class="moment-meta">
-            <span class="moment-line">
-              @aria
-              <span class="dot-mini" aria-hidden="true"></span>
-              <span class="label">LIVE SIGNAL</span>
-            </span>
-            <span class="moment-where">Brooklyn, NY</span>
+      <div class="moment-stage" aria-hidden="false">
+        <article class="moment" aria-label="Example Getalong card">
+          <div class="moment-head">
+            <div class="avatar" aria-hidden="true">A</div>
+            <div>
+              <span class="moment-handle">@aria</span>
+              <span class="moment-where">Tokyo · 23</span>
+            </div>
           </div>
-        </div>
-        <p class="moment-quote">“Late-night coffee somehow makes better conversations.”</p>
-        <div class="moment-foot">
-          <span class="ring" aria-hidden="true"></span>
-          <span>Live for 15 seconds.</span>
-        </div>
-      </article>
+
+          <p class="moment-line">“Late-night coffee somehow makes better conversations.”</p>
+
+          <div class="chips" aria-label="Tags">
+            <span class="chip">coffee</span>
+            <span class="chip">night walks</span>
+            <span class="chip">deep talks</span>
+          </div>
+
+          <span class="invite-badge" aria-label="Live invite for 15 seconds">
+            <span class="ring" aria-hidden="true"></span>
+            Live invite · 15s
+          </span>
+        </article>
+      </div>
     </section>
 
-    <section class="steps" aria-labelledby="how">
-      <p class="eyebrow">How it works</p>
-      <h2 id="how" class="section-title">Small signals, mutual moments, real conversations.</h2>
+    <section class="section" aria-labelledby="how-title">
+      <div class="section-head">
+        <p class="eyebrow">How it works</p>
+        <h2 id="how-title" class="section-title">Three small moves. One real conversation.</h2>
+      </div>
 
-      <ol class="steps-list">
+      <ol class="steps-grid" role="list">
         <li class="step">
-          <span class="num">1</span>
-          <div>
-            <h3>Share a small signal</h3>
-            <p>Write one honest line about what you’re thinking, feeling, or looking for.</p>
-          </div>
+          <span class="num">— 01</span>
+          <h3>Add your line</h3>
+          <p>A short line gives people something real to notice — not a profile to perform against.</p>
         </li>
         <li class="step">
-          <span class="num">2</span>
-          <div>
-            <h3>Notice someone on your wavelength</h3>
-            <p>Tags and signals help you find people you might naturally get along with.</p>
-          </div>
+          <span class="num">— 02</span>
+          <h3>Discover 10 people at a time</h3>
+          <p>A calmer way to find people who may be on your wavelength. See a small batch, refresh when you want.</p>
         </li>
         <li class="step">
-          <span class="num">3</span>
-          <div>
-            <h3>Talk when it clicks</h3>
-            <p>Send a Live Signal. If they feel it too, the conversation starts.</p>
-          </div>
+          <span class="num">— 03</span>
+          <h3>Send a Live Invite</h3>
+          <p>If it clicks, send an invite. If they respond, the conversation starts.</p>
         </li>
       </ol>
     </section>
 
-    <section class="why" aria-labelledby="why-title">
-      <p class="eyebrow">Why Getalong</p>
-      <h2 id="why-title" class="section-title">A quieter way to meet new people.</h2>
-      <div style="margin-top: 36px;">
-        <p>No endless swiping. No pressure to perform.</p>
-        <p>Start with something small. Keep talking only when it feels mutual.</p>
+    <section class="section" aria-labelledby="why-title">
+      <div class="section-head">
+        <p class="eyebrow">Why Getalong feels different</p>
+        <h2 id="why-title" class="section-title">Built for noticing, not for performing.</h2>
+        <p class="section-lede">
+          Getalong is text-first. Small batches over endless feeds. A few good tags over forty. Real conversation over choreography.
+        </p>
+      </div>
+
+      <ul class="feature-list">
+        <li class="feature">
+          <h3>10-card Discovery</h3>
+          <p>Not endless scrolling. A small, intentional batch of people at a time, so the surface stays calm and you stay present.</p>
+        </li>
+        <li class="feature">
+          <h3>Three simple tags</h3>
+          <p>Three is enough to say something honest. More than that, and tags start performing for you instead of about you.</p>
+        </li>
+        <li class="feature">
+          <h3>Live Invites that expire quickly</h3>
+          <p>A 15-second window keeps things current. If someone’s around, you’ll know. If not, no one’s left waiting.</p>
+        </li>
+        <li class="feature">
+          <h3>Missed Invites you can come back to</h3>
+          <p>Life happens. The ones you didn’t catch in time are still there to accept later — on your schedule, not the app’s.</p>
+        </li>
+        <li class="feature">
+          <h3>Real chat after mutual interest</h3>
+          <p>Conversations start when both sides have leaned in. No DM walls, no opening-line pressure.</p>
+        </li>
+        <li class="feature">
+          <h3>View-once media</h3>
+          <p>Photos, GIFs, and short videos that open exactly once in the app — for a moment shared, not a moment archived.</p>
+        </li>
+        <li class="feature">
+          <h3>Report and block, where you need them</h3>
+          <p>Reporting and blocking live next to the conversation, the message, and the profile — never two screens away.</p>
+        </li>
+      </ul>
+    </section>
+
+    <aside class="container safety" aria-labelledby="safety-title">
+      <div>
+        <p class="eyebrow">Safety &amp; privacy</p>
+        <h2 id="safety-title">Honest about what view-once means.</h2>
+      </div>
+      <div>
+        <p>
+          View-once media can only be opened once in the app. For safety and abuse-prevention, media may be retained privately for up to 24 hours. Reported content may be kept longer for review.
+        </p>
+        <p>
+          We don’t use your data for advertising. We don’t sell your data. We don’t pretend a phone screen can stop a screenshot — we just build the rest of the system to be as careful as we can.
+        </p>
+      </div>
+    </aside>
+
+    <section class="section" aria-labelledby="faq-title">
+      <div class="section-head">
+        <p class="eyebrow">FAQ</p>
+        <h2 id="faq-title" class="section-title">A few honest answers.</h2>
+      </div>
+
+      <div class="faq" role="list">
+        <details class="faq-item" role="listitem">
+          <summary>Is Getalong a dating app?</summary>
+          <p>Getalong is a social discovery app for finding people you naturally get along with. What it becomes depends on the conversation.</p>
+        </details>
+        <details class="faq-item" role="listitem">
+          <summary>Why only 10 Discovery cards?</summary>
+          <p>Getalong is designed to feel calmer than endless scrolling. You see a small batch, then refresh when you want a new set.</p>
+        </details>
+        <details class="faq-item" role="listitem">
+          <summary>How do Live Invites work?</summary>
+          <p>A Live Invite gives someone a short moment to respond. If they accept, a chat starts. If not, it becomes a Missed Invite they can come back to.</p>
+        </details>
+        <details class="faq-item" role="listitem">
+          <summary>What happens to view-once media?</summary>
+          <p>It can only be opened once in the app. For safety, it may be retained privately for up to 24 hours, and reported content may be kept longer for review.</p>
+        </details>
+        <details class="faq-item" role="listitem">
+          <summary>Can I report or block someone?</summary>
+          <p>Yes. Reporting and blocking are available from chat and other relevant surfaces.</p>
+        </details>
+        <details class="faq-item" role="listitem">
+          <summary>When does it launch?</summary>
+          <p>Getalong is iOS first and coming soon. Email <a href="mailto:support@getalong.app">support@getalong.app</a> if you’d like to be told when it’s ready.</p>
+        </details>
       </div>
     </section>
+
   </main>
 
   <footer class="site-footer">
-    <div class="container foot-cols">
+    <div class="container foot-grid">
       <div>
         <a class="wordmark" href="./" aria-label="Getalong home">
-          <span class="signal-dot" aria-hidden="true"></span>
+          <span class="mark-dot" aria-hidden="true"></span>
           <span class="name">GETALONG</span>
         </a>
         <p class="foot-meta">
-          For 18+. iOS first. Made with care.<br />
-          Contact: <a href="mailto:support@getalong.app">support@getalong.app</a>
+          A calmer way to notice people you might get along with.<br />
+          For 18+ · iOS first · Made with care.
+        </p>
+        <p class="foot-meta">
+          <a href="mailto:support@getalong.app">support@getalong.app</a>
         </p>
       </div>
-      <ul aria-label="Pages">
-        <li><a href="./privacy/">Privacy Policy</a></li>
-        <li><a href="./terms/">Terms of Service</a></li>
-        <li><a href="./support/">Support</a></li>
-      </ul>
-      <ul aria-label="Languages">
-        <li><a href="./privacy/">English</a></li>
-        <li><a href="./privacy/ja/">日本語</a></li>
-        <li><a href="./privacy/zh-Hant/">繁體中文</a></li>
-      </ul>
+      <div>
+        <h4>Pages</h4>
+        <ul>
+          <li><a href="./privacy/">Privacy</a></li>
+          <li><a href="./terms/">Terms</a></li>
+          <li><a href="./support/">Support</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Languages</h4>
+        <ul>
+          <li><a href="./privacy/">English</a></li>
+          <li><a href="./privacy/ja/">日本語</a></li>
+          <li><a href="./privacy/zh-Hant/">繁體中文</a></li>
+        </ul>
+      </div>
     </div>
-    <div class="container foot-meta" style="margin-top: 18px;">
-      © Getalong. All rights reserved.
+    <div class="container foot-bottom">
+      <span>© Getalong. All rights reserved.</span>
+      <span>iOS first. Coming soon.</span>
     </div>
   </footer>
 
