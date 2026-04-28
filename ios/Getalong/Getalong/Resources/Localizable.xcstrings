@@ -5293,6 +5293,28 @@
         }
       }
     },
+    "profile.validation.signalRequired" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please enter a line."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一言を入力してください。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請輸入你的小訊號。"
+          }
+        }
+      }
+    },
     "profile.validation.signalTooLong" : {
       "extractionState" : "stale",
       "localizations" : {

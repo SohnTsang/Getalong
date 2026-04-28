@@ -38,11 +38,15 @@ struct EditProfileBasicsSheet: View {
                         Text(m)
                             .font(GATypography.footnote)
                             .foregroundStyle(GAColors.danger)
-                    }
-
-                    if case .error(let message) = phase {
-                        GAErrorBanner(message: message,
-                                      onDismiss: { phase = .editing })
+                    } else if case .error(let message) = phase {
+                        // Inline, no dismiss control. Clears the
+                        // moment the user edits again (see
+                        // .onChange below). Stays out of the way of
+                        // the validation row above — only one of
+                        // the two is ever visible.
+                        Text(message)
+                            .font(GATypography.footnote)
+                            .foregroundStyle(GAColors.danger)
                     }
 
                     Spacer(minLength: GASpacing.md)
@@ -50,6 +54,11 @@ struct EditProfileBasicsSheet: View {
                 }
             }
             .navigationTitle(String(localized: "profile.edit.basics"))
+            .onChange(of: line) { _ in
+                // Clear any server error the moment the user edits;
+                // their next save attempt deserves a fresh slate.
+                if case .error = phase { phase = .editing }
+            }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -110,12 +119,18 @@ struct EditProfileBasicsSheet: View {
     }
 
     private var lineError: String? {
+        if trimmedLine.isEmpty {
+            return String(localized: "profile.validation.signalRequired")
+        }
         if trimmedLine.count > ProfileLimits.signalMax {
             return String(localized: "profile.validation.signalTooLong")
         }
         return nil
     }
 
+    /// Show the empty-line message only after the user has typed and
+    /// emptied the field, so a fresh sheet doesn't open with a red
+    /// validation error already present.
     private var isValid: Bool { lineError == nil }
 
     private var lineCountColor: Color {
@@ -127,9 +142,15 @@ struct EditProfileBasicsSheet: View {
 
     private func save() async {
         guard isValid, phase != .saving else { return }
+        // Hard guard: never send an empty bio. The save button is
+        // already disabled when this is true (isValid blocks it),
+        // but keep the contract local so a missed binding can't
+        // sneak an empty patch through.
+        let value = trimmedLine
+        guard !value.isEmpty else { return }
         phase = .saving
         var patch = ProfilePatch()
-        patch.bio = trimmedLine.isEmpty ? nil : trimmedLine
+        patch.bio = value
         do {
             let updated = try await ProfileService.shared.updateMyProfile(patch)
             Haptics.success()
