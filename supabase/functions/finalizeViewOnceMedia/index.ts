@@ -51,14 +51,17 @@ Deno.serve(async (req) => {
     return ok({ already_deleted: true });
   }
 
-  // Remove the object. Treat "not found" as success (idempotent).
+  // Remove the object. supabase-storage's remove() reports success
+  // for missing keys (no error, empty data array) — we treat that as
+  // idempotent. Any other error means the bytes are still in the
+  // bucket; we *must not* stamp storage_deleted_at in that case, or
+  // the row will lie about the file's state and the safety-net cron
+  // will skip it forever.
   const { error: rmErr } = await sb.storage
     .from(MEDIA_BUCKET).remove([m.storage_path]);
   if (rmErr) {
-    // supabase-storage returns success even when paths don't exist, but
-    // log + continue so we still stamp the row. The fallback cleanup will
-    // re-attempt if the row stays unmarked.
-    console.warn("finalizeViewOnceMedia: storage.remove warned:", rmErr.message);
+    console.error("finalizeViewOnceMedia: storage.remove failed:", rmErr.message);
+    return fail("STORAGE_ERROR", rmErr.message, 500);
   }
 
   const nowIso = new Date().toISOString();
