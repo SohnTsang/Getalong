@@ -22,34 +22,57 @@ enum VideoCompressor {
             throw MediaPreparationError.videoTooLong
         }
 
-        // Pick a compatible export preset. 1280x720 keeps file size in check
-        // for 15-second clips. Fall back to medium if 720p isn't compatible
-        // with this asset.
-        let candidates = [AVAssetExportPreset1280x720, AVAssetExportPresetMediumQuality]
+        // Quality ladder: try presets from highest to lowest until
+        // one produces output within the byte cap. Most ordinary
+        // phone footage encodes fine at 720p; high-motion clips (60fps
+        // gaming, action) can overflow even at 720p — stepping down
+        // to medium and then low quality keeps the send path from
+        // hard-failing on those.
         let compatible = await AVAssetExportSession.compatiblePresets(asset: asset)
-        let preset = candidates.first(where: { compatible.contains($0) })
-            ?? AVAssetExportPresetMediumQuality
-
-        guard let session = AVAssetExportSession(asset: asset, presetName: preset) else {
-            throw MediaPreparationError.compressionFailed
-        }
-        let outURL = MediaTempFile.make(extension: "mp4")
-        session.outputURL = outURL
-        session.outputFileType = .mp4
-        session.shouldOptimizeForNetworkUse = true
-
-        await session.export()
-
-        if session.status != .completed {
-            try? FileManager.default.removeItem(at: outURL)
+        let ladder = [
+            AVAssetExportPreset1280x720,
+            AVAssetExportPresetMediumQuality,
+            AVAssetExportPresetLowQuality,
+        ].filter { compatible.contains($0) }
+        guard !ladder.isEmpty else {
             throw MediaPreparationError.compressionFailed
         }
 
-        let attrs = try? FileManager.default.attributesOfItem(atPath: outURL.path)
-        let size = (attrs?[.size] as? NSNumber)?.int64Value ?? 0
-        if size > MediaPolicy.videoMaxBytes {
+        var outURL = MediaTempFile.make(extension: "mp4")
+        var size: Int64 = 0
+        var produced = false
+
+        for (idx, preset) in ladder.enumerated() {
             try? FileManager.default.removeItem(at: outURL)
-            throw MediaPreparationError.stillTooLargeAfterCompression
+            outURL = MediaTempFile.make(extension: "mp4")
+
+            guard let session = AVAssetExportSession(asset: asset, presetName: preset) else {
+                continue
+            }
+            session.outputURL = outURL
+            session.outputFileType = .mp4
+            session.shouldOptimizeForNetworkUse = true
+
+            await session.export()
+            if session.status != .completed { continue }
+
+            let attrs = try? FileManager.default.attributesOfItem(atPath: outURL.path)
+            size = (attrs?[.size] as? NSNumber)?.int64Value ?? 0
+            if size <= MediaPolicy.videoMaxBytes {
+                produced = true
+                break
+            }
+            // Else loop and try the next, lower-quality preset.
+            // Don't bother retrying if there are no more rungs.
+            if idx == ladder.count - 1 {
+                try? FileManager.default.removeItem(at: outURL)
+                throw MediaPreparationError.stillTooLargeAfterCompression
+            }
+        }
+
+        guard produced else {
+            try? FileManager.default.removeItem(at: outURL)
+            throw MediaPreparationError.compressionFailed
         }
 
         // Pixel size is best-effort.
@@ -96,15 +119,39 @@ enum VideoCompressor {
 }
 
 private extension AVAssetExportSession {
+    /// Returns which of our three quality rungs are compatible with
+    /// the asset, in descending quality order.
     static func compatiblePresets(asset: AVAsset) async -> [String] {
+        async let ok720    = isCompatible(.preset1280x720, with: asset)
+        async let okMedium = isCompatible(.mediumQuality,  with: asset)
+        async let okLow    = isCompatible(.lowQuality,     with: asset)
+        var out: [String] = []
+        if await ok720    { out.append(AVAssetExportPreset1280x720) }
+        if await okMedium { out.append(AVAssetExportPresetMediumQuality) }
+        if await okLow    { out.append(AVAssetExportPresetLowQuality) }
+        // Medium is virtually always compatible — guarantee at least
+        // one rung so the caller never sees an empty ladder.
+        if out.isEmpty { out.append(AVAssetExportPresetMediumQuality) }
+        return out
+    }
+
+    enum NamedPreset {
+        case preset1280x720, mediumQuality, lowQuality
+        var rawValue: String {
+            switch self {
+            case .preset1280x720: return AVAssetExportPreset1280x720
+            case .mediumQuality:  return AVAssetExportPresetMediumQuality
+            case .lowQuality:     return AVAssetExportPresetLowQuality
+            }
+        }
+    }
+
+    private static func isCompatible(_ preset: NamedPreset, with asset: AVAsset) async -> Bool {
         await withCheckedContinuation { cont in
             AVAssetExportSession.determineCompatibility(
-                ofExportPreset: AVAssetExportPreset1280x720,
+                ofExportPreset: preset.rawValue,
                 with: asset, outputFileType: .mp4
-            ) { ok720 in
-                if ok720 { cont.resume(returning: [AVAssetExportPreset1280x720, AVAssetExportPresetMediumQuality]) }
-                else { cont.resume(returning: [AVAssetExportPresetMediumQuality]) }
-            }
+            ) { ok in cont.resume(returning: ok) }
         }
     }
 }
