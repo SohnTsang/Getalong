@@ -213,24 +213,29 @@ final class RealtimeChatManager {
             filter: .eq("room_id", value: rid)
         )
 
+        GALog.chat.info("realtime chat subscribing room=\(rid, privacy: .public)")
         do { try await ch.subscribeWithError() }
         catch {
             GALog.chat.error("realtime chat subscribe failed: \(error.localizedDescription)")
             await Supa.client.realtimeV2.removeChannel(ch)
             return
         }
+        GALog.chat.info("realtime chat subscribed room=\(rid, privacy: .public)")
         channel = ch
         attachedRoomId = roomId
 
         task = Task { [weak self] in
             for await _ in inserts {
+                GALog.chat.info("realtime chat insert room=\(rid, privacy: .public)")
                 await self?.fanout()
             }
+            GALog.chat.info("realtime chat insert stream ended room=\(rid, privacy: .public)")
         }
     }
 
     private func fanout() async {
         let snapshot = Array(listeners.values)
+        GALog.chat.info("realtime chat fanout listeners=\(snapshot.count, privacy: .public)")
         for listener in snapshot { listener() }
     }
 

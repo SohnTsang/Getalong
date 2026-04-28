@@ -83,6 +83,13 @@ final class ChatRoomViewModel: ObservableObject {
     private var roomsListenerToken: UUID?
     /// Realtime token for the per-room messages INSERT stream.
     private var messagesListenerToken: UUID?
+    /// Belt-and-braces polling task. Realtime is the primary signal,
+    /// but if the websocket misses an event (filter mismatch, RLS
+    /// quirk, transient disconnect) we still want messages to appear
+    /// without the user backing out and re-entering. 4-second tick is
+    /// fast enough to feel near-instant while costing one cheap
+    /// fetchMessages per room per interval.
+    private var fallbackPollTask: Task<Void, Never>?
 
     struct ReportContext: Identifiable, Equatable {
         let id = UUID()
@@ -115,12 +122,16 @@ final class ChatRoomViewModel: ObservableObject {
         // Tasks so the realtime sockets survive the view churn.
         Task { [weak self, roomId] in
             guard let self else { return }
+            GALog.chat.info("ChatRoomVM addListener start room=\(roomId.uuidString, privacy: .public)")
             let token = await RealtimeChatManager.shared.addListener(
                 roomId: roomId
             ) { [weak self] in
                 Task { @MainActor in await self?.reloadOnRealtimeInsert() }
             }
-            await MainActor.run { self.messagesListenerToken = token }
+            await MainActor.run {
+                self.messagesListenerToken = token
+                GALog.chat.info("ChatRoomVM addListener ok token=\(token.uuidString.prefix(8), privacy: .public)")
+            }
         }
 
         Task { [weak self, currentUserId] in
@@ -131,6 +142,19 @@ final class ChatRoomViewModel: ObservableObject {
                 Task { @MainActor in await self?.checkRoomActive() }
             }
             await MainActor.run { self.roomsListenerToken = token }
+        }
+
+        startFallbackPolling()
+    }
+
+    private func startFallbackPolling() {
+        fallbackPollTask?.cancel()
+        fallbackPollTask = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 4_000_000_000)
+                guard !Task.isCancelled else { return }
+                await self?.reloadOnRealtimeInsert()
+            }
         }
     }
 
@@ -207,6 +231,8 @@ final class ChatRoomViewModel: ObservableObject {
     }
 
     func detach() async {
+        fallbackPollTask?.cancel()
+        fallbackPollTask = nil
         if let token = messagesListenerToken {
             RealtimeChatManager.shared.removeListener(token)
             messagesListenerToken = nil
@@ -233,10 +259,12 @@ final class ChatRoomViewModel: ObservableObject {
     }
 
     private func reloadOnRealtimeInsert() async {
+        GALog.chat.info("realtime reload start room=\(self.roomId.uuidString, privacy: .public)")
         do {
             let latest = try await ChatService.shared.fetchMessages(roomId: roomId, limit: 50)
             messages = latest
             await hydrateMediaAssets()
+            GALog.chat.info("realtime reload ok count=\(latest.count, privacy: .public)")
         } catch {
             GALog.chat.error("realtime reload: \(error.localizedDescription)")
         }
