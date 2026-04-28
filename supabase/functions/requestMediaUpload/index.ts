@@ -122,6 +122,39 @@ Deno.serve(async (req) => {
   if ((blocks ?? []).length > 0)
     return fail("BLOCKED_RELATIONSHIP", "You can't reach this person.", 403);
 
+  // Cap on outgoing-but-unopened view-once media per chat. The
+  // receiver should never have a wall of unviewed photos to grind
+  // through, and runaway senders shouldn't be able to fill the
+  // bucket with pending uploads. Match WhatsApp's intuitive small
+  // backlog cap (5).
+  //
+  // Counts both:
+  //   * status='pending_upload' younger than 30 min (the cleanup
+  //     cron handles older ones — those don't really exist
+  //     anymore from the receiver's perspective).
+  //   * status='active' rows the receiver hasn't opened yet
+  //     (viewed_at IS NULL, storage_deleted_at IS NULL).
+  const PENDING_LIMIT = 5;
+  const pendingFloorIso = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+  const { count: pendingCount, error: cErr } = await sb
+    .from("media_assets")
+    .select("id", { count: "exact", head: true })
+    .eq("owner_id", userId)
+    .eq("room_id", roomId)
+    .eq("view_once", true)
+    .is("viewed_at", null)
+    .is("storage_deleted_at", null)
+    .in("status", ["pending_upload", "active"])
+    .or(`status.eq.active,created_at.gte.${pendingFloorIso}`);
+  if (cErr) return fail("INTERNAL_ERROR", cErr.message, 500);
+  if ((pendingCount ?? 0) >= PENDING_LIMIT) {
+    return fail(
+      "MEDIA_PENDING_LIMIT",
+      "You can only have 5 unopened photos at a time. Wait for them to be viewed.",
+      409
+    );
+  }
+
   // Create media row first (we know the id, then build storage_path).
   const expiresAt = new Date(Date.now() + ACTIVE_TTL_SECONDS * 1000).toISOString();
 

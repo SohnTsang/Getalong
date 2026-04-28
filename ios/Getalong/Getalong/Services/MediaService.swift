@@ -16,6 +16,7 @@ enum MediaServiceError: LocalizedError, Equatable {
     case mediaNotActive
     case mediaExpired
     case mediaNotUploaded
+    case pendingLimitReached
     case storageError
     case networkError
     case other
@@ -37,6 +38,7 @@ enum MediaServiceError: LocalizedError, Equatable {
         case "MEDIA_NOT_ACTIVE":           self = .mediaNotActive
         case "MEDIA_EXPIRED":              self = .mediaExpired
         case "MEDIA_NOT_UPLOADED":         self = .mediaNotUploaded
+        case "MEDIA_PENDING_LIMIT":        self = .pendingLimitReached
         case "STORAGE_ERROR":              self = .storageError
         default:                           self = .other
         }
@@ -52,6 +54,7 @@ enum MediaServiceError: LocalizedError, Equatable {
              .mediaExpired,
              .mediaNotFound:          return String(localized: "media.unavailable")
         case .typeNotAllowed:         return String(localized: "media.error.unsupportedType")
+        case .pendingLimitReached:    return String(localized: "media.error.pendingLimit")
         case .networkError:           return String(localized: "error.network")
         case .storageError,
              .mediaNotUploaded,

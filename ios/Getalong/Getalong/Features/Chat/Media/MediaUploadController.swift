@@ -106,28 +106,35 @@ final class MediaUploadController: ObservableObject {
             await self.prepareInternal(source)
             // prepare may flip to failedBeforeUpload — short-circuit.
             guard let prep = self.prepared else { return }
-            await self.uploadAndSend(prepared: prep, onSuccess: onSuccess)
+            await self.uploadAndSend(prepared: prep, onSuccess: onSuccess, onFailure: { _ in })
         }
     }
 
     /// Called from the composer's send button. Triggers upload then send.
-    func confirmSend(onSuccess: @escaping (Message) -> Void) {
+    /// `onFailure` lets the caller distinguish specific failure modes
+    /// (e.g. the per-room pending limit) so they can surface a one-off
+    /// toast instead of the inline retry-bubble UI.
+    func confirmSend(onSuccess: @escaping (Message) -> Void,
+                     onFailure: @escaping (MediaServiceError) -> Void = { _ in }) {
         guard let prepared else { return }
         // If we already uploaded once, skip the prepare/upload step.
         if case .failedAfterUpload(_, let mediaId) = state {
             workTask = Task { [weak self] in
-                await self?.sendMessage(mediaId: mediaId, prepared: prepared, onSuccess: onSuccess)
+                await self?.sendMessage(mediaId: mediaId, prepared: prepared,
+                                        onSuccess: onSuccess, onFailure: onFailure)
             }
             return
         }
         workTask = Task { [weak self] in
-            await self?.uploadAndSend(prepared: prepared, onSuccess: onSuccess)
+            await self?.uploadAndSend(prepared: prepared,
+                                      onSuccess: onSuccess, onFailure: onFailure)
         }
     }
 
     /// Retry from the current failure point. Re-uses uploaded media when
     /// possible.
-    func retry(onSuccess: @escaping (Message) -> Void) {
+    func retry(onSuccess: @escaping (Message) -> Void,
+               onFailure: @escaping (MediaServiceError) -> Void = { _ in }) {
         switch state {
         case .failedBeforeUpload:
             // Re-prepare from the original picked source.
@@ -136,7 +143,8 @@ final class MediaUploadController: ObservableObject {
         case .failedAfterUpload(_, let mediaId):
             guard let prepared else { return }
             workTask = Task { [weak self] in
-                await self?.sendMessage(mediaId: mediaId, prepared: prepared, onSuccess: onSuccess)
+                await self?.sendMessage(mediaId: mediaId, prepared: prepared,
+                                        onSuccess: onSuccess, onFailure: onFailure)
             }
         default:
             break
@@ -188,7 +196,8 @@ final class MediaUploadController: ObservableObject {
     }
 
     private func uploadAndSend(prepared file: MediaPreparedFile,
-                               onSuccess: @escaping (Message) -> Void) async {
+                               onSuccess: @escaping (Message) -> Void,
+                               onFailure: @escaping (MediaServiceError) -> Void) async {
         do {
             state = .uploading
             let rid = self.roomId
@@ -198,19 +207,28 @@ final class MediaUploadController: ObservableObject {
             uploadTicket = ticket
             try await MediaService.shared.upload(file: file, using: ticket)
 
-            await sendMessage(mediaId: ticket.mediaId, prepared: file, onSuccess: onSuccess)
+            await sendMessage(mediaId: ticket.mediaId, prepared: file,
+                              onSuccess: onSuccess, onFailure: onFailure)
         } catch is CancellationError {
             // ignore — state already updated by cancel()
+        } catch let e as MediaServiceError {
+            let message = e.errorDescription
+                ?? String(localized: "media.error.uploadFailed")
+            state = .failedBeforeUpload(message: message)
+            onFailure(e)
+            GALog.media.error("upload failed: \(e.localizedDescription)")
         } catch {
             let message = (error as? LocalizedError)?.errorDescription
                 ?? String(localized: "media.error.uploadFailed")
             state = .failedBeforeUpload(message: message)
+            onFailure(.other)
             GALog.media.error("upload failed: \(error.localizedDescription)")
         }
     }
 
     private func sendMessage(mediaId: UUID, prepared file: MediaPreparedFile,
-                             onSuccess: @escaping (Message) -> Void) async {
+                             onSuccess: @escaping (Message) -> Void,
+                             onFailure: @escaping (MediaServiceError) -> Void = { _ in }) async {
         do {
             state = .sending
             let trimmed = caption.trimmingCharacters(in: .whitespacesAndNewlines)

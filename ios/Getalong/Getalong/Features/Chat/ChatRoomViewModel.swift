@@ -449,7 +449,7 @@ final class ChatRoomViewModel: ObservableObject {
         isPreviewPresented = false
         Haptics.tap()
 
-        controller.confirmSend { [weak self] message in
+        controller.confirmSend(onSuccess: { [weak self] message in
             Task { @MainActor in
                 guard let self else { return }
                 self.pendingMedia.removeAll { $0.id == item.id }
@@ -471,9 +471,28 @@ final class ChatRoomViewModel: ObservableObject {
                 }
                 self.mediaController = nil
             }
-        }
+        }, onFailure: { [weak self] error in
+            Task { @MainActor in
+                self?.handleMediaSendFailure(itemId: item.id, error: error)
+            }
+        })
 
         watchPendingMedia(itemId: item.id, controller: controller)
+    }
+
+    /// Specific upload failures that we'd rather surface as a top-of
+    /// -view toast than as an inline failed-bubble with a retry chip:
+    /// the per-room pending cap is the obvious one, since retrying
+    /// won't fix anything until the receiver opens something. The
+    /// optimistic bubble is yanked too so the chat doesn't keep a
+    /// dead row.
+    private func handleMediaSendFailure(itemId: UUID, error: MediaServiceError) {
+        guard error == .pendingLimitReached else { return }
+        pendingMedia.removeAll { $0.id == itemId }
+        sendError = error.errorDescription
+        mediaController?.cancel()
+        mediaController = nil
+        Haptics.error()
     }
 
     /// Polls the controller's state until upload+send terminates and
@@ -525,7 +544,7 @@ final class ChatRoomViewModel: ObservableObject {
         guard let controller = mediaController else { return }
         let thumb = controller.thumbnail
         updatePending(id: id, state: .sending)
-        controller.retry { [weak self] message in
+        controller.retry(onSuccess: { [weak self] message in
             Task { @MainActor in
                 guard let self else { return }
                 self.pendingMedia.removeAll { $0.id == id }
@@ -540,7 +559,11 @@ final class ChatRoomViewModel: ObservableObject {
                 }
                 self.mediaController = nil
             }
-        }
+        }, onFailure: { [weak self] error in
+            Task { @MainActor in
+                self?.handleMediaSendFailure(itemId: id, error: error)
+            }
+        })
         watchPendingMedia(itemId: id, controller: controller)
     }
 
