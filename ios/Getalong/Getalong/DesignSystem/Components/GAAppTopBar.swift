@@ -1,5 +1,19 @@
 import SwiftUI
 
+/// True while the current user has any live_pending invite (incoming or
+/// outgoing). Read by `GAAppTopBar` to tint the bottom hairline; lifted
+/// into the SwiftUI environment by `MainTabView` so all four tabs pick
+/// it up uniformly.
+private struct GATopBarLiveInviteActiveKey: EnvironmentKey {
+    static let defaultValue: Bool = false
+}
+extension EnvironmentValues {
+    var gaHasActiveLiveInvite: Bool {
+        get { self[GATopBarLiveInviteActiveKey.self] }
+        set { self[GATopBarLiveInviteActiveKey.self] = newValue }
+    }
+}
+
 /// Shared top bar for the four main tabs.
 ///
 ///   ┌────────────────────────────────────────────┐
@@ -8,9 +22,14 @@ import SwiftUI
 ///
 /// The Getalong mark sits dead-centre; leading/trailing slots are for
 /// per-tab actions (e.g. refresh on Discover, future: notifications).
+/// The bottom hairline picks up `GAColors.accent` while the user has a
+/// live_pending invite running, so every tab signals "something is in
+/// flight" without us having to render the same banner four times.
 struct GAAppTopBar<Leading: View, Trailing: View>: View {
     @ViewBuilder var leading:  () -> Leading
     @ViewBuilder var trailing: () -> Trailing
+
+    @Environment(\.gaHasActiveLiveInvite) private var hasActiveLiveInvite
 
     init(
         @ViewBuilder leading:  @escaping () -> Leading  = { EmptyView() },
@@ -41,8 +60,9 @@ struct GAAppTopBar<Leading: View, Trailing: View>: View {
             .padding(.horizontal, GASpacing.lg)
 
             Rectangle()
-                .fill(GAColors.border)
-                .frame(height: 1)
+                .fill(hasActiveLiveInvite ? GAColors.accent : GAColors.border)
+                .frame(height: hasActiveLiveInvite ? 2 : 1)
+                .animation(.easeOut(duration: 0.18), value: hasActiveLiveInvite)
         }
         // Paint the top safe area with the page background so the bar
         // and the screen below it read as one continuous surface on

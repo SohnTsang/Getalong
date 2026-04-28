@@ -25,8 +25,25 @@
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Getalong uses your location to set your region (city / country) so people on your wavelength can find you. You can turn this off any time.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Getalong uses the camera so you can take a photo to send in a chat.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Getalong shows your recent photos so you can pick one to send in a chat.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Getalong uses the microphone when you record a video to send in a chat.</string>
 	<key>UIRequiresFullScreen</key>
 	<false/>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
 	<key>UIStatusBarStyle</key>
 	<string>UIStatusBarStyleDefault</string>
 	<key>UIViewControllerBasedStatusBarAppearance</key>

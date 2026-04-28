@@ -88,6 +88,28 @@ final class MediaUploadController: ObservableObject {
         }
     }
 
+    /// Direct-send path: prepare → upload → send in a single chain
+    /// with no preview pause. The PendingMediaBubble at the bottom of
+    /// the chat doubles as the in-flight indicator, so the user sees
+    /// progress without a confirmation sheet.
+    func beginAndSend(_ source: PickerSource,
+                      onSuccess: @escaping (Message) -> Void) {
+        pickedSource = source
+        workTask?.cancel()
+        prepared?.remove()
+        prepared = nil
+        thumbnail = nil
+        state = .preparing
+
+        workTask = Task { [weak self] in
+            guard let self else { return }
+            await self.prepareInternal(source)
+            // prepare may flip to failedBeforeUpload — short-circuit.
+            guard let prep = self.prepared else { return }
+            await self.uploadAndSend(prepared: prep, onSuccess: onSuccess)
+        }
+    }
+
     /// Called from the composer's send button. Triggers upload then send.
     func confirmSend(onSuccess: @escaping (Message) -> Void) {
         guard let prepared else { return }
@@ -169,7 +191,10 @@ final class MediaUploadController: ObservableObject {
                                onSuccess: @escaping (Message) -> Void) async {
         do {
             state = .uploading
-            let ticket = try await MediaService.shared.requestUpload(roomId: roomId, file: file)
+            let rid = self.roomId
+            GALog.media.info("uploadAndSend room=\(rid.uuidString, privacy: .public) mime=\(file.mimeType, privacy: .public) size=\(file.sizeBytes, privacy: .public)")
+            let ticket = try await MediaService.shared.requestUpload(roomId: rid, file: file)
+            GALog.media.info("uploadAndSend ticket media=\(ticket.mediaId.uuidString, privacy: .public) room=\(rid.uuidString, privacy: .public)")
             uploadTicket = ticket
             try await MediaService.shared.upload(file: file, using: ticket)
 
@@ -189,8 +214,10 @@ final class MediaUploadController: ObservableObject {
         do {
             state = .sending
             let trimmed = caption.trimmingCharacters(in: .whitespacesAndNewlines)
+            let rid = self.roomId
+            GALog.media.info("sendMessage room=\(rid.uuidString, privacy: .public) media=\(mediaId.uuidString, privacy: .public)")
             let msg = try await ChatService.shared.sendMediaMessage(
-                roomId: roomId, mediaId: mediaId,
+                roomId: rid, mediaId: mediaId,
                 caption: trimmed.isEmpty ? nil : trimmed
             )
             onSuccess(msg)

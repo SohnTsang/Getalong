@@ -1,7 +1,13 @@
 import SwiftUI
 
 struct DiscoveryView: View {
+    @EnvironmentObject private var session: SessionManager
     @StateObject private var vm = DiscoveryViewModel()
+
+    private var currentUserId: UUID? {
+        if case .authenticated(let p) = session.state { return p.id }
+        return nil
+    }
 
     var body: some View {
         NavigationStack {
@@ -27,6 +33,15 @@ struct DiscoveryView: View {
             .navigationTitle("")
             .toolbar(.hidden, for: .navigationBar)
             .task { await vm.loadInitial() }
+            .task(id: currentUserId) {
+                if let uid = currentUserId {
+                    // Detached so SwiftUI cancelling this .task
+                    // doesn't propagate Task.cancel() into the
+                    // realtime websocket subscribe.
+                    Task { await vm.attach(userId: uid) }
+                }
+            }
+            .onDisappear { vm.detach() }
             .sheet(item: $vm.pendingReport) { ctx in
                 ReportSheet(
                     targetType: .profile,

@@ -24,10 +24,30 @@ final class ChatsViewModel: ObservableObject {
     @Published var errorMessage: String?
 
     private(set) var currentUserId: UUID?
+    private var realtimeToken: UUID?
 
     func attach(userId: UUID) async {
+        guard currentUserId != userId else {
+            await refresh()
+            return
+        }
         currentUserId = userId
         await refresh()
+        // Listen to chat_rooms inserts + updates app-wide so the list
+        // (and the latest-message preview) stays current even when the
+        // user is on another tab.
+        let token = await RealtimeChatRoomsManager.shared.addListener(userId: userId) {
+            [weak self] in
+            Task { await self?.refresh() }
+        }
+        realtimeToken = token
+    }
+
+    func detach() {
+        if let t = realtimeToken {
+            RealtimeChatRoomsManager.shared.removeListener(t)
+            realtimeToken = nil
+        }
     }
 
     func refresh() async {
@@ -36,7 +56,13 @@ final class ChatsViewModel: ObservableObject {
         defer { isLoading = false }
 
         do {
-            let rooms = try await ChatService.shared.fetchRooms()
+            let raw = try await ChatService.shared.fetchRooms()
+            // Defensive dedupe by partner: even though migration 0019
+            // adds a unique index that prevents two active rooms with
+            // the same partner, any pre-existing duplicates from
+            // before the migration would still surface here. Keep the
+            // most-recently-active row per partner.
+            let rooms = Self.collapseByPartner(raw, currentUserId: me)
             // Build one ChatRow per room; fetch partner profile + last message in parallel.
             let built: [ChatRow] = await withTaskGroup(of: ChatRow.self) { group in
                 for room in rooms {
@@ -60,6 +86,28 @@ final class ChatsViewModel: ObservableObject {
             rows = built.sorted { (order[$0.id] ?? 0) < (order[$1.id] ?? 0) }
         } catch {
             errorMessage = String(localized: "chat.error.loadFailed")
+        }
+    }
+
+    /// Collapse multiple active rooms with the same partner down to one,
+    /// keeping the most recently active row. Migration 0019 guarantees
+    /// the database only allows one going forward; this is for any
+    /// rooms created before the index existed.
+    private static func collapseByPartner(_ rooms: [ChatRoom], currentUserId me: UUID) -> [ChatRoom] {
+        var byPartner: [UUID: ChatRoom] = [:]
+        for room in rooms {
+            let partner = room.partnerId(currentUser: me)
+            if let existing = byPartner[partner] {
+                let existingTs = existing.lastMessageAt ?? existing.createdAt
+                let candidateTs = room.lastMessageAt ?? room.createdAt
+                if candidateTs > existingTs { byPartner[partner] = room }
+            } else {
+                byPartner[partner] = room
+            }
+        }
+        // Stable order: most recent activity first.
+        return byPartner.values.sorted {
+            ($0.lastMessageAt ?? $0.createdAt) > ($1.lastMessageAt ?? $1.createdAt)
         }
     }
 }

@@ -19,6 +19,32 @@ final class ChatRoomViewModel: ObservableObject {
 
     /// Composer for the in-flight piece of view-once media. nil when idle.
     @Published var mediaController: MediaUploadController?
+    /// Drives the fullscreen preview separately from the controller's
+    /// lifetime so that tapping Send can close the preview *immediately*
+    /// while upload+send continues in the background.
+    @Published var isPreviewPresented: Bool = false
+
+    /// Local optimistic bubbles for media that's been Sent from the
+    /// preview but hasn't yet been confirmed by the server. They render
+    /// as outgoing image bubbles with a subtle progress overlay; on
+    /// success we drop the entry and append the real Message; on
+    /// failure we leave it with a retry chip.
+    @Published var pendingMedia: [PendingMediaItem] = []
+
+    struct PendingMediaItem: Identifiable, Equatable {
+        let id: UUID
+        let thumbnail: UIImage?
+        var state: State
+
+        enum State: Equatable {
+            case sending
+            case failed(message: String)
+        }
+
+        static func == (lhs: PendingMediaItem, rhs: PendingMediaItem) -> Bool {
+            lhs.id == rhs.id && lhs.state == rhs.state
+        }
+    }
 
     /// id of media currently being viewed (full-screen sheet).
     @Published var openingMediaId: UUID?
@@ -187,6 +213,13 @@ final class ChatRoomViewModel: ObservableObject {
         !hasBlockedPartner && mediaController == nil && !isSending
     }
 
+    /// True while at least one optimistic bubble is uploading. Used to
+    /// disable the attach button so we never queue a second pick on top
+    /// of an in-flight one (the controller is single-use).
+    var hasInFlightMedia: Bool {
+        pendingMedia.contains { if case .sending = $0.state { return true } else { return false } }
+    }
+
     func send() async {
         let text = draft.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }
@@ -220,16 +253,33 @@ final class ChatRoomViewModel: ObservableObject {
     // MARK: - Send (media)
 
     func startMediaPick(_ source: MediaUploadController.PickerSource) {
+        // Prepare-only — opens a fullscreen preview (MediaPreviewSheet)
+        // where the user reviews the picked image and taps Send.
+        // Upload + send don't fire until they tap Send.
         let controller = MediaController(roomId: roomId)
         mediaController = controller
+        isPreviewPresented = true
         controller.begin(source)
     }
 
+    /// User tapped Send in the preview. Close the preview immediately,
+    /// drop a local optimistic bubble into the chat (so it feels like a
+    /// normal chat app), and run upload+send in the background.
     func confirmMediaSend() {
         guard let controller = mediaController else { return }
+        let item = PendingMediaItem(
+            id: UUID(),
+            thumbnail: controller.thumbnail,
+            state: .sending
+        )
+        pendingMedia.append(item)
+        isPreviewPresented = false
+        Haptics.tap()
+
         controller.confirmSend { [weak self] message in
             Task { @MainActor in
                 guard let self else { return }
+                self.pendingMedia.removeAll { $0.id == item.id }
                 if !self.messages.contains(where: { $0.id == message.id }) {
                     self.messages.append(message)
                     if let mid = message.mediaId,
@@ -238,14 +288,96 @@ final class ChatRoomViewModel: ObservableObject {
                     }
                 }
                 self.mediaController = nil
-                Haptics.tap()
+            }
+        }
+
+        watchPendingMedia(itemId: item.id, controller: controller)
+    }
+
+    /// Polls the controller's state until upload+send terminates and
+    /// flips the optimistic bubble to .failed if the controller reports
+    /// an error. The success path is owned by `confirmSend`'s onSuccess
+    /// closure (it removes the bubble); this watcher just handles the
+    /// failure half so we don't have to plumb errors back through the
+    /// callback shape.
+    private func watchPendingMedia(itemId: UUID, controller: MediaUploadController) {
+        Task { @MainActor [weak self, weak controller] in
+            guard let self, let controller else { return }
+            // First wait for the controller to leave .readyPreview —
+            // otherwise we'd see the initial state and bail before
+            // upload begins.
+            while !Task.isCancelled {
+                if case .readyPreview = controller.state {
+                    try? await Task.sleep(nanoseconds: 80_000_000)
+                    continue
+                }
+                break
+            }
+            while !Task.isCancelled {
+                switch controller.state {
+                case .failedBeforeUpload(let m), .failedAfterUpload(let m, _):
+                    self.updatePending(id: itemId, state: .failed(message: m))
+                    return
+                case .idle:
+                    // success path already removed the bubble.
+                    return
+                default:
+                    try? await Task.sleep(nanoseconds: 150_000_000)
+                }
             }
         }
     }
 
+    private func updatePending(id: UUID, state: PendingMediaItem.State) {
+        guard let idx = pendingMedia.firstIndex(where: { $0.id == id }) else { return }
+        var item = pendingMedia[idx]
+        item.state = state
+        pendingMedia[idx] = item
+    }
+
+    /// User retried a failed pending bubble. The underlying controller
+    /// already knows whether it can skip re-upload (failedAfterUpload) or
+    /// must re-prepare (failedBeforeUpload); we just toggle the bubble
+    /// back to .sending and rewire the success/failure observer.
+    func retryPendingMedia(_ id: UUID) {
+        guard let controller = mediaController else { return }
+        updatePending(id: id, state: .sending)
+        controller.retry { [weak self] message in
+            Task { @MainActor in
+                guard let self else { return }
+                self.pendingMedia.removeAll { $0.id == id }
+                if !self.messages.contains(where: { $0.id == message.id }) {
+                    self.messages.append(message)
+                    if let mid = message.mediaId,
+                       let asset = try? await MediaService.shared.fetchAsset(id: mid) {
+                        self.mediaAssets[mid] = asset
+                    }
+                }
+                self.mediaController = nil
+            }
+        }
+        watchPendingMedia(itemId: id, controller: controller)
+    }
+
+    /// Drops a failed bubble. The orphaned media row (if any) is reaped
+    /// server-side by deleteExpiredMedia within 30 minutes.
+    func removePendingMedia(_ id: UUID) {
+        pendingMedia.removeAll { $0.id == id }
+        if pendingMedia.isEmpty {
+            mediaController?.cancel()
+            mediaController = nil
+        }
+    }
+
     func dismissMediaComposer() {
-        mediaController?.cancel()
-        mediaController = nil
+        // Only invoked when the user closes the preview without sending.
+        // If a Send already happened the preview is already gone and
+        // mediaController stays alive until the background task finishes.
+        isPreviewPresented = false
+        if !hasInFlightMedia {
+            mediaController?.cancel()
+            mediaController = nil
+        }
     }
 
     // MARK: - Open view-once
@@ -310,6 +442,18 @@ final class ChatRoomViewModel: ObservableObject {
 
     var headerSubtitle: String? {
         partner.map { "@\($0.getalongId)" }
+    }
+
+    /// Single-line representation of the partner used in the header
+    /// and chat-list rows. Falls back to a quiet placeholder when the
+    /// partner hasn't written one. No display name, no handle —
+    /// Getalong identifies people by their line.
+    var headerLine: String {
+        if let bio = partner?.bio?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !bio.isEmpty {
+            return bio
+        }
+        return String(localized: "chat.title.fallback")
     }
 }
 

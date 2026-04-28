@@ -34,14 +34,35 @@ final class InvitesViewModel: ObservableObject {
     /// Active report context (drives the .sheet(item:) on InvitesView).
     @Published var pendingReport: ReportContext?
 
+    /// Active block context (drives the .sheet(item:) on InvitesView).
+    @Published var pendingBlock: BlockContext?
+
     struct ReportContext: Identifiable, Equatable {
         let id = UUID()
         let targetType: ReportTargetType
         let targetId: UUID
     }
 
+    struct BlockContext: Identifiable, Equatable {
+        let id = UUID()
+        let userId: UUID
+        let displayName: String?
+    }
+
     func presentReportInvite(_ invite: Invite) {
         pendingReport = .init(targetType: .invite, targetId: invite.id)
+    }
+
+    func presentBlockSender(_ item: InviteWithSender) {
+        pendingBlock = .init(userId: item.invite.senderId, displayName: nil)
+    }
+
+    /// Called by BlockUserSheet's onBlocked closure after the server has
+    /// recorded the block — drop any invites from that sender locally.
+    func confirmBlocked(senderId: UUID) async {
+        incomingLive.removeAll { $0.invite.senderId == senderId }
+        missed.removeAll       { $0.invite.senderId == senderId }
+        pendingBlock = nil
     }
 
     // Dev compose form (sender side, used from a small debug card).
@@ -50,19 +71,29 @@ final class InvitesViewModel: ObservableObject {
     @Published var composeError: String?
 
     private(set) var currentUserId: UUID?
+    private var realtimeToken: UUID?
 
     // MARK: - Lifecycle
 
     func attach(userId: UUID) async {
         currentUserId = userId
         await refresh()
-        await RealtimeInviteManager.shared.start(userId: userId) { [weak self] in
+        // Register on the shared multi-listener channel — the tracker
+        // already keeps the socket alive at the tab-bar level, so this
+        // call piggybacks on it instead of tearing down a sibling
+        // subscription.
+        let token = await RealtimeInviteManager.shared.addListener(userId: userId) {
+            [weak self] in
             Task { await self?.refresh() }
         }
+        realtimeToken = token
     }
 
     func detach() async {
-        await RealtimeInviteManager.shared.stop()
+        if let t = realtimeToken {
+            RealtimeInviteManager.shared.removeListener(t)
+            realtimeToken = nil
+        }
     }
 
     // MARK: - Reads
@@ -75,12 +106,27 @@ final class InvitesViewModel: ObservableObject {
             async let inboxList  = InviteService.shared.fetchIncomingLivePendingWithSender(userId: uid)
             async let missedList = InviteService.shared.fetchMissedInvitesWithSender(userId: uid)
             let (i, m) = try await (inboxList, missedList)
-            incomingLive = i
-            missed       = m
-            GALog.invite.info("invites.refresh ok live=\(i.count, privacy: .public) missed=\(m.count, privacy: .public)")
+            incomingLive = Self.dedupeBySender(i)
+            missed       = Self.dedupeBySender(m)
+            GALog.invite.info("invites.refresh ok live=\(self.incomingLive.count, privacy: .public) missed=\(self.missed.count, privacy: .public)")
         } catch {
             GALog.invite.error("invites.refresh failed: \(error.localizedDescription, privacy: .public)")
         }
+    }
+
+    /// Collapses repeat invites from the same sender to one card —
+    /// keeps the most recent (the list arrives `created_at desc`).
+    /// Multiple invites from the same person turn into noise, not
+    /// signal; we'd rather show "this person reached out" once.
+    private static func dedupeBySender(_ items: [InviteWithSender]) -> [InviteWithSender] {
+        var seen = Set<UUID>()
+        var out: [InviteWithSender] = []
+        out.reserveCapacity(items.count)
+        for item in items where !seen.contains(item.invite.senderId) {
+            seen.insert(item.invite.senderId)
+            out.append(item)
+        }
+        return out
     }
 
     // MARK: - Receiver actions
@@ -133,7 +179,12 @@ final class InvitesViewModel: ObservableObject {
         do {
             let resp = try await InviteService.shared.acceptMissedInvite(inviteId: invite.id)
             lastChatRoomId = resp.chatRoomId
-            missed.removeAll { $0.id == invite.id }
+            // Drop every missed card from this sender, not just the one
+            // tapped. The server-side RPC also resolves siblings (see
+            // migration 0018) so a refresh can't bring them back; this
+            // avoids the visual lag while the request is settling and
+            // makes the tab badge tick down immediately.
+            missed.removeAll { $0.invite.senderId == invite.senderId }
             await refresh()
             Haptics.success()
         } catch let e as InviteServiceError {

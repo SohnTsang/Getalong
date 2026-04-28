@@ -53,10 +53,12 @@ struct ChatRoomView: View {
             }
         }
         .onDisappear { Task { await vm.detach() } }
-        // Composer (selection → preview → upload → send).
+        // Full-screen preview shown after the user picks media. They
+        // see the image, the view-once badge, and a Send button in the
+        // bottom-right; tapping Send fires upload + send.
         .sheet(isPresented: composerBinding) {
             if let controller = vm.mediaController {
-                MediaComposerSheet(
+                MediaPreviewSheet(
                     controller: controller,
                     onConfirm: { vm.confirmMediaSend() },
                     onClose:   { vm.dismissMediaComposer() }
@@ -82,19 +84,19 @@ struct ChatRoomView: View {
                 )
             }
         }
-        // Delete-conversation confirmation. The destructive action calls
-        // the Edge Function; on success `didDelete` flips and the view
-        // dismisses back to ChatsView.
-        .confirmationDialog(
+        // Leave-chat confirmation. Alert (center-aligned modal) rather
+        // than a confirmationDialog — the latter slides up from the
+        // bottom as an action sheet, which read like "more options"
+        // rather than a yes/no decision.
+        .alert(
             String(localized: "chat.delete.title"),
-            isPresented: $vm.isDeleteConfirmPresented,
-            titleVisibility: .visible
+            isPresented: $vm.isDeleteConfirmPresented
         ) {
+            Button(String(localized: "common.cancel"), role: .cancel) {}
             Button(String(localized: "chat.delete.action"),
                    role: .destructive) {
                 Task { await vm.confirmDeleteConversation() }
             }
-            Button(String(localized: "common.cancel"), role: .cancel) {}
         } message: {
             Text("chat.delete.message")
         }
@@ -136,7 +138,7 @@ struct ChatRoomView: View {
 
     private var composerBinding: Binding<Bool> {
         Binding(
-            get: { vm.mediaController != nil },
+            get: { vm.isPreviewPresented },
             set: { newValue in
                 if !newValue { vm.dismissMediaComposer() }
             }
@@ -167,20 +169,14 @@ struct ChatRoomView: View {
             .buttonStyle(.plain)
             .accessibilityLabel(String(localized: "common.cancel"))
 
-            avatar
-                .frame(width: 32, height: 32)
+            // Identity in chat is the partner's line — no avatar,
+            // display name, or handle.
+            Text(vm.headerLine)
+                .font(GATypography.bodyEmphasized)
+                .foregroundStyle(GAColors.textPrimary)
+                .lineLimit(2)
+                .frame(maxWidth: .infinity, alignment: .leading)
 
-            VStack(alignment: .leading, spacing: 0) {
-                Text(vm.headerTitle)
-                    .font(GATypography.bodyEmphasized)
-                    .foregroundStyle(GAColors.textPrimary)
-                if let sub = vm.headerSubtitle {
-                    Text(sub)
-                        .font(GATypography.caption)
-                        .foregroundStyle(GAColors.textTertiary)
-                }
-            }
-            Spacer()
             safetyMenu
         }
         .padding(.horizontal, GASpacing.lg)
@@ -208,7 +204,7 @@ struct ChatRoomView: View {
                 vm.presentDeleteConfirm()
             } label: {
                 Label(String(localized: "chat.delete.action"),
-                      systemImage: "trash")
+                      systemImage: "rectangle.portrait.and.arrow.right")
             }
         } label: {
             Image(systemName: "ellipsis")
@@ -248,7 +244,7 @@ struct ChatRoomView: View {
                     ProgressView()
                         .frame(maxWidth: .infinity, minHeight: 100)
                         .padding(.top, GASpacing.xxl)
-                } else if vm.messages.isEmpty && vm.mediaController == nil {
+                } else if vm.messages.isEmpty && vm.pendingMedia.isEmpty {
                     emptyState
                         .padding(.top, GASpacing.xxl)
                 } else {
@@ -284,11 +280,13 @@ struct ChatRoomView: View {
                             }
                         }
 
-                        if let controller = vm.mediaController {
-                            PendingMediaBubble(
-                                controller: controller,
-                                onRemove: { vm.dismissMediaComposer() }
+                        ForEach(vm.pendingMedia) { item in
+                            PendingOutgoingMediaBubble(
+                                item: item,
+                                onRetry:  { vm.retryPendingMedia(item.id) },
+                                onRemove: { vm.removePendingMedia(item.id) }
                             )
+                            .id(item.id)
                         }
                     }
                     .padding(.horizontal, GASpacing.lg)

@@ -23,7 +23,10 @@ struct PulsingCountdownRing: View {
     @State private var elapsed: Double = 0
     @State private var pulse: Bool = false
     @State private var didFireComplete: Bool = false
-    private let timer = Timer.publish(every: 0.05, on: .main, in: .common).autoconnect()
+    // 0.1s is fine here — the visible state is the seconds digit and the
+    // arc trim, both perceptually smooth at 10Hz. 0.05s was 20 view
+    // re-renders per second per visible ring, which is wasted work.
+    private let timer = Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()
 
     private var remaining: Double { max(0, total - elapsed) }
     private var progress: Double { max(0, min(1, remaining / total)) }
@@ -61,16 +64,19 @@ struct PulsingCountdownRing: View {
         .onReceive(timer) { _ in
             // Stop at zero when not looping, otherwise pause for a beat
             // and loop back to `total`.
+            // Tick step matches the publisher interval (10Hz). If the
+            // interval ever changes again, update both sites.
+            let step = 0.1
             if !loops {
                 if elapsed < total {
-                    elapsed += 0.05
+                    elapsed += step
                     if elapsed >= total, !didFireComplete {
                         didFireComplete = true
                         onComplete?()
                     }
                 }
             } else {
-                elapsed += 0.05
+                elapsed += step
                 if elapsed >= total + 0.8 { elapsed = 0 }
             }
         }

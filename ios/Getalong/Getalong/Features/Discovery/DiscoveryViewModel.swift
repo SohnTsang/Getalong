@@ -25,6 +25,14 @@ final class DiscoveryViewModel: ObservableObject {
     /// successful refresh so a stale "sent" never carries over.
     @Published var sendStates: [UUID: CardSendState] = [:]
 
+    /// Outgoing invite ids per profile id, set after a successful
+    /// `sendLiveInvite`. Used by the realtime reconciliation pass to
+    /// drop a sent-state card the moment its underlying invite leaves
+    /// `live_pending` — accepted, declined, expired, missed.
+    private var sentInviteIds: [UUID: UUID] = [:]
+    private var realtimeListenerToken: UUID?
+    private var currentUserId: UUID?
+
     /// Active report context for a profile card.
     @Published var pendingReport: ReportContext?
 
@@ -53,6 +61,28 @@ final class DiscoveryViewModel: ObservableObject {
     struct ReportContext: Identifiable, Equatable {
         let id = UUID()
         let targetId: UUID
+    }
+
+    // MARK: - Lifecycle
+
+    func attach(userId: UUID) async {
+        guard currentUserId != userId else { return }
+        currentUserId = userId
+        // Watch the user's own invite mutations so a sent-state card
+        // drops the moment the receiver accepts (or it expires) —
+        // without waiting for the 15-second ring to finish.
+        let token = await RealtimeInviteManager.shared.addListener(userId: userId) {
+            [weak self] in
+            Task { await self?.reconcileOutgoingInvites() }
+        }
+        realtimeListenerToken = token
+    }
+
+    func detach() {
+        if let t = realtimeListenerToken {
+            RealtimeInviteManager.shared.removeListener(t)
+            realtimeListenerToken = nil
+        }
     }
 
     // MARK: - Loads
@@ -118,6 +148,7 @@ final class DiscoveryViewModel: ObservableObject {
             // small set, not a longer feed.
             profiles = resp.items
             sendStates = [:]
+            sentInviteIds = [:]
             loadError = nil
         } catch let e as DiscoveryServiceError {
             // Cancellation = the SwiftUI Task was torn down or a newer
@@ -144,8 +175,9 @@ final class DiscoveryViewModel: ObservableObject {
         }
         sendStates[profile.id] = .sending
         do {
-            _ = try await InviteService.shared.sendLiveInvite(receiverId: profile.id)
+            let resp = try await InviteService.shared.sendLiveInvite(receiverId: profile.id)
             sendStates[profile.id] = .sent
+            sentInviteIds[profile.id] = resp.inviteId
             Haptics.success()
         } catch let e as InviteServiceError {
             // If a block was hidden behind a stale row, drop the card.
@@ -165,6 +197,25 @@ final class DiscoveryViewModel: ObservableObject {
 
     func sendState(for profile: DiscoveryProfile) -> CardSendState {
         sendStates[profile.id] ?? .idle
+    }
+
+    /// Triggered on every realtime invite event for the current user.
+    /// Cross-references our locally-tracked sent invite ids against the
+    /// server's outgoing live_pending list — any tracked id missing
+    /// from the server side has left live_pending (accepted, declined,
+    /// expired, missed) and the matching card should drop immediately.
+    private func reconcileOutgoingInvites() async {
+        guard let uid = currentUserId, !sentInviteIds.isEmpty else { return }
+        let pending = (try? await InviteService.shared.fetchOutgoingLivePending(userId: uid)) ?? []
+        let stillPending = Set(pending.map(\.id))
+        for (profileId, inviteId) in sentInviteIds where !stillPending.contains(inviteId) {
+            GALog.discovery.info(
+                "vm.reconcile drop card profile=\(profileId.uuidString, privacy: .public) invite=\(inviteId.uuidString, privacy: .public) reason=outgoing-no-longer-pending"
+            )
+            profiles.removeAll { $0.id == profileId }
+            sendStates.removeValue(forKey: profileId)
+            sentInviteIds.removeValue(forKey: profileId)
+        }
     }
 
     /// Called by the card when its 15-second countdown ring reaches zero.

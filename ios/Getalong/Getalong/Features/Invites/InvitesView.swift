@@ -2,6 +2,7 @@ import SwiftUI
 
 struct InvitesView: View {
     @EnvironmentObject private var session: SessionManager
+    @EnvironmentObject private var missedTracker: MissedInvitesTracker
     @StateObject private var vm = InvitesViewModel()
 
     var body: some View {
@@ -34,14 +35,33 @@ struct InvitesView: View {
             .task {
                 if let uid = currentUserId { await vm.attach(userId: uid) }
             }
+            // Every time the user lands on the Invite tab, force an
+            // immediate refresh so live + missed lists reflect the
+            // latest server state — even if realtime hasn't fired yet
+            // or the websocket was suspended in the background.
+            .onAppear {
+                Task { await vm.refresh() }
+            }
+            // Keep the tab badge in sync with whatever the user is
+            // looking at — every time the VM refreshes (manual or
+            // realtime), push the count to the tracker.
+            .onChange(of: vm.missed.count) { newCount in
+                missedTracker.setMissedCount(newCount)
+            }
+            // Drive the global "someone is inviting me" flag from the
+            // VM's incoming list. Outgoing invites are intentionally
+            // ignored — the sender sees their own countdown ring on
+            // the Discovery card and shouldn't trigger a navbar tint.
+            .onChange(of: vm.incomingLive.count) { count in
+                missedTracker.setHasActiveLiveInvite(count > 0)
+            }
             .onDisappear { Task { await vm.detach() } }
-            .sheet(isPresented: chatCreatedBinding) {
+            // After accepting an invite (live or missed), push the
+            // ChatRoomView directly instead of presenting a "you have a
+            // new chat" sheet. The chat IS the success state.
+            .navigationDestination(isPresented: chatCreatedBinding) {
                 if let id = vm.lastChatRoomId {
-                    ConversationStartedSheet(roomId: id) {
-                        vm.clearLastChat()
-                    }
-                    .presentationDetents([.medium])
-                    .presentationDragIndicator(.visible)
+                    ChatRoomView(roomId: id, partner: nil)
                 }
             }
             .sheet(item: $vm.pendingReport) { ctx in
@@ -49,6 +69,14 @@ struct InvitesView: View {
                     targetType: ctx.targetType,
                     targetId:   ctx.targetId,
                     onClose:    { vm.pendingReport = nil }
+                )
+            }
+            .sheet(item: $vm.pendingBlock) { ctx in
+                BlockUserSheet(
+                    userId: ctx.userId,
+                    displayName: ctx.displayName,
+                    onBlocked: { Task { await vm.confirmBlocked(senderId: ctx.userId) } },
+                    onClose:   { vm.pendingBlock = nil }
                 )
             }
         }
@@ -88,7 +116,7 @@ struct InvitesView: View {
                 GAEmptyState(
                     title: String(localized: "signals.live.empty.title"),
                     message: String(localized: "signals.live.empty.subtitle"),
-                    systemImage: "dot.radiowaves.left.and.right"
+                    systemImage: "envelope"
                 )
             }
         } else {
@@ -127,30 +155,16 @@ struct InvitesView: View {
         } else {
             VStack(spacing: GASpacing.md) {
                 ForEach(vm.missed) { item in
-                    VStack(alignment: .leading, spacing: GASpacing.sm) {
-                        InviteUserCard(
-                            invite: item.invite,
-                            sender: item.sender,
-                            mode:   .missed,
-                            isBusy: vm.processingInviteId == item.invite.id,
-                            onAccept:  { Task { await vm.acceptMissed(item.invite) } },
-                            onDecline: { Task { await vm.decline(item.invite) } },
-                            onReport:  { vm.presentReportInvite(item.invite) }
-                        )
-                        HStack(spacing: GASpacing.sm) {
-                            GAButton(title: String(localized: "signals.decline.notNow"),
-                                     kind: .ghost, size: .compact,
-                                     isDisabled: vm.processingInviteId == item.invite.id) {
-                                Task { await vm.decline(item.invite) }
-                            }
-                            GAButton(title: String(localized: "signals.accept.start"),
-                                     kind: .primary, size: .compact,
-                                     isLoading: vm.processingInviteId == item.invite.id,
-                                     isDisabled: vm.processingInviteId == item.invite.id) {
-                                Task { await vm.acceptMissed(item.invite) }
-                            }
-                        }
-                    }
+                    InviteUserCard(
+                        invite: item.invite,
+                        sender: item.sender,
+                        mode:   .missed,
+                        isBusy: vm.processingInviteId == item.invite.id,
+                        onAccept:  { Task { await vm.acceptMissed(item.invite) } },
+                        onDecline: { Task { await vm.decline(item.invite) } },
+                        onReport:  { vm.presentReportInvite(item.invite) },
+                        onBlock:   { vm.presentBlockSender(item) }
+                    )
                 }
             }
         }

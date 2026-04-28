@@ -95,8 +95,13 @@ Deno.serve(async (req) => {
       .maybeSingle();
     if (mErr) return fail("INTERNAL_ERROR", mErr.message, 500);
     if (!m)   return fail("MEDIA_NOT_FOUND", "Media not found.", 404);
-    if (m.owner_id !== userId) return fail("MEDIA_NOT_OWNED", "Media is not yours.", 403);
-    if (m.room_id  !== room_id) return fail("MEDIA_WRONG_ROOM", "Media not in this room.", 403);
+    // Postgres returns uuids as lowercase strings; the request body may carry
+    // uppercase (Foundation's JSONEncoder default for UUID). Normalize both
+    // sides so the comparison is purely about identity, not case.
+    if ((m.owner_id ?? "").toLowerCase() !== userId.toLowerCase())
+      return fail("MEDIA_NOT_OWNED", "Media is not yours.", 403);
+    if ((m.room_id ?? "").toLowerCase() !== room_id.toLowerCase())
+      return fail("MEDIA_WRONG_ROOM", "Media not in this room.", 403);
     if (m.attached_message_id) return fail("MEDIA_ALREADY_ATTACHED", "Media already sent.", 409);
     if (m.status !== "pending_upload" && m.status !== "active")
       return fail("MEDIA_NOT_ACTIVE", "Media is not in a sendable state.", 409);

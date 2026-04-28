@@ -65,6 +65,13 @@ struct ChatMessageBubble: View {
                                  style: .continuous)
                     .strokeBorder(borderColor, lineWidth: 0.75)
             )
+            // View-once badge in the top-right of the bubble: eye icon
+            // + "1" so the user understands the receiver gets one look
+            // before the media disappears.
+            .overlay(alignment: .topTrailing) {
+                viewOnceBadge
+                    .padding(8)
+            }
 
         return Group {
             if isOpenable {
@@ -76,6 +83,27 @@ struct ChatMessageBubble: View {
                 view
             }
         }
+    }
+
+    private var viewOnceBadge: some View {
+        HStack(spacing: 3) {
+            Image(systemName: "eye.fill")
+                .font(.system(size: 10, weight: .bold))
+            Text("1")
+                .font(.system(size: 11, weight: .bold, design: .rounded))
+                .monospacedDigit()
+        }
+        .foregroundStyle(isMine
+                         ? GAColors.accentText
+                         : GAColors.textPrimary)
+        .padding(.horizontal, 6)
+        .padding(.vertical, 3)
+        .background(
+            Capsule().fill(isMine
+                           ? Color.black.opacity(0.32)
+                           : Color.black.opacity(0.18))
+        )
+        .accessibilityLabel(Text("media.viewOnce.badge"))
     }
 
     @ViewBuilder
