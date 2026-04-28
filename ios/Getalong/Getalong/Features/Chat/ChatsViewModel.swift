@@ -117,8 +117,22 @@ final class ChatsViewModel: ObservableObject {
             // would otherwise trigger a SwiftUI re-render of every row
             // for no reason.
             if next != rows { rows = next }
+            // Successful load — clear any banner left over from a
+            // previous transient failure.
+            errorMessage = nil
+        } catch is CancellationError {
+            // SwiftUI cancels the .refreshable Task when the user lets
+            // go of the pull gesture or navigates away mid-refresh.
+            // That's not a real failure to surface.
         } catch {
-            errorMessage = String(localized: "chat.error.loadFailed")
+            GALog.chat.error("ChatsViewModel.refresh: \(error.localizedDescription)")
+            // Only show the load-failed banner when we have nothing on
+            // screen. If we already have cached rows, a transient
+            // blip during pull-to-refresh shouldn't replace the list
+            // with a scary error — realtime / next pull will catch up.
+            if rows.isEmpty {
+                errorMessage = String(localized: "chat.error.loadFailed")
+            }
         }
     }
 
