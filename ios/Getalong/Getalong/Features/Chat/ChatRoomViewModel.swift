@@ -185,15 +185,19 @@ final class ChatRoomViewModel: ObservableObject {
     /// bumps a counter, app fetches the delta, appends — no
     /// re-rendering the entire conversation.
     private func catchUpMessages() async {
-        guard let after = messages.last?.createdAt else {
+        guard let last = messages.last else {
             // No baseline (empty conversation) — do a single full
             // load. Idempotent and only happens once.
             await reload()
             return
         }
         do {
+            // Tie-break on (created_at, id) so two messages inserted
+            // with the same timestamp don't get skipped or duplicated.
             let new = try await ChatService.shared.fetchMessages(
-                roomId: roomId, since: after
+                roomId: roomId,
+                sinceCreatedAt: last.createdAt,
+                sinceId: last.id
             )
             guard !new.isEmpty else { return }
             var changed = false

@@ -87,22 +87,34 @@ final class ChatService {
         return result.first
     }
 
-    /// Messages strictly newer than `since`, ascending. Returns an
-    /// empty array when nothing has changed. This is the catch-up
-    /// path used by ChatRoomViewModel when a chat_rooms UPDATE event
-    /// fires (which we get even when the per-room realtime channel
-    /// is hung mid-subscribe). Much cheaper than fetching the last
-    /// 50 — typically zero or one row.
-    func fetchMessages(roomId: UUID, since: Date) async throws -> [Message] {
+    /// Messages strictly newer than `(sinceCreatedAt, sinceId)`,
+    /// ascending. Returns an empty array when nothing has changed.
+    /// Used by ChatRoomViewModel for incremental catch-up when a
+    /// chat_rooms UPDATE event fires; typically zero or one row.
+    ///
+    /// The `(created_at, id)` tie-break protects against the edge
+    /// case where two messages share the exact same `created_at`
+    /// (Postgres `now()` is usually µs-precise but two messages
+    /// inserted in the same statement / under high concurrency can
+    /// collide). A pure `created_at > X` filter would either skip
+    /// or duplicate one of them depending on the previous fetch's
+    /// last row. Ordering matches the filter for stable pagination
+    /// at boundaries.
+    func fetchMessages(roomId: UUID, sinceCreatedAt: Date, sinceId: UUID) async throws -> [Message] {
         do {
-            let iso = Self.iso8601WithFractions.string(from: since)
+            let iso = Self.iso8601WithFractions.string(from: sinceCreatedAt)
+            // `created_at.gt.X  OR  (created_at.eq.X AND id.gt.Y)` —
+            // PostgREST `or=` syntax. and(...) groups inside or(...)
+            // is supported.
+            let orClause = "created_at.gt.\(iso),and(created_at.eq.\(iso),id.gt.\(sinceId.uuidString.lowercased()))"
             return try await Supa.client
                 .from("messages")
                 .select()
                 .eq("room_id", value: roomId)
                 .eq("is_deleted", value: false)
-                .gt("created_at", value: iso)
+                .or(orClause)
                 .order("created_at", ascending: true)
+                .order("id", ascending: true)
                 .execute()
                 .value
         } catch {
