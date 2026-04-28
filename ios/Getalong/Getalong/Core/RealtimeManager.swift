@@ -190,11 +190,14 @@ final class RealtimeChatManager {
 
     func removeListener(_ token: UUID) {
         listeners.removeValue(forKey: token)
-        // Tear the channel down once the last listener is gone — saves
-        // a websocket while the user isn't in any room.
-        if listeners.isEmpty {
-            Task { @MainActor [weak self] in await self?.stop() }
-        }
+        // No auto-stop. Doing so racily tore the channel down: if the
+        // user navigated back into the same chat (or SwiftUI rebuilt
+        // ChatRoomView), `addListener` could fire before our queued
+        // `stop()` Task ran, the new listener got registered against
+        // an attachedRoomId we then cleared, and the next subscribe
+        // ran on a stale cached channel — chat went silent until a
+        // manual reload. Channel sticks until explicit `stop()` (sign
+        // out) or until a different room reattaches.
     }
 
     private func connect(roomId: UUID) async {

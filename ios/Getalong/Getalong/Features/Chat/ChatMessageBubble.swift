@@ -14,18 +14,19 @@ struct ChatMessageBubble: View {
     let onTapMedia: (() -> Void)?
 
     var body: some View {
+        // Outer row anchors the bubble to the correct side. The time
+        // chip lives *inside* the bubble (bottom-right), like
+        // WhatsApp/Telegram, so we don't render a separate trailing
+        // timestamp here.
         HStack(alignment: .bottom, spacing: 0) {
             if isMine { Spacer(minLength: GASpacing.xxxl) }
-            VStack(alignment: isMine ? .trailing : .leading, spacing: 2) {
-                bubbleBody
-                Text(message.createdAt.formatted(date: .omitted, time: .shortened))
-                    .font(GATypography.caption)
-                    .foregroundStyle(GAColors.textTertiary)
-                    .padding(.horizontal, 4)
-            }
-            .frame(alignment: isMine ? .trailing : .leading)
+            bubbleBody
             if !isMine { Spacer(minLength: GASpacing.xxxl) }
         }
+    }
+
+    private var formattedTime: String {
+        message.createdAt.formatted(date: .omitted, time: .shortened)
     }
 
     @ViewBuilder
@@ -48,21 +49,43 @@ struct ChatMessageBubble: View {
     }
 
     private var textBubble: some View {
-        Text(message.body ?? "")
+        // Time floats at the bottom-right inside the bubble. We add
+        // trailing+bottom padding to the body text so the timestamp
+        // never overlaps the last line. Tail-side padding is widened
+        // by `tailWidth` so the body stays clear of the speech tail.
+        let tailW: CGFloat = ChatBubbleShape.tailWidth
+
+        return Text(message.body ?? "")
             .font(GATypography.body)
             .foregroundStyle(textColor)
             .lineSpacing(2)
             .multilineTextAlignment(.leading)
-            .padding(.horizontal, GASpacing.md)
-            .padding(.vertical, 10)
-            .background(bubbleFill)
-            .clipShape(RoundedRectangle(cornerRadius: GACornerRadius.large,
-                                        style: .continuous))
+            .padding(.top, 8)
+            .padding(.bottom, 6)
+            .padding(.leading, isMine ? 12 : 12 + tailW)
+            .padding(.trailing, 64 + (isMine ? tailW : 0))
+            .overlay(alignment: .bottomTrailing) {
+                Text(formattedTime)
+                    .font(.system(size: 11, weight: .medium))
+                    .monospacedDigit()
+                    .foregroundStyle(timeColor)
+                    .padding(.bottom, 4)
+                    .padding(.trailing, 10 + (isMine ? tailW : 0))
+            }
+            .background(ChatBubbleShape(isMine: isMine).fill(bubbleFill))
             .overlay(
-                RoundedRectangle(cornerRadius: GACornerRadius.large,
-                                 style: .continuous)
-                    .strokeBorder(borderColor, lineWidth: 0.75)
+                ChatBubbleShape(isMine: isMine)
+                    .stroke(borderColor, lineWidth: 0.75)
             )
+    }
+
+    private var timeColor: Color {
+        // On the accent-filled outgoing bubble we need a light
+        // translucent white. On the receiver bubble (surface fill)
+        // tertiary text reads correctly already.
+        isMine
+            ? GAColors.accentText.opacity(0.75)
+            : GAColors.textTertiary
     }
 
     private var expiredTextBubble: some View {
@@ -104,22 +127,26 @@ struct ChatMessageBubble: View {
     // MARK: - Media bubble
 
     private var mediaBubble: some View {
+        let tailW = ChatBubbleShape.tailWidth
         let view = mediaContent
             .frame(width: 220, height: 220)
-            .background(bubbleFill)
-            .clipShape(RoundedRectangle(cornerRadius: GACornerRadius.large,
-                                        style: .continuous))
+            // Reserve `tailWidth` on the tail side so the shape's tail
+            // sits in unused padding — the media content stays a full
+            // 220×220 inside the bubble's body portion.
+            .padding(.trailing, isMine ? tailW : 0)
+            .padding(.leading,  isMine ? 0 : tailW)
+            .background(ChatBubbleShape(isMine: isMine).fill(bubbleFill))
+            .clipShape(ChatBubbleShape(isMine: isMine))
             .overlay(
-                RoundedRectangle(cornerRadius: GACornerRadius.large,
-                                 style: .continuous)
-                    .strokeBorder(borderColor, lineWidth: 0.75)
+                ChatBubbleShape(isMine: isMine)
+                    .stroke(borderColor, lineWidth: 0.75)
             )
-            // View-once badge in the top-right of the bubble: eye icon
-            // + "1" so the user understands the receiver gets one look
-            // before the media disappears.
+            // View-once badge in the top-right of the bubble body
+            // (offset inward past the tail on the sender side).
             .overlay(alignment: .topTrailing) {
                 viewOnceBadge
-                    .padding(8)
+                    .padding(.top, 8)
+                    .padding(.trailing, 8 + (isMine ? tailW : 0))
             }
 
         return Group {
@@ -355,5 +382,99 @@ struct ChatMessageBubble: View {
 
     private var borderColor: Color {
         isMine ? Color.clear : GAColors.border
+    }
+}
+
+// MARK: - Bubble shape with speech tail
+
+/// Rounded-rect chat bubble with a small speech tail at the bottom-
+/// trailing corner. Mine -> tail at bottom-right; theirs -> bottom-left.
+/// The tail is drawn entirely inside `rect`, so callers must reserve
+/// `tailWidth` of horizontal padding on the tail side via the body
+/// content insets.
+struct ChatBubbleShape: Shape {
+    let isMine: Bool
+    static let tailWidth: CGFloat = 6
+    private let radius: CGFloat = 18
+    private let tailHeight: CGFloat = 12
+
+    func path(in rect: CGRect) -> Path {
+        var p = Path()
+        let r = radius
+        let tw = Self.tailWidth
+        let th = tailHeight
+        let minX = rect.minX, maxX = rect.maxX
+        let minY = rect.minY, maxY = rect.maxY
+
+        if isMine {
+            // Body occupies left portion; tail extends to maxX.
+            let bodyMaxX = maxX - tw
+
+            // top-left corner
+            p.move(to: CGPoint(x: minX, y: minY + r))
+            p.addArc(center: CGPoint(x: minX + r, y: minY + r),
+                     radius: r,
+                     startAngle: .degrees(180), endAngle: .degrees(270),
+                     clockwise: false)
+            // top edge to top-right corner
+            p.addLine(to: CGPoint(x: bodyMaxX - r, y: minY))
+            p.addArc(center: CGPoint(x: bodyMaxX - r, y: minY + r),
+                     radius: r,
+                     startAngle: .degrees(270), endAngle: .degrees(0),
+                     clockwise: false)
+            // right edge down to where the tail begins
+            p.addLine(to: CGPoint(x: bodyMaxX, y: maxY - th))
+            // tail: curve out to the tip then back to body bottom edge
+            p.addQuadCurve(
+                to: CGPoint(x: maxX, y: maxY),
+                control: CGPoint(x: bodyMaxX, y: maxY - th * 0.35)
+            )
+            p.addQuadCurve(
+                to: CGPoint(x: bodyMaxX - r, y: maxY),
+                control: CGPoint(x: bodyMaxX - r * 0.6, y: maxY)
+            )
+            // bottom edge back to bottom-left corner
+            p.addLine(to: CGPoint(x: minX + r, y: maxY))
+            p.addArc(center: CGPoint(x: minX + r, y: maxY - r),
+                     radius: r,
+                     startAngle: .degrees(90), endAngle: .degrees(180),
+                     clockwise: false)
+            p.closeSubpath()
+        } else {
+            // Body occupies right portion; tail extends to minX.
+            let bodyMinX = minX + tw
+
+            // top-right corner
+            p.move(to: CGPoint(x: maxX, y: minY + r))
+            p.addArc(center: CGPoint(x: maxX - r, y: minY + r),
+                     radius: r,
+                     startAngle: .degrees(0), endAngle: .degrees(-90),
+                     clockwise: true)
+            // top edge to top-left corner
+            p.addLine(to: CGPoint(x: bodyMinX + r, y: minY))
+            p.addArc(center: CGPoint(x: bodyMinX + r, y: minY + r),
+                     radius: r,
+                     startAngle: .degrees(-90), endAngle: .degrees(180),
+                     clockwise: true)
+            // left edge down to tail start
+            p.addLine(to: CGPoint(x: bodyMinX, y: maxY - th))
+            // tail: curve out left-and-down then back
+            p.addQuadCurve(
+                to: CGPoint(x: minX, y: maxY),
+                control: CGPoint(x: bodyMinX, y: maxY - th * 0.35)
+            )
+            p.addQuadCurve(
+                to: CGPoint(x: bodyMinX + r, y: maxY),
+                control: CGPoint(x: bodyMinX + r * 0.6, y: maxY)
+            )
+            // bottom edge to bottom-right corner
+            p.addLine(to: CGPoint(x: maxX - r, y: maxY))
+            p.addArc(center: CGPoint(x: maxX - r, y: maxY - r),
+                     radius: r,
+                     startAngle: .degrees(90), endAngle: .degrees(0),
+                     clockwise: true)
+            p.closeSubpath()
+        }
+        return p
     }
 }
