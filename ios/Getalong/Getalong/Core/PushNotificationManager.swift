@@ -3,6 +3,19 @@ import UIKit
 import UserNotifications
 import Supabase
 
+extension Notification.Name {
+    /// Posted on the main thread by `PushNotificationManager` when an
+    /// APNs payload of type `live_signal_received` arrives while the
+    /// app is in the foreground. `MissedInvitesTracker` listens and
+    /// triggers an immediate refresh so the navbar tint comes up the
+    /// moment the push lands — independent of the realtime websocket
+    /// (which can fail with CancellationError at sign-in and only
+    /// recovers on its own retry path).
+    static let gaLiveInvitePushReceived = Notification.Name(
+        "ga.push.liveInviteReceived"
+    )
+}
+
 /// Coordinates APNs registration, token upload to the Getalong backend, and
 /// notification-tap routing for in-app navigation.
 ///
@@ -181,7 +194,18 @@ extension PushNotificationManager: UNUserNotificationCenterDelegate {
         let roomString = (userInfo["room_id"] as? String)
             ?? (userInfo["chat_room_id"] as? String)
         let pushRoom = roomString.flatMap(UUID.init(uuidString:))
+        let pushType = userInfo["type"] as? String
         Task { @MainActor in
+            // Live-invite pushes drive the navbar accent tint. Post
+            // before the banner decision so the tracker refreshes even
+            // when the user is sitting on a tab that suppresses the
+            // banner. Refreshing is idempotent and coalesced inside
+            // the tracker, so it's safe to fire on every live push.
+            if pushType == "live_signal_received" {
+                NotificationCenter.default.post(
+                    name: .gaLiveInvitePushReceived, object: nil
+                )
+            }
             if let pushRoom, pushRoom == ChatPresence.shared.currentRoomId {
                 completionHandler([])
             } else {

@@ -32,6 +32,12 @@ final class RealtimeInviteManager {
     /// CancellationError" + "Cannot add postgres_changes after
     /// subscribe" warnings we used to see at launch.
     private var connectTask: Task<Void, Never>?
+    /// Background retry after a failed `subscribeWithError`. Without
+    /// it, a launch-time race that throws CancellationError leaves the
+    /// socket dead until something else (tab nav, foreground, etc.)
+    /// calls `addListener` — meaning the navbar tint and InvitesView
+    /// updates only land when the user manually triggers a refresh.
+    private var subscribeRetryTask: Task<Void, Never>?
 
     /// Register a listener for invite changes for `userId`. Returns a
     /// token; pass it back to `removeListener` when the caller goes
@@ -114,8 +120,13 @@ final class RealtimeInviteManager {
             // Release the half-subscribed channel from the SDK cache
             // so a retry doesn't reuse it.
             await Supa.client.realtimeV2.removeChannel(ch)
+            scheduleSubscribeRetry(userId: userId, attempt: 1)
             return
         }
+        // Subscribe succeeded — drop any pending retry for an earlier
+        // failed attempt.
+        subscribeRetryTask?.cancel()
+        subscribeRetryTask = nil
         channel = ch
         attachedUserId = userId
 
@@ -129,6 +140,36 @@ final class RealtimeInviteManager {
         }
     }
 
+    /// Backoff retry after a failed `subscribeWithError`. 1s, 2s, 4s,
+    /// 8s, 16s, then give up — at which point the polling fallback
+    /// and the foreground/lifecycle observers carry the load until
+    /// something else triggers another `addListener`.
+    private func scheduleSubscribeRetry(userId: UUID, attempt: Int) {
+        guard attempt <= 5 else {
+            GALog.invite.error("realtime subscribe retry: giving up after \(attempt - 1) attempts")
+            return
+        }
+        subscribeRetryTask?.cancel()
+        subscribeRetryTask = Task { @MainActor [weak self] in
+            let delaySec = pow(2.0, Double(attempt - 1))
+            try? await Task.sleep(nanoseconds: UInt64(delaySec * 1_000_000_000))
+            guard !Task.isCancelled, let self else { return }
+            // If a sibling addListener already kicked off a connect
+            // (or one already succeeded), don't double up.
+            guard self.connectTask == nil else { return }
+            guard self.attachedUserId == nil || self.attachedUserId == userId else { return }
+            // Re-enter via connectTask so any concurrent addListener
+            // serialises on us.
+            let task: Task<Void, Never> = Task { @MainActor [weak self] in
+                guard let self else { return }
+                await self.connect(userId: userId)
+            }
+            self.connectTask = task
+            await task.value
+            self.connectTask = nil
+        }
+    }
+
     private func fanout() async {
         // Snapshot so a listener that removes itself mid-iteration
         // doesn't mutate the array under us.
@@ -139,6 +180,8 @@ final class RealtimeInviteManager {
     func stop() async {
         task?.cancel()
         task = nil
+        subscribeRetryTask?.cancel()
+        subscribeRetryTask = nil
         listeners.removeAll()
         attachedUserId = nil
         // removeChannel both unsubscribes AND drops the entry from the
@@ -316,6 +359,7 @@ final class RealtimeChatRoomsManager {
     private var listeners: [UUID: Listener] = [:]
     private var attachedUserId: UUID?
     private var connectTask: Task<Void, Never>?
+    private var subscribeRetryTask: Task<Void, Never>?
 
     @discardableResult
     func addListener(userId: UUID, onChange: @escaping Listener) async -> UUID {
@@ -366,8 +410,11 @@ final class RealtimeChatRoomsManager {
         catch {
             GALog.chat.error("realtime chat_rooms subscribe failed: \(error.localizedDescription)")
             await Supa.client.realtimeV2.removeChannel(ch)
+            scheduleSubscribeRetry(userId: userId, attempt: 1)
             return
         }
+        subscribeRetryTask?.cancel()
+        subscribeRetryTask = nil
         channel = ch
         attachedUserId = userId
 
@@ -381,6 +428,28 @@ final class RealtimeChatRoomsManager {
         }
     }
 
+    private func scheduleSubscribeRetry(userId: UUID, attempt: Int) {
+        guard attempt <= 5 else {
+            GALog.chat.error("realtime chat_rooms subscribe retry: giving up after \(attempt - 1) attempts")
+            return
+        }
+        subscribeRetryTask?.cancel()
+        subscribeRetryTask = Task { @MainActor [weak self] in
+            let delaySec = pow(2.0, Double(attempt - 1))
+            try? await Task.sleep(nanoseconds: UInt64(delaySec * 1_000_000_000))
+            guard !Task.isCancelled, let self else { return }
+            guard self.connectTask == nil else { return }
+            guard self.attachedUserId == nil || self.attachedUserId == userId else { return }
+            let task: Task<Void, Never> = Task { @MainActor [weak self] in
+                guard let self else { return }
+                await self.connect(userId: userId)
+            }
+            self.connectTask = task
+            await task.value
+            self.connectTask = nil
+        }
+    }
+
     private func fanout() async {
         let snapshot = Array(listeners.values)
         for listener in snapshot { listener() }
@@ -388,6 +457,7 @@ final class RealtimeChatRoomsManager {
 
     func stop() async {
         task?.cancel(); task = nil
+        subscribeRetryTask?.cancel(); subscribeRetryTask = nil
         listeners.removeAll()
         attachedUserId = nil
         if let channel { await Supa.client.realtimeV2.removeChannel(channel) }

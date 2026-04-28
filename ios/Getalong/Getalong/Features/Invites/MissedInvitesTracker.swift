@@ -45,6 +45,7 @@ final class MissedInvitesTracker: ObservableObject {
 
     private var foregroundObserver: NSObjectProtocol?
     private var backgroundObserver: NSObjectProtocol?
+    private var livePushObserver: NSObjectProtocol?
     private var realtimeListenerToken: UUID?
     private var realtimeHealthy: Bool = false
     private(set) var currentUserId: UUID?
@@ -84,6 +85,10 @@ final class MissedInvitesTracker: ObservableObject {
         if let token = backgroundObserver {
             NotificationCenter.default.removeObserver(token)
             backgroundObserver = nil
+        }
+        if let token = livePushObserver {
+            NotificationCenter.default.removeObserver(token)
+            livePushObserver = nil
         }
         if let token = realtimeListenerToken {
             RealtimeInviteManager.shared.removeListener(token)
@@ -237,6 +242,20 @@ final class MissedInvitesTracker: ObservableObject {
                     self.stopPolling()
                     self.realtimeHealthy = false  // re-verify on resume
                 }
+            }
+        }
+        // Foreground APNs push for a live invite — the realtime
+        // websocket can fail to subscribe at sign-in (CancellationError)
+        // and only recovers via its own retry path. Pushes always
+        // arrive, so this gives the navbar tint a fast, reliable
+        // signal independent of the socket.
+        if livePushObserver == nil {
+            livePushObserver = NotificationCenter.default.addObserver(
+                forName: .gaLiveInvitePushReceived,
+                object: nil, queue: .main
+            ) { [weak self] _ in
+                guard let self else { return }
+                Task { @MainActor in self.scheduleRefresh() }
             }
         }
     }
