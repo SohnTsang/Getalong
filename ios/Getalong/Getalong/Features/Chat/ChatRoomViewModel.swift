@@ -343,17 +343,21 @@ final class ChatRoomViewModel: ObservableObject {
             Task { @MainActor in
                 guard let self else { return }
                 self.pendingMedia.removeAll { $0.id == item.id }
+                // Cache the sender's local thumbnail unconditionally —
+                // the realtime INSERT can race the send response and
+                // hydrate `messages` (via reloadOnRealtimeInsert)
+                // before this onSuccess fires. If we gated the
+                // thumbnail cache on "wasn't already in messages",
+                // the bubble would lose its blurred backdrop and
+                // fall back to the abstract orange placeholder.
+                if let mid = message.mediaId {
+                    if let thumb { self.localMediaThumbnails[mid] = thumb }
+                    if let asset = try? await MediaService.shared.fetchAsset(id: mid) {
+                        self.mediaAssets[mid] = asset
+                    }
+                }
                 if !self.messages.contains(where: { $0.id == message.id }) {
                     self.messages.append(message)
-                    if let mid = message.mediaId {
-                        // Keep the sender's own thumbnail around so the
-                        // bubble can render a blurred-with-noise backdrop
-                        // (instead of the pure obscured placeholder).
-                        if let thumb { self.localMediaThumbnails[mid] = thumb }
-                        if let asset = try? await MediaService.shared.fetchAsset(id: mid) {
-                            self.mediaAssets[mid] = asset
-                        }
-                    }
                 }
                 self.mediaController = nil
             }
@@ -415,14 +419,14 @@ final class ChatRoomViewModel: ObservableObject {
             Task { @MainActor in
                 guard let self else { return }
                 self.pendingMedia.removeAll { $0.id == id }
+                if let mid = message.mediaId {
+                    if let thumb { self.localMediaThumbnails[mid] = thumb }
+                    if let asset = try? await MediaService.shared.fetchAsset(id: mid) {
+                        self.mediaAssets[mid] = asset
+                    }
+                }
                 if !self.messages.contains(where: { $0.id == message.id }) {
                     self.messages.append(message)
-                    if let mid = message.mediaId {
-                        if let thumb { self.localMediaThumbnails[mid] = thumb }
-                        if let asset = try? await MediaService.shared.fetchAsset(id: mid) {
-                            self.mediaAssets[mid] = asset
-                        }
-                    }
                 }
                 self.mediaController = nil
             }
