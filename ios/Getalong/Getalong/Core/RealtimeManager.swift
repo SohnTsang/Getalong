@@ -352,7 +352,15 @@ final class RealtimeChatRoomsManager {
     static let shared = RealtimeChatRoomsManager()
     private init() {}
 
-    typealias Listener = () -> Void
+    /// Decoded event for a chat-rooms postgres-change. Listeners
+    /// receive the inserted/updated row directly so they can patch
+    /// their cache in place — no full re-fetch needed for the common
+    /// "a new message bumped last_message_at" case.
+    enum Event {
+        case roomUpserted(ChatRoom?)
+    }
+
+    typealias Listener = (Event) -> Void
 
     private var channel: RealtimeChannelV2?
     private var task: Task<Void, Never>?
@@ -360,6 +368,26 @@ final class RealtimeChatRoomsManager {
     private var attachedUserId: UUID?
     private var connectTask: Task<Void, Never>?
     private var subscribeRetryTask: Task<Void, Never>?
+
+    /// Decoder for postgres-change payloads. Mirrors RealtimeChatManager:
+    /// realtime payloads sometimes arrive without fractional seconds
+    /// even though our PostgREST fetches include them.
+    nonisolated(unsafe) private static let decoder: JSONDecoder = {
+        let d = JSONDecoder()
+        d.dateDecodingStrategy = .custom { decoder in
+            let s = try decoder.singleValueContainer().decode(String.self)
+            let f = ISO8601DateFormatter()
+            f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            if let d = f.date(from: s) { return d }
+            f.formatOptions = [.withInternetDateTime]
+            if let d = f.date(from: s) { return d }
+            throw DecodingError.dataCorrupted(.init(
+                codingPath: decoder.codingPath,
+                debugDescription: "Invalid ISO-8601 date: \(s)"
+            ))
+        }
+        return d
+    }()
 
     @discardableResult
     func addListener(userId: UUID, onChange: @escaping Listener) async -> UUID {
@@ -420,10 +448,38 @@ final class RealtimeChatRoomsManager {
 
         task = Task { [weak self] in
             await withTaskGroup(of: Void.self) { group in
-                group.addTask { for await _ in aInserts { await self?.fanout() } }
-                group.addTask { for await _ in aUpdates { await self?.fanout() } }
-                group.addTask { for await _ in bInserts { await self?.fanout() } }
-                group.addTask { for await _ in bUpdates { await self?.fanout() } }
+                group.addTask {
+                    for await action in aInserts {
+                        let room = try? action.decodeRecord(
+                            as: ChatRoom.self, decoder: Self.decoder
+                        )
+                        await self?.fanout(.roomUpserted(room))
+                    }
+                }
+                group.addTask {
+                    for await action in aUpdates {
+                        let room = try? action.decodeRecord(
+                            as: ChatRoom.self, decoder: Self.decoder
+                        )
+                        await self?.fanout(.roomUpserted(room))
+                    }
+                }
+                group.addTask {
+                    for await action in bInserts {
+                        let room = try? action.decodeRecord(
+                            as: ChatRoom.self, decoder: Self.decoder
+                        )
+                        await self?.fanout(.roomUpserted(room))
+                    }
+                }
+                group.addTask {
+                    for await action in bUpdates {
+                        let room = try? action.decodeRecord(
+                            as: ChatRoom.self, decoder: Self.decoder
+                        )
+                        await self?.fanout(.roomUpserted(room))
+                    }
+                }
             }
         }
     }
@@ -450,9 +506,9 @@ final class RealtimeChatRoomsManager {
         }
     }
 
-    private func fanout() async {
+    private func fanout(_ event: Event) async {
         let snapshot = Array(listeners.values)
-        for listener in snapshot { listener() }
+        for listener in snapshot { listener(event) }
     }
 
     func stop() async {

@@ -150,7 +150,7 @@ final class ChatRoomViewModel: ObservableObject {
             guard let self else { return }
             let token = await RealtimeChatRoomsManager.shared.addListener(
                 userId: currentUserId
-            ) { [weak self] in
+            ) { [weak self] _ in
                 Task { @MainActor in await self?.checkRoomActive() }
             }
             await MainActor.run { self.roomsListenerToken = token }

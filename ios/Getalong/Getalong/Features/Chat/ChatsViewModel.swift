@@ -6,7 +6,7 @@ import UIKit
 /// and an optional last-message preview.
 struct ChatRow: Identifiable, Hashable {
     let id: UUID                 // room id
-    let room: ChatRoom
+    var room: ChatRoom
     var partner: Profile?
     var lastMessage: Message?
 
@@ -47,10 +47,62 @@ final class ChatsViewModel: ObservableObject {
             guard let self else { return }
             let token = await RealtimeChatRoomsManager.shared.addListener(
                 userId: userId
-            ) { [weak self] in
-                Task { await self?.refresh() }
+            ) { [weak self] event in
+                Task { @MainActor in await self?.applyRealtimeEvent(event) }
             }
             await MainActor.run { self.realtimeToken = token }
+        }
+    }
+
+    /// Patch the affected row in place instead of refetching every
+    /// chat. This is what gives WhatsApp / Telegram-style instant
+    /// updates: a new message lands → chat_rooms.last_message_at
+    /// changes → realtime fires UPDATE → we replace just that row's
+    /// `room` and pull a single fetchMessages(limit:1) for it. The
+    /// list re-sorts to top automatically and the unread dot lights
+    /// up the moment lastMessage updates.
+    private func applyRealtimeEvent(_ event: RealtimeChatRoomsManager.Event) async {
+        guard let me = currentUserId else { return }
+        switch event {
+        case .roomUpserted(let room):
+            // Decode failure → fall back to a full refresh so we never
+            // silently miss state.
+            guard let room else { await refresh(); return }
+
+            // Status flipped to deleted/blocked: drop the row.
+            if room.status != .active {
+                if let idx = rows.firstIndex(where: { $0.id == room.id }) {
+                    rows.remove(at: idx)
+                }
+                return
+            }
+
+            if let idx = rows.firstIndex(where: { $0.id == room.id }) {
+                // Existing room: patch room + fetch only its newest
+                // message. One PostgREST round-trip instead of N+1.
+                var updated = rows[idx]
+                updated.room = room
+                if let last = (try? await ChatService.shared.fetchMessages(
+                    roomId: room.id, limit: 1
+                ))?.last {
+                    updated.lastMessage = last
+                }
+                rows[idx] = updated
+                // Re-sort by activity so the just-updated room jumps
+                // to the top, matching the order ChatService.fetchRooms
+                // returns.
+                rows.sort { lhs, rhs in
+                    let l = lhs.room.lastMessageAt ?? lhs.room.createdAt
+                    let r = rhs.room.lastMessageAt ?? rhs.room.createdAt
+                    return l > r
+                }
+            } else {
+                // New room (e.g. the user just accepted an invite from
+                // another device): need partner profile too — fall back
+                // to a full refresh.
+                _ = me   // silence unused warning when refresh path is taken
+                await refresh()
+            }
         }
     }
 
