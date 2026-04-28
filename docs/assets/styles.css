@@ -241,10 +241,11 @@ img, svg { display: block; max-width: 100%; }
   padding: 22px;
 }
 .float-card-main {
-  top: 18%; left: 6%;
-  width: 64%;
-  transform: rotate(-2deg);
+  top: 28%; left: 50%;
+  transform: translate(-50%, -10%) rotate(-2deg);
+  width: 78%;
   z-index: 2;
+  padding: 26px 26px 22px;
 }
 .float-card-mini {
   bottom: 6%; right: 0;
@@ -280,9 +281,9 @@ img, svg { display: block; max-width: 100%; }
 .line-quote {
   font-family: var(--serif);
   font-weight: 400;
-  font-size: 17px;
+  font-size: 19px;
   line-height: 1.4;
-  margin: 0 0 14px;
+  margin: 0 0 18px;
   color: var(--text);
   letter-spacing: -0.005em;
 }
@@ -696,9 +697,17 @@ img, svg { display: block; max-width: 100%; }
 /* ───────── Footer ───────── */
 .site-footer {
   border-top: 1px solid var(--border);
-  padding-block: 48px 32px;
+  padding-block: 36px 32px;
   font-size: 14.5px;
   color: var(--muted);
+}
+.safety-line {
+  margin: 0 auto 28px;
+  color: var(--soft);
+  font-size: 13px;
+  line-height: 1.55;
+  max-width: 60ch;
+  text-align: center;
 }
 .foot-grid {
   display: grid;
