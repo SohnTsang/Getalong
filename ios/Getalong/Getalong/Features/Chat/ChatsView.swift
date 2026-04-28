@@ -177,6 +177,7 @@ struct ChatsView: View {
 private struct ChatRowView: View {
     let row: ChatRow
     let currentUserId: UUID?
+    @ObservedObject private var readState = ChatReadState.shared
 
     var body: some View {
         GACard(kind: .interactive, padding: GASpacing.lg) {
@@ -193,10 +194,13 @@ private struct ChatRowView: View {
 
                     if let preview = lastMessagePreview {
                         Text(preview.text)
-                            .font(GATypography.callout)
-                            .foregroundStyle(preview.isPlaceholder
-                                ? GAColors.textTertiary
-                                : GAColors.textSecondary)
+                            .font(hasUnread ? GATypography.bodyEmphasized : GATypography.callout)
+                            .foregroundStyle(
+                                preview.isPlaceholder
+                                    ? GAColors.textTertiary
+                                    : (hasUnread
+                                        ? GAColors.textPrimary
+                                        : GAColors.textSecondary))
                             .lineLimit(1)
                     } else {
                         Text("chats.row.noMessage")
@@ -206,13 +210,30 @@ private struct ChatRowView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-                Text(lastActivityStamp)
-                    .font(GATypography.caption)
-                    .foregroundStyle(GAColors.textTertiary)
-                    .monospacedDigit()
-                    .fixedSize()
+                VStack(alignment: .trailing, spacing: 6) {
+                    Text(lastActivityStamp)
+                        .font(GATypography.caption)
+                        .foregroundStyle(hasUnread
+                            ? GAColors.accent
+                            : GAColors.textTertiary)
+                        .monospacedDigit()
+                        .fixedSize()
+                    Spacer(minLength: 0)
+                    if hasUnread {
+                        Circle()
+                            .fill(GAColors.accent)
+                            .frame(width: 9, height: 9)
+                    }
+                }
             }
         }
+    }
+
+    private var hasUnread: Bool {
+        // Re-read on every revision bump from ChatReadState so the
+        // dot disappears the moment the user opens the room.
+        _ = readState.revision
+        return readState.hasUnread(row, currentUserId: currentUserId)
     }
 
     /// Circle avatar containing the first letter of the partner's line —

@@ -107,6 +107,8 @@ final class ChatRoomViewModel: ObservableObject {
         // Mark the user as present in this room so the push delegate
         // can suppress banners for incoming messages from this chat.
         ChatPresence.shared.enter(roomId)
+        // Opening the room counts as "I've seen everything up to now".
+        ChatReadState.shared.markRead(roomId)
 
         if partner == nil {
             if let room = try? await ChatService.shared.fetchRoom(id: roomId) {
@@ -278,6 +280,9 @@ final class ChatRoomViewModel: ObservableObject {
                         mediaAssets[mid] = asset
                     }
                 }
+                // We're inside the room when the message arrived, so
+                // it's seen the moment it appears — no unread dot.
+                ChatReadState.shared.markRead(roomId, at: msg.createdAt)
             } else {
                 await reloadOnRealtimeInsert()
             }
