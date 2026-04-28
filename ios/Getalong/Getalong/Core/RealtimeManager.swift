@@ -23,14 +23,15 @@ final class RealtimeInviteManager {
     private var task: Task<Void, Never>?
     private var listeners: [UUID: Listener] = [:]
     private var attachedUserId: UUID?
-    /// Set synchronously at the top of `connect()` so a concurrent
-    /// `addListener` won't kick off a second connect for the same user
-    /// while the first is still awaiting `subscribeWithError`. Without
-    /// this guard, two listeners attaching during launch each ran
-    /// connect → both got the SDK-cached channel back → the second
-    /// call's 4 `postgresChange` registrations landed after subscribe
-    /// and the SDK printed "Cannot add postgres_changes after subscribe".
-    private var connectingUserId: UUID?
+    /// Serialises connect attempts. The first caller for a given user
+    /// installs this; concurrent callers `await` it and skip their own
+    /// connect. Without serialisation, two `addListener` calls at
+    /// launch both pass the `attachedUserId == nil` check, both run
+    /// `stop()` (clobbering each other's mid-flight subscribe) and
+    /// both run `connect()` — yielding the "subscribe failed:
+    /// CancellationError" + "Cannot add postgres_changes after
+    /// subscribe" warnings we used to see at launch.
+    private var connectTask: Task<Void, Never>?
 
     /// Register a listener for invite changes for `userId`. Returns a
     /// token; pass it back to `removeListener` when the caller goes
@@ -38,15 +39,18 @@ final class RealtimeInviteManager {
     /// for the same userId reuse it.
     @discardableResult
     func addListener(userId: UUID, onChange: @escaping Listener) async -> UUID {
-        // Connect only when this is a brand-new user AND no other
-        // attach is already in flight for the same user. Both checks
-        // matter: `attachedUserId` is set after subscribe completes,
-        // `connectingUserId` is set synchronously at the top of
-        // connect() — together they cover the racy "two attaches at
-        // launch" case.
-        if attachedUserId != userId && connectingUserId != userId {
-            await stop()
-            await connect(userId: userId)
+        // Wait for any in-flight connect (possibly for a different
+        // user) to settle before deciding what to do.
+        if let inflight = connectTask { await inflight.value }
+        if attachedUserId != userId {
+            let task = Task { @MainActor [weak self] in
+                guard let self else { return }
+                await self.stop()
+                await self.connect(userId: userId)
+            }
+            connectTask = task
+            await task.value
+            connectTask = nil
         }
         let token = UUID()
         listeners[token] = onChange
@@ -66,11 +70,6 @@ final class RealtimeInviteManager {
     }
 
     private func connect(userId: UUID) async {
-        // Mark the connect attempt up front so a concurrent caller
-        // sees the in-flight intent and skips its own connect.
-        connectingUserId = userId
-        defer { if connectingUserId == userId { connectingUserId = nil } }
-
         let uid = userId.uuidString.lowercased()
         let ch = Supa.client.realtimeV2.channel("invites:user=\(uid)")
 
@@ -130,7 +129,6 @@ final class RealtimeInviteManager {
         task = nil
         listeners.removeAll()
         attachedUserId = nil
-        connectingUserId = nil
         if let channel { await channel.unsubscribe() }
         channel = nil
     }
@@ -195,13 +193,20 @@ final class RealtimeChatRoomsManager {
     private var task: Task<Void, Never>?
     private var listeners: [UUID: Listener] = [:]
     private var attachedUserId: UUID?
-    private var connectingUserId: UUID?
+    private var connectTask: Task<Void, Never>?
 
     @discardableResult
     func addListener(userId: UUID, onChange: @escaping Listener) async -> UUID {
-        if attachedUserId != userId && connectingUserId != userId {
-            await stop()
-            await connect(userId: userId)
+        if let inflight = connectTask { await inflight.value }
+        if attachedUserId != userId {
+            let task = Task { @MainActor [weak self] in
+                guard let self else { return }
+                await self.stop()
+                await self.connect(userId: userId)
+            }
+            connectTask = task
+            await task.value
+            connectTask = nil
         }
         let token = UUID()
         listeners[token] = onChange
@@ -213,9 +218,6 @@ final class RealtimeChatRoomsManager {
     }
 
     private func connect(userId: UUID) async {
-        connectingUserId = userId
-        defer { if connectingUserId == userId { connectingUserId = nil } }
-
         let uid = userId.uuidString.lowercased()
         let ch = Supa.client.realtimeV2.channel("chat_rooms:user=\(uid)")
 
@@ -263,7 +265,6 @@ final class RealtimeChatRoomsManager {
         task?.cancel(); task = nil
         listeners.removeAll()
         attachedUserId = nil
-        connectingUserId = nil
         if let channel { await channel.unsubscribe() }
         channel = nil
     }

@@ -49,6 +49,15 @@ final class MissedInvitesTracker: ObservableObject {
     private var realtimeHealthy: Bool = false
     private(set) var currentUserId: UUID?
 
+    /// One-shot Task that re-runs runRefresh exactly when the earliest
+    /// `live_expires_at` of the currently-pending incoming invites
+    /// elapses. We can't trust realtime UPDATE events to flip the row
+    /// to 'missed' — that's done by an `expireLiveInvites` cron, which
+    /// runs on its own cadence — so we schedule the refresh locally.
+    /// Without this, `hasActiveLiveInvite` stays true after the 15s
+    /// window closes until a tab switch forces a manual refresh.
+    private var liveExpiryTask: Task<Void, Never>?
+
     // MARK: - Lifecycle
 
     func attach(userId: UUID) {
@@ -66,6 +75,7 @@ final class MissedInvitesTracker: ObservableObject {
         hasActiveLiveInvite = false
         realtimeHealthy = false
         pendingRefresh?.cancel(); pendingRefresh = nil
+        liveExpiryTask?.cancel(); liveExpiryTask = nil
         pollTimer?.invalidate();  pollTimer = nil
         if let token = foregroundObserver {
             NotificationCenter.default.removeObserver(token)
@@ -126,8 +136,29 @@ final class MissedInvitesTracker: ObservableObject {
             let distinctSenders = Set(m.map(\.senderId)).count
             setMissedCount(distinctSenders)
             setHasActiveLiveInvite(!i.isEmpty)
+            scheduleLiveExpiryClear(for: i)
         } catch {
             GALog.invite.error("invite-tracker refresh: \(error.localizedDescription, privacy: .public)")
+        }
+    }
+
+    /// Schedules a local refresh at the earliest `live_expires_at` so
+    /// the navbar accent clears the moment the 15s window closes,
+    /// even if the server's expireLiveInvites cron hasn't yet flipped
+    /// the row to 'missed'.
+    private func scheduleLiveExpiryClear(for invites: [Invite]) {
+        liveExpiryTask?.cancel()
+        liveExpiryTask = nil
+        guard let soonest = invites.map(\.liveExpiresAt).min() else { return }
+        let delay = soonest.timeIntervalSinceNow + 1   // +1s safety margin
+        guard delay > 0 else {
+            scheduleRefresh()
+            return
+        }
+        liveExpiryTask = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+            guard !Task.isCancelled else { return }
+            await MainActor.run { self?.scheduleRefresh() }
         }
     }
 
