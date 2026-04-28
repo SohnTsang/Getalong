@@ -305,16 +305,32 @@ final class ChatRoomViewModel: ObservableObject {
         }
     }
 
-    /// Loads media metadata for any message whose media_id is not yet in
-    /// the cache. Best-effort; failures stay silent so chat still renders.
+    /// Refreshes the asset cache for every media_id currently in the
+    /// messages array. Skips rows already in a terminal state (viewed,
+    /// expired, deleted, or storage cleaned up) since those can't
+    /// change — but for any *active* row, we always re-fetch so the
+    /// 4-second fallback poll picks up the receiver's open-and-flip
+    /// even when the realtime media_assets UPDATE never arrives. The
+    /// realtime path is still the primary signal; this is the
+    /// belt-and-braces.
     private func hydrateMediaAssets() async {
-        let needed = messages
-            .compactMap { $0.mediaId }
-            .filter { mediaAssets[$0] == nil }
-        for id in Set(needed) {
+        let mids = Set(messages.compactMap { $0.mediaId })
+        for id in mids {
+            if let cached = mediaAssets[id], Self.isTerminal(cached) {
+                continue
+            }
             if let asset = try? await MediaService.shared.fetchAsset(id: id) {
                 mediaAssets[id] = asset
             }
+        }
+    }
+
+    private static func isTerminal(_ asset: MediaAsset) -> Bool {
+        if asset.storageDeletedAt != nil { return true }
+        if asset.viewedAt != nil { return true }
+        switch asset.status {
+        case .viewed, .expired, .deleted, .quarantined: return true
+        default: return false
         }
     }
 
