@@ -149,20 +149,32 @@ final class RealtimeInviteManager {
     }
 }
 
-/// Per-room message INSERT subscription with the same multi-listener
-/// + serialised-connect pattern as the invite/rooms managers. Multiple
-/// views opening the same room share a single websocket; the channel
-/// stays attached as long as at least one listener is registered.
+/// Per-room realtime subscription covering both `messages` INSERTs and
+/// `media_assets` UPDATEs. One websocket channel per room with the same
+/// multi-listener + serialised-connect pattern as the invite/rooms
+/// managers. Multiple views opening the same room share a single
+/// channel; it stays attached as long as at least one listener is
+/// registered.
 ///
-/// Important: `messages` must be in the `supabase_realtime` publication
-/// (see migration 0021) — otherwise subscribe succeeds but no events
-/// ever fire and chat shows new rows only after a manual refresh.
+/// Decoded payloads are delivered to listeners directly so the view
+/// model doesn't need to refetch the whole page after every event —
+/// inserts append in O(1) and view-once status flips propagate in
+/// real time on both sides.
+///
+/// Required publications:
+///  * `messages`     — migration 0021
+///  * `media_assets` — migration 0022
 @MainActor
 final class RealtimeChatManager {
     static let shared = RealtimeChatManager()
     private init() {}
 
-    typealias Listener = () -> Void
+    enum Event {
+        case messageInserted(Message?)
+        case mediaUpdated(MediaAsset?)
+    }
+
+    typealias Listener = (Event) -> Void
 
     private var channel: RealtimeChannelV2?
     private var task: Task<Void, Never>?
@@ -171,7 +183,7 @@ final class RealtimeChatManager {
     private var connectTask: Task<Void, Never>?
 
     @discardableResult
-    func addListener(roomId: UUID, onInsert: @escaping Listener) async -> UUID {
+    func addListener(roomId: UUID, onEvent: @escaping Listener) async -> UUID {
         if let inflight = connectTask { await inflight.value }
         if attachedRoomId != roomId {
             let task = Task { @MainActor [weak self] in
@@ -184,7 +196,7 @@ final class RealtimeChatManager {
             connectTask = nil
         }
         let token = UUID()
-        listeners[token] = onInsert
+        listeners[token] = onEvent
         return token
     }
 
@@ -206,10 +218,16 @@ final class RealtimeChatManager {
             "chat:room=\(rid):\(UUID().uuidString.prefix(8))"
         )
 
-        let inserts = ch.postgresChange(
+        let messageInserts = ch.postgresChange(
             InsertAction.self,
             schema: "public",
             table: "messages",
+            filter: .eq("room_id", value: rid)
+        )
+        let mediaUpdates = ch.postgresChange(
+            UpdateAction.self,
+            schema: "public",
+            table: "media_assets",
             filter: .eq("room_id", value: rid)
         )
 
@@ -225,19 +243,51 @@ final class RealtimeChatManager {
         attachedRoomId = roomId
 
         task = Task { [weak self] in
-            for await _ in inserts {
-                GALog.chat.info("realtime chat insert room=\(rid, privacy: .public)")
-                await self?.fanout()
+            await withTaskGroup(of: Void.self) { group in
+                group.addTask {
+                    for await action in messageInserts {
+                        let msg = try? action.decodeRecord(
+                            as: Message.self, decoder: Self.decoder
+                        )
+                        await self?.fanout(.messageInserted(msg))
+                    }
+                }
+                group.addTask {
+                    for await action in mediaUpdates {
+                        let asset = try? action.decodeRecord(
+                            as: MediaAsset.self, decoder: Self.decoder
+                        )
+                        await self?.fanout(.mediaUpdated(asset))
+                    }
+                }
             }
-            GALog.chat.info("realtime chat insert stream ended room=\(rid, privacy: .public)")
         }
     }
 
-    private func fanout() async {
+    private func fanout(_ event: Event) async {
         let snapshot = Array(listeners.values)
-        GALog.chat.info("realtime chat fanout listeners=\(snapshot.count, privacy: .public)")
-        for listener in snapshot { listener() }
+        for listener in snapshot { listener(event) }
     }
+
+    /// Tolerates ISO-8601 with or without fractional seconds — the
+    /// realtime payload's `created_at` etc. comes back without
+    /// fractions even though our PostgREST fetches include them.
+    nonisolated(unsafe) private static let decoder: JSONDecoder = {
+        let d = JSONDecoder()
+        d.dateDecodingStrategy = .custom { decoder in
+            let s = try decoder.singleValueContainer().decode(String.self)
+            let f = ISO8601DateFormatter()
+            f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            if let d = f.date(from: s) { return d }
+            f.formatOptions = [.withInternetDateTime]
+            if let d = f.date(from: s) { return d }
+            throw DecodingError.dataCorrupted(.init(
+                codingPath: decoder.codingPath,
+                debugDescription: "Invalid ISO-8601 date: \(s)"
+            ))
+        }
+        return d
+    }()
 
     func stop() async {
         task?.cancel()

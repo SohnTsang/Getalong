@@ -104,6 +104,9 @@ final class ChatRoomViewModel: ObservableObject {
 
     func attach(currentUserId: UUID) async {
         self.currentUserId = currentUserId
+        // Mark the user as present in this room so the push delegate
+        // can suppress banners for incoming messages from this chat.
+        ChatPresence.shared.enter(roomId)
 
         if partner == nil {
             if let room = try? await ChatService.shared.fetchRoom(id: roomId) {
@@ -125,8 +128,8 @@ final class ChatRoomViewModel: ObservableObject {
             GALog.chat.info("ChatRoomVM addListener start room=\(roomId.uuidString, privacy: .public)")
             let token = await RealtimeChatManager.shared.addListener(
                 roomId: roomId
-            ) { [weak self] in
-                Task { @MainActor in await self?.reloadOnRealtimeInsert() }
+            ) { [weak self] event in
+                Task { @MainActor in await self?.handleRealtime(event: event) }
             }
             await MainActor.run {
                 self.messagesListenerToken = token
@@ -231,6 +234,7 @@ final class ChatRoomViewModel: ObservableObject {
     }
 
     func detach() async {
+        ChatPresence.shared.leave(roomId)
         fallbackPollTask?.cancel()
         fallbackPollTask = nil
         if let token = messagesListenerToken {
@@ -256,6 +260,32 @@ final class ChatRoomViewModel: ObservableObject {
             loadError = String(localized: "chat.error.loadFailed")
         }
         isLoadingInitial = false
+    }
+
+    /// Realtime events deliver the changed row directly so we can
+    /// append/refresh in O(1) — no 50-message refetch on every event.
+    /// On a decode failure we fall back to the full reload path so a
+    /// schema mismatch can never make the chat go silent.
+    private func handleRealtime(event: RealtimeChatManager.Event) async {
+        switch event {
+        case .messageInserted(let msg):
+            if let msg, msg.roomId == roomId {
+                if !messages.contains(where: { $0.id == msg.id }) {
+                    messages.append(msg)
+                }
+                if let mid = msg.mediaId, mediaAssets[mid] == nil {
+                    if let asset = try? await MediaService.shared.fetchAsset(id: mid) {
+                        mediaAssets[mid] = asset
+                    }
+                }
+            } else {
+                await reloadOnRealtimeInsert()
+            }
+        case .mediaUpdated(let asset):
+            if let asset, asset.roomId == roomId {
+                mediaAssets[asset.id] = asset
+            }
+        }
     }
 
     private func reloadOnRealtimeInsert() async {

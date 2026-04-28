@@ -166,14 +166,28 @@ final class PushNotificationManager: NSObject, ObservableObject {
 // MARK: - UNUserNotificationCenterDelegate
 
 extension PushNotificationManager: UNUserNotificationCenterDelegate {
-    /// Foreground presentation: show banner + sound, no badge increment.
+    /// Foreground presentation: show banner + sound, no badge
+    /// increment. Suppressed entirely when the incoming push targets
+    /// the chat room the user is currently sitting in — matches the
+    /// iMessage / WhatsApp pattern where you don't get a banner for
+    /// the conversation that's already open.
     nonisolated func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         willPresent notification: UNNotification,
         withCompletionHandler completionHandler:
             @escaping (UNNotificationPresentationOptions) -> Void
     ) {
-        completionHandler([.banner, .sound, .list])
+        let userInfo = notification.request.content.userInfo
+        let roomString = (userInfo["room_id"] as? String)
+            ?? (userInfo["chat_room_id"] as? String)
+        let pushRoom = roomString.flatMap(UUID.init(uuidString:))
+        Task { @MainActor in
+            if let pushRoom, pushRoom == ChatPresence.shared.currentRoomId {
+                completionHandler([])
+            } else {
+                completionHandler([.banner, .sound, .list])
+            }
+        }
     }
 
     /// Tap handling.

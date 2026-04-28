@@ -188,10 +188,11 @@ struct PhotoPickerSheet: View {
                         cameraTile(size: tile)
                     }
                     ForEach(assets, id: \.localIdentifier) { asset in
-                        AssetThumbnail(asset: asset, imageManager: imageManager) {
-                            Task { await pick(asset) }
-                        }
-                        .frame(width: tile, height: tile)
+                        AssetThumbnail(
+                            asset: asset,
+                            imageManager: imageManager,
+                            size: tile
+                        ) { Task { await pick(asset) } }
                     }
                 }
             }
@@ -428,27 +429,32 @@ struct PhotoPickerSheet: View {
 private struct AssetThumbnail: View {
     let asset: PHAsset
     let imageManager: PHCachingImageManager
+    let size: CGFloat
     let onTap: () -> Void
 
     @State private var thumbnail: UIImage?
 
     var body: some View {
+        // Apply the square frame *to the image itself* before clipping,
+        // so scaledToFill cannot grow outside the cell and bleed onto
+        // neighbouring tiles. Using an explicit size (instead of an
+        // outer .frame on the wrapper) means the cell layout is no
+        // longer at the mercy of the image's intrinsic size.
         Button(action: onTap) {
-            ZStack {
-                Rectangle().fill(GAColors.surfaceRaised)
+            Group {
                 if let thumbnail {
                     Image(uiImage: thumbnail)
                         .resizable()
                         .scaledToFill()
+                        .frame(width: size, height: size)
+                        .clipped()
                 } else {
-                    ProgressView()
-                        .controlSize(.small)
+                    Rectangle()
+                        .fill(GAColors.surfaceRaised)
+                        .frame(width: size, height: size)
+                        .overlay(ProgressView().controlSize(.small))
                 }
             }
-            // Container clips the scaledToFill thumbnail to the square
-            // bounds without imposing a corner radius. The outer
-            // .frame in the grid sets the size; we only need the clip.
-            .clipped()
         }
         .buttonStyle(.plain)
         .task(id: asset.localIdentifier) { await loadThumbnail() }

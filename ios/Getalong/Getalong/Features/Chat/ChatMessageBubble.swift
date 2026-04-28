@@ -127,26 +127,22 @@ struct ChatMessageBubble: View {
     // MARK: - Media bubble
 
     private var mediaBubble: some View {
-        let tailW = ChatBubbleShape.tailWidth
+        // Media bubble has no tail — the noisy placeholder reads as a
+        // self-contained tile and the tail looks fussy on it. Both
+        // sides render the *same* placeholder so a chat thread looks
+        // symmetric.
         let view = mediaContent
             .frame(width: 220, height: 220)
-            // Reserve `tailWidth` on the tail side so the shape's tail
-            // sits in unused padding — the media content stays a full
-            // 220×220 inside the bubble's body portion.
-            .padding(.trailing, isMine ? tailW : 0)
-            .padding(.leading,  isMine ? 0 : tailW)
-            .background(ChatBubbleShape(isMine: isMine).fill(bubbleFill))
-            .clipShape(ChatBubbleShape(isMine: isMine))
+            .background(bubbleFill)
+            .clipShape(RoundedRectangle(cornerRadius: GACornerRadius.large,
+                                        style: .continuous))
             .overlay(
-                ChatBubbleShape(isMine: isMine)
-                    .stroke(borderColor, lineWidth: 0.75)
+                RoundedRectangle(cornerRadius: GACornerRadius.large,
+                                 style: .continuous)
+                    .strokeBorder(borderColor, lineWidth: 0.75)
             )
-            // View-once badge in the top-right of the bubble body
-            // (offset inward past the tail on the sender side).
             .overlay(alignment: .topTrailing) {
-                viewOnceBadge
-                    .padding(.top, 8)
-                    .padding(.trailing, 8 + (isMine ? tailW : 0))
+                viewOnceBadge.padding(8)
             }
 
         return Group {
@@ -184,50 +180,13 @@ struct ChatMessageBubble: View {
 
     @ViewBuilder
     private var mediaContent: some View {
-        ZStack {
-            // Sender side: render a heavily blurred version of their
-            // own thumbnail with a noise overlay so the bubble looks
-            // like the actual media they sent — just unreadable
-            // enough to feel "view-once". Receiver side never gets
-            // image bytes, so it falls back to the obscured backdrop.
-            if isMine, let thumb = localThumbnail {
-                blurredThumbBackdrop(thumb)
-            } else {
-                obscuredBackdrop
-
-                VStack(spacing: GASpacing.sm) {
-                    ZStack {
-                        Circle()
-                            .fill(.ultraThinMaterial)
-                            .frame(width: 56, height: 56)
-                        Image(systemName: iconName)
-                            .font(.system(size: 22, weight: .regular))
-                            .foregroundStyle(iconTint)
-                        if isLocked {
-                            Image(systemName: "lock.fill")
-                                .font(.system(size: 10, weight: .bold))
-                                .foregroundStyle(GAColors.accentText)
-                                .padding(4)
-                                .background(GAColors.accent, in: Circle())
-                                .offset(x: 18, y: 18)
-                        }
-                    }
-
-                    Text(viewOnceLabel)
-                        .font(GATypography.bodyEmphasized)
-                        .foregroundStyle(textColor)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, GASpacing.sm)
-
-                    Text(actionLabel)
-                        .font(GATypography.caption)
-                        .foregroundStyle(textColor.opacity(0.85))
-                        .multilineTextAlignment(.center)
-                }
-                .padding(GASpacing.md)
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        // Same placeholder on both sides: a noisy gradient backdrop
+        // with no central icon/lock/text. Identity comes from the
+        // eye+1 badge in the corner. The receiver never gets image
+        // bytes, and the sender sees the same shape so they don't
+        // wonder why their own bubble "looks different".
+        obscuredBackdrop
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     /// Heavy blur + grain overlay on the sender's local thumbnail.
