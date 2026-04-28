@@ -11,6 +11,12 @@ final class ChatRoomViewModel: ObservableObject {
     @Published var messages: [Message] = []
     /// Asset cache keyed by media_id, populated lazily when rendering media bubbles.
     @Published var mediaAssets: [UUID: MediaAsset] = [:]
+    /// Local-only cache: the sender's own thumbnails keyed by media_id,
+    /// kept in memory for the lifetime of this view so the sender can see
+    /// a blurred version of what they sent. Bytes never reach the
+    /// receiver; this dictionary is only ever populated from the local
+    /// `MediaUploadController.thumbnail`.
+    @Published var localMediaThumbnails: [UUID: UIImage] = [:]
     @Published var isLoadingInitial: Bool = true
     @Published var loadError: String?
     @Published var sendError: String?
@@ -267,9 +273,10 @@ final class ChatRoomViewModel: ObservableObject {
     /// normal chat app), and run upload+send in the background.
     func confirmMediaSend() {
         guard let controller = mediaController else { return }
+        let thumb = controller.thumbnail
         let item = PendingMediaItem(
             id: UUID(),
-            thumbnail: controller.thumbnail,
+            thumbnail: thumb,
             state: .sending
         )
         pendingMedia.append(item)
@@ -282,9 +289,14 @@ final class ChatRoomViewModel: ObservableObject {
                 self.pendingMedia.removeAll { $0.id == item.id }
                 if !self.messages.contains(where: { $0.id == message.id }) {
                     self.messages.append(message)
-                    if let mid = message.mediaId,
-                       let asset = try? await MediaService.shared.fetchAsset(id: mid) {
-                        self.mediaAssets[mid] = asset
+                    if let mid = message.mediaId {
+                        // Keep the sender's own thumbnail around so the
+                        // bubble can render a blurred-with-noise backdrop
+                        // (instead of the pure obscured placeholder).
+                        if let thumb { self.localMediaThumbnails[mid] = thumb }
+                        if let asset = try? await MediaService.shared.fetchAsset(id: mid) {
+                            self.mediaAssets[mid] = asset
+                        }
                     }
                 }
                 self.mediaController = nil
@@ -341,6 +353,7 @@ final class ChatRoomViewModel: ObservableObject {
     /// back to .sending and rewire the success/failure observer.
     func retryPendingMedia(_ id: UUID) {
         guard let controller = mediaController else { return }
+        let thumb = controller.thumbnail
         updatePending(id: id, state: .sending)
         controller.retry { [weak self] message in
             Task { @MainActor in
@@ -348,9 +361,11 @@ final class ChatRoomViewModel: ObservableObject {
                 self.pendingMedia.removeAll { $0.id == id }
                 if !self.messages.contains(where: { $0.id == message.id }) {
                     self.messages.append(message)
-                    if let mid = message.mediaId,
-                       let asset = try? await MediaService.shared.fetchAsset(id: mid) {
-                        self.mediaAssets[mid] = asset
+                    if let mid = message.mediaId {
+                        if let thumb { self.localMediaThumbnails[mid] = thumb }
+                        if let asset = try? await MediaService.shared.fetchAsset(id: mid) {
+                            self.mediaAssets[mid] = asset
+                        }
                     }
                 }
                 self.mediaController = nil
@@ -432,6 +447,14 @@ final class ChatRoomViewModel: ObservableObject {
 
     func mediaAsset(for message: Message) -> MediaAsset? {
         message.mediaId.flatMap { mediaAssets[$0] }
+    }
+
+    /// Sender's own local thumbnail for the given message. Returns nil
+    /// for the receiver's bubbles — they never see image bytes until
+    /// they tap to open.
+    func localThumbnail(for message: Message) -> UIImage? {
+        guard isMine(message), let mid = message.mediaId else { return nil }
+        return localMediaThumbnails[mid]
     }
 
     var headerTitle: String {

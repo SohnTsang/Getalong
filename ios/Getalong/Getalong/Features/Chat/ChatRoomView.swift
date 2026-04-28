@@ -254,6 +254,7 @@ struct ChatRoomView: View {
                                 message: message,
                                 isMine: vm.isMine(message),
                                 mediaAsset: vm.mediaAsset(for: message),
+                                localThumbnail: vm.localThumbnail(for: message),
                                 onTapMedia: vm.isMine(message) ? nil : { vm.openMedia(message) }
                             )
                             .id(message.id)

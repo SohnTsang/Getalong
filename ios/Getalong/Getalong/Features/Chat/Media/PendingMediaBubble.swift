@@ -28,26 +28,26 @@ struct PendingOutgoingMediaBubble: View {
     }
 
     private var bubble: some View {
-        ZStack(alignment: .topTrailing) {
-            ZStack {
-                if let img = item.thumbnail {
-                    Image(uiImage: img)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: imageWidth, height: imageHeight)
-                        .clipped()
-                } else {
-                    Color.black.opacity(0.06)
-                        .frame(width: imageWidth, height: imageHeight)
-                }
-                stateOverlay
+        ZStack {
+            if let img = item.thumbnail {
+                Image(uiImage: img)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: imageWidth, height: imageHeight)
+                    .clipped()
+            } else {
+                Color.black.opacity(0.06)
+                    .frame(width: imageWidth, height: imageHeight)
             }
-            .clipShape(RoundedRectangle(cornerRadius: GACornerRadius.large,
-                                        style: .continuous))
-
-            viewOnceBadge
-                .padding(.top, 8)
-                .padding(.trailing, 8)
+            stateOverlay
+        }
+        .frame(width: imageWidth, height: imageHeight)
+        .clipShape(RoundedRectangle(cornerRadius: GACornerRadius.large,
+                                    style: .continuous))
+        // Same overlay treatment as ChatMessageBubble — the badge sits
+        // visually on the media, padded inside the rounded corner.
+        .overlay(alignment: .topTrailing) {
+            viewOnceBadge.padding(8)
         }
     }
 

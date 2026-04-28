@@ -5,6 +5,10 @@ struct ChatMessageBubble: View {
     let isMine: Bool
     /// `nil` for text messages.
     let mediaAsset: MediaAsset?
+    /// Sender-only: their own local thumbnail, used to render a
+    /// blurred-with-noise backdrop in the bubble. Always nil on the
+    /// receiver side — receiver never sees image bytes pre-open.
+    var localThumbnail: UIImage? = nil
     /// Tap on a viewable media bubble to open. Bubble suppresses the tap
     /// when not openable (sender's own bubble, already viewed, etc.).
     let onTapMedia: (() -> Void)?
@@ -30,7 +34,16 @@ struct ChatMessageBubble: View {
         case .text, .system:
             textBubble
         case .image, .gif, .video:
-            mediaBubble
+            // Once view-once media has been consumed (viewed by the
+            // receiver, expired, or storage cleaned up) the bubble
+            // collapses to a small text-only "Expired photo/gif/video"
+            // chip — no decorative chrome, no badges. Same shape on
+            // both sides.
+            if isExpiredMedia {
+                expiredTextBubble
+            } else {
+                mediaBubble
+            }
         }
     }
 
@@ -50,6 +63,42 @@ struct ChatMessageBubble: View {
                                  style: .continuous)
                     .strokeBorder(borderColor, lineWidth: 0.75)
             )
+    }
+
+    private var expiredTextBubble: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "eye.slash")
+                .font(.system(size: 12, weight: .semibold))
+            Text(expiredText)
+                .font(GATypography.footnote)
+        }
+        .foregroundStyle(GAColors.textTertiary)
+        .padding(.horizontal, GASpacing.md)
+        .padding(.vertical, 8)
+        .background(GAColors.surfaceRaised,
+                    in: Capsule())
+        .overlay(Capsule().strokeBorder(GAColors.border, lineWidth: 0.5))
+    }
+
+    private var expiredText: String {
+        switch message.messageType {
+        case .video: return String(localized: "media.expired.video")
+        case .gif:   return String(localized: "media.expired.gif")
+        default:     return String(localized: "media.expired.photo")
+        }
+    }
+
+    /// True when there's no longer a viewable image — either because
+    /// the receiver has opened it, the storage object was deleted, or
+    /// the row TTL'd. Both sides converge to the expired text bubble.
+    private var isExpiredMedia: Bool {
+        guard let a = mediaAsset else { return false }
+        if a.storageDeletedAt != nil { return true }
+        if a.status == .viewed || a.status == .expired || a.status == .deleted {
+            return true
+        }
+        if a.viewedAt != nil { return true }
+        return false
     }
 
     // MARK: - Media bubble
@@ -109,45 +158,84 @@ struct ChatMessageBubble: View {
     @ViewBuilder
     private var mediaContent: some View {
         ZStack {
-            // Blurred / obscured backdrop: a soft gradient noise that
-            // looks like an out-of-focus surface, never a thumbnail of
-            // the real media.
-            obscuredBackdrop
+            // Sender side: render a heavily blurred version of their
+            // own thumbnail with a noise overlay so the bubble looks
+            // like the actual media they sent — just unreadable
+            // enough to feel "view-once". Receiver side never gets
+            // image bytes, so it falls back to the obscured backdrop.
+            if isMine, let thumb = localThumbnail {
+                blurredThumbBackdrop(thumb)
+            } else {
+                obscuredBackdrop
 
-            VStack(spacing: GASpacing.sm) {
-                ZStack {
-                    Circle()
-                        .fill(.ultraThinMaterial)
-                        .frame(width: 56, height: 56)
-                    Image(systemName: iconName)
-                        .font(.system(size: 22, weight: .regular))
-                        .foregroundStyle(iconTint)
-                    if isLocked {
-                        // Tiny lock badge bottom-right of the icon circle
-                        // to signal "view once / locked".
-                        Image(systemName: "lock.fill")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundStyle(GAColors.accentText)
-                            .padding(4)
-                            .background(GAColors.accent, in: Circle())
-                            .offset(x: 18, y: 18)
+                VStack(spacing: GASpacing.sm) {
+                    ZStack {
+                        Circle()
+                            .fill(.ultraThinMaterial)
+                            .frame(width: 56, height: 56)
+                        Image(systemName: iconName)
+                            .font(.system(size: 22, weight: .regular))
+                            .foregroundStyle(iconTint)
+                        if isLocked {
+                            Image(systemName: "lock.fill")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundStyle(GAColors.accentText)
+                                .padding(4)
+                                .background(GAColors.accent, in: Circle())
+                                .offset(x: 18, y: 18)
+                        }
                     }
+
+                    Text(viewOnceLabel)
+                        .font(GATypography.bodyEmphasized)
+                        .foregroundStyle(textColor)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, GASpacing.sm)
+
+                    Text(actionLabel)
+                        .font(GATypography.caption)
+                        .foregroundStyle(textColor.opacity(0.85))
+                        .multilineTextAlignment(.center)
                 }
-
-                Text(viewOnceLabel)
-                    .font(GATypography.bodyEmphasized)
-                    .foregroundStyle(textColor)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, GASpacing.sm)
-
-                Text(actionLabel)
-                    .font(GATypography.caption)
-                    .foregroundStyle(textColor.opacity(0.85))
-                    .multilineTextAlignment(.center)
+                .padding(GASpacing.md)
             }
-            .padding(GASpacing.md)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    /// Heavy blur + grain overlay on the sender's local thumbnail.
+    /// `radius` is tuned so virtually no detail survives but the dominant
+    /// hue does — the user gets a hint of what they sent without it
+    /// being legible.
+    private func blurredThumbBackdrop(_ image: UIImage) -> some View {
+        ZStack {
+            Image(uiImage: image)
+                .resizable()
+                .scaledToFill()
+                .blur(radius: 32, opaque: true)
+                .clipped()
+            // Mild dim so the blurred image sits behind the badge
+            // legibly on bright photos.
+            Color.black.opacity(0.10)
+            // Reuse the dotted noise pattern from obscuredBackdrop so
+            // the visual language stays consistent with the receiver
+            // side and "view-once" is unmistakable.
+            GeometryReader { geo in
+                Canvas { ctx, size in
+                    let dot = Color.white.opacity(0.10)
+                    let step: CGFloat = 14
+                    for x in stride(from: CGFloat(0), to: size.width, by: step) {
+                        for y in stride(from: CGFloat(0), to: size.height, by: step) {
+                            ctx.fill(
+                                Path(ellipseIn: CGRect(x: x, y: y, width: 2, height: 2)),
+                                with: .color(dot)
+                            )
+                        }
+                    }
+                    _ = geo
+                }
+            }
+        }
     }
 
     /// Soft obscured backdrop. Tinted by sender vs receiver but never
