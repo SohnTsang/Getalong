@@ -60,10 +60,18 @@ enum VideoCompressor {
             h = Int(abs(size.height))
         }
 
+        // Tiny preview from the first frame so the chat bubble can
+        // render the same blurred-noise backdrop on both sides.
+        let previewImage = await Self.thumbnail(for: outURL, maxDimension: 24)
+        let previewBase64: String? = previewImage
+            .flatMap { $0.jpegData(compressionQuality: 0.4) }?
+            .base64EncodedString()
+
         return MediaPreparedFile(
             localURL: outURL, mimeType: "video/mp4", kind: .video,
             sizeBytes: size, durationSeconds: Int(ceil(secs)),
-            width: w, height: h
+            width: w, height: h,
+            previewBase64: previewBase64
         )
     }
 

@@ -14,6 +14,11 @@ struct MediaPreparedFile: Equatable {
     let durationSeconds: Int?
     let width: Int?
     let height: Int?
+    /// Base64 of a ~24px JPEG of the same image. Sent up at request-
+    /// upload time and stored on media_assets.preview_data so both
+    /// participants can render a matching blurred-noise placeholder
+    /// before the receiver opens the media.
+    let previewBase64: String?
 
     var fileExtension: String {
         switch mimeType {

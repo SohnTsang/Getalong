@@ -26,6 +26,12 @@ struct MediaAsset: Codable, Identifiable, Hashable {
     var attachedMessageId: UUID?
     var storageDeletedAt: Date?
     var createdAt: Date
+    /// Base64-encoded tiny JPEG (~24px). Both participants render it
+    /// as a heavily blurred backdrop with our dotted-noise overlay so
+    /// the bubble shows the *same* placeholder content on either side
+    /// — view-once enforcement is unchanged because the original
+    /// bytes still only leave storage on tap.
+    var previewData: String?
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -44,5 +50,6 @@ struct MediaAsset: Codable, Identifiable, Hashable {
         case attachedMessageId  = "attached_message_id"
         case storageDeletedAt   = "storage_deleted_at"
         case createdAt          = "created_at"
+        case previewData        = "preview_data"
     }
 }

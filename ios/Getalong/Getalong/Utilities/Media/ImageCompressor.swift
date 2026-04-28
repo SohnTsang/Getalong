@@ -12,6 +12,12 @@ enum ImageCompressor {
     private static let maxLongEdge: CGFloat = 2048
     private static let initialJpegQuality: CGFloat = 0.82
     private static let minJpegQuality: CGFloat     = 0.55
+    /// Long-edge size for the preview placeholder (~1-2KB JPEG once
+    /// re-encoded at low quality). Small enough that a heavy SwiftUI
+    /// .blur produces a smooth wash with no recognisable detail; the
+    /// dotted-noise overlay does the rest.
+    private static let previewLongEdge: CGFloat = 24
+    private static let previewJpegQuality: CGFloat = 0.4
 
     /// Detects whether the bytes represent an animated GIF.
     static func isAnimatedGIF(_ data: Data) -> Bool {
@@ -46,10 +52,13 @@ enum ImageCompressor {
             let url = MediaTempFile.make(extension: "gif")
             try data.write(to: url)
             let (w, h) = pixelSize(data) ?? (0, 0)
+            // First frame as the preview source.
+            let preview = UIImage(data: data).flatMap(makePreview)
             return MediaPreparedFile(
                 localURL: url, mimeType: "image/gif", kind: .gif,
                 sizeBytes: bytes, durationSeconds: nil,
-                width: w == 0 ? nil : w, height: h == 0 ? nil : h
+                width: w == 0 ? nil : w, height: h == 0 ? nil : h,
+                previewBase64: preview
             )
         }
 
@@ -59,6 +68,7 @@ enum ImageCompressor {
         }
         let normalized = raw.normalizedOrientation()
         let resized = normalized.resizedToFit(maxLongEdge: maxLongEdge)
+        let preview = makePreview(from: normalized)
 
         // Small PNG with alpha → keep PNG.
         if sourceMime == "image/png", pngHasAlpha(data) {
@@ -68,7 +78,8 @@ enum ImageCompressor {
                 return MediaPreparedFile(
                     localURL: url, mimeType: "image/png", kind: .image,
                     sizeBytes: Int64(png.count), durationSeconds: nil,
-                    width: Int(resized.size.width), height: Int(resized.size.height)
+                    width: Int(resized.size.width), height: Int(resized.size.height),
+                    previewBase64: preview
                 )
             }
             // else fall through to JPEG.
@@ -93,8 +104,21 @@ enum ImageCompressor {
         return MediaPreparedFile(
             localURL: url, mimeType: "image/jpeg", kind: .image,
             sizeBytes: Int64(out.count), durationSeconds: nil,
-            width: Int(resized.size.width), height: Int(resized.size.height)
+            width: Int(resized.size.width), height: Int(resized.size.height),
+            previewBase64: preview
         )
+    }
+
+    /// Tiny base64-encoded JPEG of the original image used as a
+    /// blurred-noise placeholder. We resize down to ~24px, re-encode
+    /// at low quality, and base64 the result. Returns nil only if the
+    /// resize/encode chain fails — the caller treats nil as "no
+    /// preview, fall back to abstract backdrop".
+    private static func makePreview(from image: UIImage) -> String? {
+        let small = image.resizedToFit(maxLongEdge: previewLongEdge)
+        guard let jpeg = small.jpegData(compressionQuality: previewJpegQuality)
+        else { return nil }
+        return jpeg.base64EncodedString()
     }
 
     private static func pixelSize(_ data: Data) -> (Int, Int)? {

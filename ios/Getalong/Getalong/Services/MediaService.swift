@@ -99,6 +99,7 @@ final class MediaService {
         let mime_type: String
         let size_bytes: Int64
         let duration_seconds: Int?
+        let preview_data: String?
     }
 
     private struct EnvelopeOK<T: Decodable>: Decodable { let ok: Bool; let data: T }
@@ -113,7 +114,8 @@ final class MediaService {
             room_id: roomId,
             mime_type: file.mimeType,
             size_bytes: file.sizeBytes,
-            duration_seconds: file.durationSeconds
+            duration_seconds: file.durationSeconds,
+            preview_data: file.previewBase64
         )
         return try await invoke("requestMediaUpload", body: body)
     }

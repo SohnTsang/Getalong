@@ -180,13 +180,54 @@ struct ChatMessageBubble: View {
 
     @ViewBuilder
     private var mediaContent: some View {
-        // Same placeholder on both sides: a noisy gradient backdrop
-        // with no central icon/lock/text. Identity comes from the
-        // eye+1 badge in the corner. The receiver never gets image
-        // bytes, and the sender sees the same shape so they don't
-        // wonder why their own bubble "looks different".
-        obscuredBackdrop
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        // Same placeholder on both sides: a heavily-blurred version of
+        // the actual image with our dotted-noise overlay. The bytes
+        // come from media_assets.preview_data — a tiny ~24px JPEG
+        // that the sender uploads at request time and both sides
+        // decode locally. View-once enforcement is unchanged: the
+        // full-resolution image still only leaves storage on tap.
+        //
+        // Falls back to the abstract gradient backdrop when the
+        // preview is missing (older messages, encode failure).
+        if let preview = previewImage {
+            blurredPreviewBackdrop(preview)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else {
+            obscuredBackdrop
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+    }
+
+    private var previewImage: UIImage? {
+        guard let b64 = mediaAsset?.previewData,
+              let data = Data(base64Encoded: b64),
+              let img = UIImage(data: data)
+        else { return nil }
+        return img
+    }
+
+    private func blurredPreviewBackdrop(_ image: UIImage) -> some View {
+        ZStack {
+            Image(uiImage: image)
+                .resizable()
+                .scaledToFill()
+                .blur(radius: 32, opaque: true)
+                .clipped()
+            Color.black.opacity(0.10)
+            Canvas { ctx, size in
+                let dot = Color.white.opacity(0.10)
+                let step: CGFloat = 14
+                for x in stride(from: CGFloat(0), to: size.width, by: step) {
+                    for y in stride(from: CGFloat(0), to: size.height, by: step) {
+                        ctx.fill(
+                            Path(ellipseIn: CGRect(x: x, y: y, width: 2, height: 2)),
+                            with: .color(dot)
+                        )
+                    }
+                }
+            }
+            .drawingGroup()
+        }
     }
 
     /// Heavy blur + grain overlay on the sender's local thumbnail.

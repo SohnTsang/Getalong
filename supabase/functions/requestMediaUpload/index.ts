@@ -38,7 +38,15 @@ interface Body {
   mime_type?: string;
   size_bytes?: number;
   duration_seconds?: number;
+  // Tiny base64 JPEG (~1-2KB) used as a blurred-noise placeholder
+  // shown to both participants before the receiver opens the media.
+  // Optional — older clients won't include it.
+  preview_data?: string;
 }
+
+// Hard cap so a malicious or buggy client can't store an oversized
+// preview. 8KB base64 ≈ 6KB raw, plenty for a 24-32px JPEG.
+const MAX_PREVIEW_BYTES = 8 * 1024;
 
 Deno.serve(async (req) => {
   const pre = preflight(req); if (pre) return pre;
@@ -53,6 +61,10 @@ Deno.serve(async (req) => {
   const mime = (body.mime_type ?? "").trim();
   const size = Number(body.size_bytes ?? 0);
   const duration = body.duration_seconds ?? null;
+  let previewData: string | null = body.preview_data?.trim() || null;
+  if (previewData && previewData.length > MAX_PREVIEW_BYTES) {
+    previewData = null;  // silently drop rather than fail the upload.
+  }
 
   if (!roomId)              return fail("INVALID_INPUT", "room_id required.", 400);
   if (!mime)                return fail("INVALID_INPUT", "mime_type required.", 400);
@@ -128,6 +140,7 @@ Deno.serve(async (req) => {
       view_once:       true,
       status:          "pending_upload",
       expires_at:      expiresAt,
+      preview_data:    previewData,
     })
     .select("id")
     .single();
