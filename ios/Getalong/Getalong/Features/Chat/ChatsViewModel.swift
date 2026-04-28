@@ -25,6 +25,12 @@ final class ChatsViewModel: ObservableObject {
 
     private(set) var currentUserId: UUID?
     private var realtimeToken: UUID?
+    /// Belt-and-braces poll. The chat_rooms realtime channel is the
+    /// primary refresh signal, but realtime can be hung mid-handshake
+    /// (we've seen `subscribe` never complete without an error in the
+    /// wild) and the user shouldn't have to leave the tab to see the
+    /// latest message. 4s matches what we use inside ChatRoomView.
+    private var fallbackPollTask: Task<Void, Never>?
 
     func attach(userId: UUID) async {
         guard currentUserId != userId else {
@@ -41,9 +47,24 @@ final class ChatsViewModel: ObservableObject {
             Task { await self?.refresh() }
         }
         realtimeToken = token
+
+        startFallbackPolling()
+    }
+
+    private func startFallbackPolling() {
+        fallbackPollTask?.cancel()
+        fallbackPollTask = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 4_000_000_000)
+                guard !Task.isCancelled else { return }
+                await self?.refresh()
+            }
+        }
     }
 
     func detach() {
+        fallbackPollTask?.cancel()
+        fallbackPollTask = nil
         if let t = realtimeToken {
             RealtimeChatRoomsManager.shared.removeListener(t)
             realtimeToken = nil
