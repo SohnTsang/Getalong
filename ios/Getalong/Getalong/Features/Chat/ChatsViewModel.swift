@@ -38,17 +38,27 @@ final class ChatsViewModel: ObservableObject {
             return
         }
         currentUserId = userId
-        await refresh()
-        // Listen to chat_rooms inserts + updates app-wide so the list
-        // (and the latest-message preview) stays current even when the
-        // user is on another tab.
-        let token = await RealtimeChatRoomsManager.shared.addListener(userId: userId) {
-            [weak self] in
-            Task { await self?.refresh() }
-        }
-        realtimeToken = token
 
+        // Start the fallback poll *before* anything that can block.
+        // The realtime addListener call below has been observed
+        // hanging mid-subscribe on cold start; if we waited on it,
+        // the poll never started and the Chats list would only
+        // refresh on tab change. The poll is cheap and runs
+        // independently — when realtime works it just races the poll.
         startFallbackPolling()
+        await refresh()
+
+        // Realtime registration runs unstructured so a hung
+        // subscribe can't stall the rest of the app's startup.
+        Task { [weak self, userId] in
+            guard let self else { return }
+            let token = await RealtimeChatRoomsManager.shared.addListener(
+                userId: userId
+            ) { [weak self] in
+                Task { await self?.refresh() }
+            }
+            await MainActor.run { self.realtimeToken = token }
+        }
     }
 
     private func startFallbackPolling() {
