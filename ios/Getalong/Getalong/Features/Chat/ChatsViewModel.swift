@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import UIKit
 
 /// One row in the Chats list — a room joined with its partner profile
 /// and an optional last-message preview.
@@ -25,12 +26,7 @@ final class ChatsViewModel: ObservableObject {
 
     private(set) var currentUserId: UUID?
     private var realtimeToken: UUID?
-    /// Belt-and-braces poll. The chat_rooms realtime channel is the
-    /// primary refresh signal, but realtime can be hung mid-handshake
-    /// (we've seen `subscribe` never complete without an error in the
-    /// wild) and the user shouldn't have to leave the tab to see the
-    /// latest message. 4s matches what we use inside ChatRoomView.
-    private var fallbackPollTask: Task<Void, Never>?
+    private var foregroundObserver: NSObjectProtocol?
 
     func attach(userId: UUID) async {
         guard currentUserId != userId else {
@@ -39,17 +35,14 @@ final class ChatsViewModel: ObservableObject {
         }
         currentUserId = userId
 
-        // Start the fallback poll *before* anything that can block.
-        // The realtime addListener call below has been observed
-        // hanging mid-subscribe on cold start; if we waited on it,
-        // the poll never started and the Chats list would only
-        // refresh on tab change. The poll is cheap and runs
-        // independently — when realtime works it just races the poll.
-        startFallbackPolling()
         await refresh()
+        observeAppLifecycle()
 
         // Realtime registration runs unstructured so a hung
         // subscribe can't stall the rest of the app's startup.
+        // RealtimeChatRoomsManager retries failed subscribes with
+        // backoff, so a launch-time CancellationError no longer
+        // leaves the socket dead.
         Task { [weak self, userId] in
             guard let self else { return }
             let token = await RealtimeChatRoomsManager.shared.addListener(
@@ -61,20 +54,24 @@ final class ChatsViewModel: ObservableObject {
         }
     }
 
-    private func startFallbackPolling() {
-        fallbackPollTask?.cancel()
-        fallbackPollTask = Task { [weak self] in
-            while !Task.isCancelled {
-                try? await Task.sleep(nanoseconds: 4_000_000_000)
-                guard !Task.isCancelled else { return }
-                await self?.refresh()
-            }
+    private func observeAppLifecycle() {
+        guard foregroundObserver == nil else { return }
+        // Catch up the moment the app returns from background — the
+        // websocket may have been suspended and a message could have
+        // landed while we weren't listening.
+        foregroundObserver = NotificationCenter.default.addObserver(
+            forName: UIApplication.willEnterForegroundNotification,
+            object: nil, queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in await self?.refresh() }
         }
     }
 
     func detach() {
-        fallbackPollTask?.cancel()
-        fallbackPollTask = nil
+        if let token = foregroundObserver {
+            NotificationCenter.default.removeObserver(token)
+            foregroundObserver = nil
+        }
         if let t = realtimeToken {
             RealtimeChatRoomsManager.shared.removeListener(t)
             realtimeToken = nil
@@ -114,7 +111,12 @@ final class ChatsViewModel: ObservableObject {
             }
             // Preserve room order.
             let order = Dictionary(uniqueKeysWithValues: rooms.enumerated().map { ($1.id, $0) })
-            rows = built.sorted { (order[$0.id] ?? 0) < (order[$1.id] ?? 0) }
+            let next = built.sorted { (order[$0.id] ?? 0) < (order[$1.id] ?? 0) }
+            // Avoid republishing identical content. Same-shape refreshes
+            // (e.g. the user comes back to the tab and nothing changed)
+            // would otherwise trigger a SwiftUI re-render of every row
+            // for no reason.
+            if next != rows { rows = next }
         } catch {
             errorMessage = String(localized: "chat.error.loadFailed")
         }
