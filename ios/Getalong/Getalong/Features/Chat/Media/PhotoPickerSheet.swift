@@ -64,14 +64,13 @@ struct PhotoPickerSheet: View {
         )
     }
 
-    /// 4-column grid. We size cells from a GeometryReader instead of
-    /// `.flexible(...)` + `.aspectRatio(1, .fit)` because flexible columns
-    /// can settle to off-by-one widths on the trailing column when
-    /// (screen − padding − spacing × n) doesn't divide cleanly. Forcing
-    /// exact `tileSize` for both the grid item and the cell frame keeps
-    /// every tile pixel-identical.
-    private let gridSpacing: CGFloat = 4
-    private let gridColumnCount: Int = 4
+    /// 3-column square grid. Tile size is computed from the actual
+    /// container width so every cell is byte-identical — no flexible
+    /// or adaptive sizing, no .aspectRatio rounding, no edge padding
+    /// on the grid itself. The horizontal and vertical gaps are the
+    /// same value so rows and columns visually breathe equally.
+    private let gridSpacing: CGFloat = 2
+    private let gridColumnCount: Int = 3
     private let assetFetchLimit = 240
 
     private var cameraAvailable: Bool {
@@ -169,11 +168,14 @@ struct PhotoPickerSheet: View {
 
     private var grid: some View {
         GeometryReader { proxy in
-            // exact tile size: (width − outer padding ×2 − spacing ×(n−1)) / n
+            // tile = (width − spacing × (n−1)) / n. No outer padding —
+            // the grid runs edge-to-edge so the gap between tiles is
+            // the only visual breathing room. Floor to an integer to
+            // avoid sub-pixel rounding that would otherwise produce
+            // hairline width differences between columns.
             let cols = CGFloat(gridColumnCount)
-            let outerPad: CGFloat = gridSpacing
             let totalSpacing = gridSpacing * (cols - 1)
-            let usable = max(0, proxy.size.width - outerPad * 2 - totalSpacing)
+            let usable = max(0, proxy.size.width - totalSpacing)
             let tile = floor(usable / cols)
             let columns = Array(
                 repeating: GridItem(.fixed(tile), spacing: gridSpacing),
@@ -192,8 +194,6 @@ struct PhotoPickerSheet: View {
                         .frame(width: tile, height: tile)
                     }
                 }
-                .padding(.horizontal, outerPad)
-                .padding(.top, outerPad)
             }
             .overlay {
                 if isResolvingAsset {
@@ -211,11 +211,10 @@ struct PhotoPickerSheet: View {
             isCameraPresented = true
         } label: {
             ZStack {
-                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    .fill(GAColors.surfaceRaised)
+                Rectangle().fill(GAColors.surfaceRaised)
                 VStack(spacing: 6) {
                     Image(systemName: "camera.fill")
-                        .font(.system(size: 22, weight: .semibold))
+                        .font(.system(size: 26, weight: .semibold))
                         .foregroundStyle(GAColors.textPrimary)
                     Text("media.picker.takePhoto")
                         .font(GATypography.caption.weight(.semibold))
@@ -225,10 +224,6 @@ struct PhotoPickerSheet: View {
                 }
             }
             .frame(width: size, height: size)
-            .overlay(
-                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    .strokeBorder(GAColors.border, lineWidth: 0.75)
-            )
         }
         .buttonStyle(.plain)
         .accessibilityLabel(String(localized: "media.picker.takePhoto"))
@@ -440,19 +435,20 @@ private struct AssetThumbnail: View {
     var body: some View {
         Button(action: onTap) {
             ZStack {
-                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    .fill(GAColors.surfaceRaised)
+                Rectangle().fill(GAColors.surfaceRaised)
                 if let thumbnail {
                     Image(uiImage: thumbnail)
                         .resizable()
                         .scaledToFill()
-                        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
                 } else {
                     ProgressView()
                         .controlSize(.small)
                 }
             }
-            .aspectRatio(1, contentMode: .fit)
+            // Container clips the scaledToFill thumbnail to the square
+            // bounds without imposing a corner radius. The outer
+            // .frame in the grid sets the size; we only need the clip.
+            .clipped()
         }
         .buttonStyle(.plain)
         .task(id: asset.localIdentifier) { await loadThumbnail() }
