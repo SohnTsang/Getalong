@@ -1,19 +1,5 @@
 import SwiftUI
 
-/// True while the current user has any live_pending invite (incoming or
-/// outgoing). Read by `GAAppTopBar` to tint the bottom hairline; lifted
-/// into the SwiftUI environment by `MainTabView` so all four tabs pick
-/// it up uniformly.
-private struct GATopBarLiveInviteActiveKey: EnvironmentKey {
-    static let defaultValue: Bool = false
-}
-extension EnvironmentValues {
-    var gaHasActiveLiveInvite: Bool {
-        get { self[GATopBarLiveInviteActiveKey.self] }
-        set { self[GATopBarLiveInviteActiveKey.self] = newValue }
-    }
-}
-
 /// Shared top bar for the four main tabs.
 ///
 ///   ┌────────────────────────────────────────────┐
@@ -29,7 +15,19 @@ struct GAAppTopBar<Leading: View, Trailing: View>: View {
     @ViewBuilder var leading:  () -> Leading
     @ViewBuilder var trailing: () -> Trailing
 
-    @Environment(\.gaHasActiveLiveInvite) private var hasActiveLiveInvite
+    // Observe the tracker directly. We previously routed this through
+    // `@Environment(\.gaHasActiveLiveInvite, value)` set on TabView,
+    // but TabView caches each tab's hosted view tree (UITabBarController
+    // + UIHostingController per tab); a parent `.environment(\.x, ...)`
+    // change doesn't reliably re-render the currently-visible tab's
+    // hosted body until that tab re-mounts. The realtime path was
+    // flipping `hasActiveLiveInvite` correctly, but the navbar accent
+    // didn't appear until the user switched tabs / refreshed. Reading
+    // the @Published value directly via @EnvironmentObject sidesteps
+    // that cache: every view observing the tracker repaints the
+    // moment a @Published flips.
+    @EnvironmentObject private var missedTracker: MissedInvitesTracker
+    private var hasActiveLiveInvite: Bool { missedTracker.hasActiveLiveInvite }
 
     init(
         @ViewBuilder leading:  @escaping () -> Leading  = { EmptyView() },

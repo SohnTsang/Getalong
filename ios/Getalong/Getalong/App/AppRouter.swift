@@ -98,10 +98,6 @@ struct MainTabView: View {
         .tint(GAColors.accent)
         .environmentObject(missedTracker)
         .environmentObject(chatsVM)
-        // Expose the live-invite presence flag through the SwiftUI
-        // environment so GAAppTopBar tints its bottom hairline accent
-        // on all four tabs while a live invite is in flight.
-        .environment(\.gaHasActiveLiveInvite, missedTracker.hasActiveLiveInvite)
         // First-time permission ask, deferred until the user has reached
         // the main app — never on the auth screen and never on first launch.
         .task {
