@@ -108,6 +108,14 @@ struct MainTabView: View {
             await push.requestAuthorizationIfNeeded()
         }
         .task(id: currentUserId) {
+            // Detach FIRST. Without this, sign-out left the previous
+            // user's fallback polls + realtime listeners running
+            // forever (the unstructured Tasks we spawn for attach
+            // outlive the .task body's own lifecycle), and a user
+            // switch produced double-listeners across both VMs.
+            // detach() is idempotent and cheap.
+            missedTracker.detach()
+            chatsVM.detach()
             // Spawn unstructured Tasks so that SwiftUI tearing this
             // .task down (which it does on every dependency change /
             // body re-render) doesn't propagate Task.cancel() into
