@@ -150,6 +150,43 @@ final class ProfileService {
         }
     }
 
+    /// Sets `city` and `country` back to NULL. Goes through a dedicated
+    /// payload that emits explicit JSON `null` for both columns —
+    /// `ProfilePatch` can't, because Foundation's default Encodable
+    /// *omits* nil optionals (so a patch with city=nil, country=nil
+    /// would be an empty UPDATE that doesn't actually clear anything).
+    func clearMyRegion() async throws -> Profile {
+        struct ClearRegion: Encodable {
+            func encode(to encoder: Encoder) throws {
+                var c = encoder.container(keyedBy: Keys.self)
+                try c.encodeNil(forKey: .city)
+                try c.encodeNil(forKey: .country)
+            }
+            enum Keys: String, CodingKey { case city, country }
+        }
+
+        guard let userId = try? await Supa.client.auth.session.user.id else {
+            GALog.profile.error("clearMyRegion: not signed in")
+            throw ProfileError.underlying("not signed in")
+        }
+        GALog.profile.info("clearMyRegion begin user=\(userId)")
+        do {
+            let updated: Profile = try await Supa.client
+                .from("profiles")
+                .update(ClearRegion())
+                .eq("id", value: userId)
+                .select()
+                .single()
+                .execute()
+                .value
+            GALog.profile.info("clearMyRegion ok")
+            return updated
+        } catch {
+            GALog.profile.error("clearMyRegion failed: \(error.localizedDescription)")
+            throw Self.translate(error)
+        }
+    }
+
     func softDelete(userId: UUID) async throws {
         struct DeletePatch: Encodable { let deleted_at: Date }
         try await Supa.client

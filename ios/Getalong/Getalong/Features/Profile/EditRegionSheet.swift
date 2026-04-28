@@ -142,8 +142,7 @@ struct EditRegionSheet: View {
                 await save(city: city, country: country)
             }
         } else {
-            // OFF -> clear region.
-            await save(city: nil, country: nil)
+            await clear()
         }
     }
 
@@ -153,6 +152,21 @@ struct EditRegionSheet: View {
         patch.country = country?.isEmpty == false ? country : nil
         do {
             let updated = try await ProfileService.shared.updateMyProfile(patch)
+            Haptics.success()
+            onSaved(updated)
+        } catch {
+            phase = .error(String(localized: "profile.edit.error"))
+            Haptics.error()
+        }
+    }
+
+    /// Turning the toggle off must clear city and country to NULL on
+    /// the server. ProfilePatch can't express that — its nil optionals
+    /// get *omitted* from the encoded payload — so we use the
+    /// dedicated clearMyRegion() path which emits explicit JSON null.
+    private func clear() async {
+        do {
+            let updated = try await ProfileService.shared.clearMyRegion()
             Haptics.success()
             onSaved(updated)
         } catch {
