@@ -1,24 +1,32 @@
 // deleteExpiredMedia — Getalong fallback cleanup.
 //
-// Primary deletion path is finalizeViewOnceMedia, called by the iOS viewer
-// when the receiver closes the preview. This function is the safety net
-// that catches:
+// Now the *primary* deletion path for view-once media. finalizeViewOnceMedia
+// no longer deletes storage on close — it only stamps view_finalized_at.
+// This function (and the pg_cron equivalent in cleanup_expired_media)
+// removes storage objects according to:
 //
-//   * viewed rows that never got a finalize call (app killed, network
-//     failure, etc.) — after a 2-minute grace, delete the storage object
-//     and stamp storage_deleted_at.
-//   * pending_upload rows older than 30 minutes — never uploaded.
-//   * active rows past expires_at — receiver never opened.
-//   * expired rows with storage objects still around.
+//   * pending_upload rows older than 30 minutes — never finished uploading.
+//   * active rows past their 7-day expires_at — receiver never opened.
+//   * any row past retention_until (created_at + 24h for view-once)
+//     where storage_deleted_at is null.
+//
+// Moderation-held rows (moderation_hold_at IS NOT NULL) are skipped
+// indefinitely — they live until the manual review path stamps
+// moderation_reviewed_at (and a future tool decides what to do with the
+// bytes).
 //
 // Idempotent. Safe to call repeatedly. Service-role only.
+//
+// pg_cron runs `public.cleanup_expired_media()` every 2 minutes. This
+// HTTP endpoint exists for ad-hoc invocation (CI tests, manual
+// remediation, "I want it gone now"). The two share semantics — if you
+// change one, change the other.
 
 import { ok, fail, preflight } from "../_shared/response.ts";
 import { admin } from "../_shared/auth.ts";
 import {
   MEDIA_BUCKET,
   PENDING_TTL_SECONDS,
-  VIEWED_GRACE_SECONDS,
 } from "../_shared/media.ts";
 
 function authorize(req: Request): boolean {
@@ -41,12 +49,14 @@ Deno.serve(async (req) => {
   const sb = admin();
   const nowIso = new Date().toISOString();
 
-  // 1. Active → expired (past expires_at).
+  // 1. Active → expired (past expires_at). Skip held rows; we still want
+  //    them on hold even if the active TTL has elapsed.
   const { data: expActive, error: e1 } = await sb
     .from("media_assets")
     .update({ status: "expired" })
     .eq("status", "active")
     .lt("expires_at", nowIso)
+    .is("moderation_hold_at", null)
     .select("id");
   if (e1) console.warn("expireActive failed:", e1.message);
 
@@ -58,103 +68,69 @@ Deno.serve(async (req) => {
     .update({ status: "expired" })
     .eq("status", "pending_upload")
     .lt("created_at", pendingCutoff)
+    .is("moderation_hold_at", null)
     .select("id");
   if (e2) console.warn("expirePending failed:", e2.message);
 
-  // 3a. Viewed rows where the client never finalized (storage_deleted_at
-  //     still null) and viewed_at is older than the grace window. Remove
-  //     storage objects and stamp storage_deleted_at — keep status=viewed
-  //     so the bubble keeps showing "Viewed" / "Opened".
-  const viewedCutoff = new Date(Date.now() - VIEWED_GRACE_SECONDS * 1000)
-    .toISOString();
-  const finalizedFallback = await finalizeViewedFallback(sb, viewedCutoff);
-
-  // 3b. Expired rows: remove storage objects and flip to deleted.
-  const expiredCleanup = await cleanupExpired(sb);
+  // 3. Storage cleanup — anything past retention_until that still has
+  //    bytes and isn't on hold.
+  const retentionResult = await sweepRetentionElapsed(sb);
 
   return ok({
-    expired_active:           (expActive ?? []).length,
-    expired_pending:          (expPending ?? []).length,
-    viewed_finalized_fallback: finalizedFallback,
-    deleted_expired:          expiredCleanup,
-    ran_at:                   nowIso,
+    expired_active:    (expActive ?? []).length,
+    expired_pending:   (expPending ?? []).length,
+    storage_swept:     retentionResult,
+    ran_at:            nowIso,
   });
 });
 
-async function finalizeViewedFallback(
+async function sweepRetentionElapsed(
   sb: ReturnType<typeof admin>,
-  cutoffIso: string,
-): Promise<{ rows: number; files: number }> {
+): Promise<{ rows: number; files: number; failed: number }> {
+  const nowIso = new Date().toISOString();
+  // Indexed predicate: media_assets_retention_cleanup_idx covers
+  // (retention_until) WHERE storage_deleted_at IS NULL AND
+  // moderation_hold_at IS NULL. The .lte/.is filters here line up.
   const { data: rows, error } = await sb
     .from("media_assets")
     .select("id, storage_path")
-    .eq("status", "viewed")
+    .lte("retention_until", nowIso)
     .is("storage_deleted_at", null)
-    .lt("viewed_at", cutoffIso)
+    .is("moderation_hold_at", null)
     .limit(BATCH_SIZE);
   if (error) {
-    console.warn("viewed-fallback query failed:", error.message);
-    return { rows: 0, files: 0 };
+    console.warn("retention sweep query failed:", error.message);
+    return { rows: 0, files: 0, failed: 0 };
   }
-  if (!rows || rows.length === 0) return { rows: 0, files: 0 };
+  if (!rows || rows.length === 0) return { rows: 0, files: 0, failed: 0 };
 
-  const paths = rows.map((r) => r.storage_path).filter(Boolean);
+  const paths = rows.map((r) => r.storage_path).filter(Boolean) as string[];
+  let filesRemoved = 0;
+  let filesFailed = 0;
   if (paths.length > 0) {
     const { error: rmErr } = await sb.storage
       .from(MEDIA_BUCKET).remove(paths);
     if (rmErr) {
-      console.warn("storage remove (viewed fallback) failed:", rmErr.message);
-      return { rows: 0, files: 0 };
+      // supabase-js .remove() returns success (no error) for missing
+      // keys, so a real error here means the bucket actually rejected
+      // the delete. Don't stamp storage_deleted_at — the next cron
+      // pass will retry.
+      console.warn("storage remove (retention) failed:", rmErr.message);
+      return { rows: 0, files: 0, failed: paths.length };
     }
+    filesRemoved = paths.length;
   }
+
   const ids = rows.map((r) => r.id);
   const { error: upErr } = await sb
     .from("media_assets")
     .update({ storage_deleted_at: new Date().toISOString() })
-    .in("id", ids);
+    .in("id", ids)
+    .is("storage_deleted_at", null);
   if (upErr) {
-    console.warn("viewed-fallback stamp failed:", upErr.message);
-    return { rows: 0, files: paths.length };
+    console.warn("retention sweep stamp failed:", upErr.message);
+    filesFailed += ids.length;
+    return { rows: 0, files: filesRemoved, failed: filesFailed };
   }
-  return { rows: ids.length, files: paths.length };
-}
-
-async function cleanupExpired(
-  sb: ReturnType<typeof admin>,
-): Promise<{ rows: number; files: number }> {
-  const { data: rows, error } = await sb
-    .from("media_assets")
-    .select("id, storage_path, storage_deleted_at")
-    .eq("status", "expired")
-    .limit(BATCH_SIZE);
-  if (error) {
-    console.warn("expired query failed:", error.message);
-    return { rows: 0, files: 0 };
-  }
-  if (!rows || rows.length === 0) return { rows: 0, files: 0 };
-
-  const paths = rows
-    .filter((r) => !r.storage_deleted_at)
-    .map((r) => r.storage_path)
-    .filter(Boolean);
-  let files = 0;
-  if (paths.length > 0) {
-    const { error: rmErr } = await sb.storage
-      .from(MEDIA_BUCKET).remove(paths);
-    if (rmErr) {
-      console.warn("storage remove (expired) failed:", rmErr.message);
-      return { rows: 0, files: 0 };
-    }
-    files = paths.length;
-  }
-  const ids = rows.map((r) => r.id);
-  const { error: upErr } = await sb
-    .from("media_assets")
-    .update({ status: "deleted", storage_deleted_at: new Date().toISOString() })
-    .in("id", ids);
-  if (upErr) {
-    console.warn("expired status flip failed:", upErr.message);
-    return { rows: 0, files };
-  }
-  return { rows: ids.length, files };
+  return { rows: ids.length, files: filesRemoved, failed: filesFailed };
 }

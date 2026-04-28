@@ -99,7 +99,12 @@ Important fields:
 - `view_once`
 - `viewed_by`
 - `viewed_at`
+- `view_finalized_at` — set when receiver closes the viewer
 - `status`
+- `retention_until` — created_at + 24h for view-once media; cleanup deletes storage only after this elapses
+- `storage_deleted_at` — stamped only after the storage object is actually removed
+- `moderation_hold_at` / `moderation_hold_reason` / `moderation_hold_report_id` — set by reportContent; cleanup skips held rows
+- `moderation_reviewed_at` / `moderation_review_status` — for future Trust & Safety review
 
 ### blocks
 
@@ -107,7 +112,11 @@ Tracks blocked user relationships.
 
 ### reports
 
-Tracks reports for moderation.
+Tracks reports for moderation. Filing a report against a media / message / chat_room / profile-with-context_room_id stamps `moderation_hold_at` on the relevant `media_assets` rows (and on `chat_rooms` for chat-room and user-from-chat reports) so the cleanup cron skips them. Held rows are preserved until manual review.
+
+### moderation_access_logs
+
+Audit table for any future reviewer access to held media. RLS-enabled, no client policy — only the service role can read or insert. Reserved for a future Trust & Safety tool that mints short-lived signed URLs against held media; that tool must write one row per access.
 
 ### subscriptions
 

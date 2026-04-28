@@ -210,11 +210,14 @@ Checks:
 - MIME type allowed
 - size allowed
 - duration allowed
-- quota allowed
+- quota allowed (5 unopened view-once cap)
+
+Behavior:
+- creates `media_assets` row with `status = pending_upload`, `view_once = true`, `retention_until = now() + 24h`, `moderation_hold_at = null`, `storage_deleted_at = null`.
 
 Returns:
 - storage path
-- upload token/metadata if needed
+- signed upload URL + token
 
 ### openViewOnceMedia
 
@@ -228,28 +231,55 @@ Checks:
 - message belongs to room
 
 Behavior:
-- mark media viewed before returning signed URL
-- return short-lived signed URL
-- schedule/delete media after view
+- atomically marks media `viewed` before returning a signed URL
+- returns a short-lived signed URL (60 seconds)
+- never deletes storage (cleanup is the cron's job)
+
+### finalizeViewOnceMedia
+
+Called by the iOS viewer when the receiver closes a view-once preview.
+
+Behavior:
+- requires the caller to be `media.viewed_by`
+- stamps `view_finalized_at = now()` if not already set
+- backfills `retention_until = created_at + 24h` if missing
+- does **not** delete storage (changed from previous behaviour)
+- idempotent: returns `ok` for already-finalized, already-deleted, and moderation-held rows
 
 ### deleteExpiredMedia
 
-Cron cleanup.
+Primary deletion path for view-once media (in tandem with `cleanup_expired_media` running every 2 minutes via pg_cron). Service-role only.
 
 Deletes:
-- viewed view-once media
-- expired unviewed media
-- orphaned media
+- pending_upload rows older than 30 minutes (skip held)
+- active rows past `expires_at` (skip held)
+- any row where `retention_until` has elapsed and `storage_deleted_at IS NULL` (skip held)
+
+Skips rows where `moderation_hold_at IS NOT NULL`. Idempotent and batched.
 
 ### reportContent
 
-Creates a report.
+Creates a report and applies moderation holds.
+
+Body: `target_type`, `target_id`, `reason`, optional `details`, optional `context_room_id` (only meaningful for `target_type = profile`).
 
 Checks:
 - user authenticated
 - valid target type
 - target exists
-- duplicate spam prevention
+- reporter is a room participant for message/media/chat_room
+- reporter is sender/receiver for invite
+
+Moderation hold scope:
+- `media`     → the one media row
+- `message`   → that message's media (if any)
+- `chat_room` → the room itself + every still-existing media row in that room (single UPDATE)
+- `profile`   → only when `context_room_id` is supplied AND reporter is a participant; scoped to that room's media. Never room-less / app-wide.
+- `invite`    → no media preservation
+
+Stable behavior:
+- already-deleted media (storage_deleted_at IS NOT NULL) is left alone — bytes are gone, the report still succeeds
+- duplicate report (`ALREADY_REPORTED`) still re-applies the hold
 
 ### blockUser
 

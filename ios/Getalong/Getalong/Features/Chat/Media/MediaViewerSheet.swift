@@ -8,6 +8,13 @@ import AVKit
 struct MediaViewerSheet: View {
     let mediaId: UUID
     let messageType: MessageType
+    /// Conversation that hosts this media. Forwarded to the report sheet
+    /// so reportContent knows which room's media to put on moderation
+    /// hold (the row carries the same room_id, but passing it explicitly
+    /// keeps client→server contract small and consistent with other
+    /// in-chat reports). Optional for safety in any future caller that
+    /// doesn't know the room.
+    var roomId: UUID? = nil
     /// Called once we know the media has been marked viewed (success or
     /// "already viewed" — both transition the bubble to the "viewed" state).
     let onViewed: () -> Void
@@ -81,9 +88,10 @@ struct MediaViewerSheet: View {
         .interactiveDismissDisabled(finalizing)
         .sheet(isPresented: $isReportPresented) {
             ReportSheet(
-                targetType: .media,
-                targetId:   mediaId,
-                onClose:    { isReportPresented = false }
+                targetType:    .media,
+                targetId:      mediaId,
+                contextRoomId: roomId,
+                onClose:       { isReportPresented = false }
             )
         }
         .onDisappear {

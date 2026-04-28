@@ -16,7 +16,7 @@ When you create an account and use Getalong, we collect:
 - **Profile information.** Your handle, display name, optional one-line signal, optional gender, optional "want to see" preference, optional region, optional language.
 - **Signals you send.** Live signals, missed signals, and the timestamps and outcomes of each.
 - **Chats.** Messages you send in private one-to-one chats. We don't read them in the normal course of operating the service.
-- **One-time-view media.** Images, GIFs, and short videos you choose to send. View-once items are auto-deleted after they are opened.
+- **One-time-view media.** Images, GIFs, and short videos you choose to send. View-once media can only be opened once in the app. For safety, abuse prevention, and moderation purposes, view-once media may be retained privately for up to 24 hours after upload or viewing, and longer if the content, conversation, or user is reported.
 - **Device info.** App version, OS version, device model, locale, push notification token if you opt in.
 - **Diagnostics.** Crash reports and limited error logs.
 
@@ -60,7 +60,7 @@ Getalong is not for users under 18. We do not knowingly collect data from childr
 
 - Profile + signals + chat metadata: kept while your account is active. Deleted within 30 days of account deletion (some logs retained up to 90 days for fraud and abuse investigation).
 - Chat messages: deleted with the chat room or with your account.
-- One-time-view media: deleted as soon as the recipient opens it, or within 30 days if unviewed.
+- One-time-view media: can only be opened once in the app. For safety, abuse prevention, and moderation purposes, view-once media may be retained privately for up to 24 hours after upload or viewing. Unviewed media is deleted within 30 days. If the content, a conversation, or a user is reported, related content may be retained longer while we review the report or comply with safety/legal obligations.
 - Diagnostics: kept up to 90 days, then aggregated or deleted.
 
 ## 8. Security

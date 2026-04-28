@@ -95,6 +95,13 @@ final class ChatRoomViewModel: ObservableObject {
         let id = UUID()
         let targetType: ReportTargetType
         let targetId: UUID
+        /// Conversation that hosted the reported entity. Used by the
+        /// backend to scope view-once media preservation when the
+        /// target_type is `profile` (reporting the partner from the
+        /// chat header). Always set for in-chat reports — even for
+        /// media/message reports it gives reportContent extra context
+        /// for future moderation tooling.
+        let roomId: UUID?
     }
 
     init(roomId: UUID, partner: Profile?) {
@@ -185,15 +192,15 @@ final class ChatRoomViewModel: ObservableObject {
 
     func presentReportUser() {
         guard let p = partner else { return }
-        pendingReport = .init(targetType: .profile, targetId: p.id)
+        pendingReport = .init(targetType: .profile, targetId: p.id, roomId: roomId)
     }
 
     func presentReportMessage(_ message: Message) {
-        pendingReport = .init(targetType: .message, targetId: message.id)
+        pendingReport = .init(targetType: .message, targetId: message.id, roomId: roomId)
     }
 
     func presentReportMedia(mediaId: UUID) {
-        pendingReport = .init(targetType: .media, targetId: mediaId)
+        pendingReport = .init(targetType: .media, targetId: mediaId, roomId: roomId)
     }
 
     func presentBlockConfirm() {

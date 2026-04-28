@@ -2961,19 +2961,19 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Can only be opened once. Screenshots may still be possible."
+            "value" : "View-once media can only be opened once. For safety, it may be retained privately for up to 24 hours. Screenshots may still be possible."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "一度だけ開けます。スクリーンショットは完全には防げません。"
+            "value" : "一度だけ開けます。安全対策のため、メディアは最大24時間、非公開で保持される場合があります。スクリーンショットは完全には防げません。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "只能開啟一次。截圖仍可能無法完全避免。"
+            "value" : "只能開啟一次。為了安全管理，媒體可能會以非公開方式保留最長 24 小時。截圖仍可能無法完全避免。"
           }
         }
       }

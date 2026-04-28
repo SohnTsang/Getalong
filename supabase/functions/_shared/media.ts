@@ -24,6 +24,12 @@ export const PENDING_TTL_SECONDS    = 30 * 60;       // 30 min cleanup
 export const ACTIVE_TTL_SECONDS     = 7 * 24 * 3600; // 7 days
 export const VIEWED_GRACE_SECONDS   = 2 * 60;        // 2 min after viewed_at
 
+/// View-once private retention. After this elapses, the cleanup cron
+/// deletes the storage object — unless the row has been put on
+/// moderation hold by reportContent, in which case it is preserved
+/// indefinitely until manual review.
+export const VIEW_ONCE_RETENTION_SECONDS = 24 * 3600; // 24 hours
+
 export function kindFromMime(mime: string): "image" | "gif" | "video" | null {
   return ALLOWED_MIME[mime] ?? null;
 }

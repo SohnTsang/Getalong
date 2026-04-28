@@ -10,7 +10,7 @@ One-time-view media cannot fully prevent screenshots or external recording. The 
 
 Use this copy:
 
-> This media can only be opened once. Screenshots or screen recording may still be possible.
+> View-once media can only be opened once in the app. For safety, abuse prevention, and moderation purposes, view-once media may be retained privately for up to 24 hours after upload or viewing. Screenshots or screen recording may still be possible. If content, a conversation, or a user is reported, related content may be retained longer while we review the report.
 
 ## Storage Rule
 
@@ -56,7 +56,10 @@ Never make chat media public.
    - set `status = viewed`
 5. Function returns a signed URL valid for 30–60 seconds.
 6. Client displays media.
-7. Cleanup function deletes storage object.
+7. When the receiver closes the viewer, `finalizeViewOnceMedia` stamps `view_finalized_at`. The user-facing flow is over: the bubble flips to "Opened" / "No longer available" and the receiver cannot reopen it.
+8. Storage bytes remain privately retained until either:
+   - `retention_until` (created_at + 24 hours) elapses and the cleanup cron deletes them, or
+   - a report against the media / message / room / user-from-chat puts the row on `moderation_hold_at`. Held rows are skipped by cleanup until manual review.
 
 ## Failure States
 
@@ -93,6 +96,15 @@ Show:
 Show:
 - "This media is no longer available."
 
+## Retention and Moderation Hold
+
+- Normal view-once media is retained privately for up to 24 hours after upload (`retention_until = created_at + 24h`).
+- After 24 hours, `cleanup_expired_media` (pg_cron, every 2 minutes) deletes the storage object and stamps `storage_deleted_at`.
+- If a report is filed against the media, the message, the chat room, or the partner-from-chat (with `context_room_id`), the relevant media rows are stamped with `moderation_hold_at`. Held rows are never deleted by cleanup.
+- `chat_rooms.moderation_hold_at` is also stamped for chat-room and user-from-chat reports so the hold survives even if the underlying media rows are gone.
+- Already-deleted media (storage_deleted_at IS NOT NULL) cannot be recovered. Reports still succeed, but no bytes are preserved.
+- Reviewer access is intentionally not built yet. `moderation_access_logs` exists as audit groundwork; any future reviewer tool must require service role / admin role, mint short-lived signed URLs, and write an audit row per access.
+
 ## Testing Requirements
 
 - Receiver opens once successfully.
@@ -102,4 +114,8 @@ Show:
 - Blocked user cannot open.
 - Expired media cannot open.
 - Poor network cannot double-open.
-- Storage cleanup works.
+- Storage cleanup deletes only after `retention_until` has elapsed.
+- Cleanup skips rows where `moderation_hold_at IS NOT NULL`.
+- Reporting media / message / chat_room / user-from-chat (with context_room_id) sets `moderation_hold_at` on the right rows.
+- Reporting already-deleted media still succeeds.
+- Duplicate report still re-applies the hold.

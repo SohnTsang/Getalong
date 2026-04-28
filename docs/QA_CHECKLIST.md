@@ -90,14 +90,20 @@
 - Third user cannot open.
 - Viewed placeholder appears.
 - Expired media unavailable.
-- Cleanup deletes viewed media.
+- Storage object remains immediately after the receiver closes the viewer (24-hour private retention).
+- Cleanup cron deletes storage only after `retention_until` has elapsed.
+- Cleanup cron skips rows with `moderation_hold_at IS NOT NULL`.
 
 ## Safety
 
 - Report profile works.
 - Report post works.
-- Report message works.
-- Report media works.
+- Report message works (preserves attached media as moderation hold).
+- Report media works (puts media on moderation hold).
+- Report chat_room works (puts every still-existing media row in that room on hold, in one UPDATE).
+- Report user from chat with `context_room_id` preserves only that room's media; media in other rooms with the same user are still deleted by retention.
+- Reporting already-deleted media still succeeds (no recovery, no error).
+- Duplicate report still ensures the moderation hold is in place.
 - Block user works.
 - Blocked user cannot invite/message.
 - Active invites between blocked users are cancelled or made unavailable.

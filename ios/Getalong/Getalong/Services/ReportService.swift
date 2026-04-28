@@ -86,6 +86,12 @@ final class ReportService {
         let target_id: UUID
         let reason: String
         let details: String?
+        // Optional. Only meaningful for target_type=profile reports
+        // raised from inside a chat — tells the backend which
+        // conversation's view-once media to put on moderation hold so
+        // the cleanup cron preserves the evidence. Ignored by the
+        // server for other target types.
+        let context_room_id: UUID?
     }
     private struct ReportResp: Decodable {
         let id: UUID?
@@ -100,15 +106,17 @@ final class ReportService {
     func report(targetType: ReportTargetType,
                 targetId: UUID,
                 reason: ReportReason,
-                details: String?) async throws -> Bool {
+                details: String?,
+                contextRoomId: UUID? = nil) async throws -> Bool {
         let resp: ReportResp = try await invoke(
             "reportContent",
             body: ReportBody(
-                target_type: targetType.rawValue,
-                target_id:   targetId,
-                reason:      reason.rawValue,
-                details:     details?.trimmingCharacters(in: .whitespacesAndNewlines)
-                    .nilIfEmpty
+                target_type:     targetType.rawValue,
+                target_id:       targetId,
+                reason:          reason.rawValue,
+                details:         details?.trimmingCharacters(in: .whitespacesAndNewlines)
+                    .nilIfEmpty,
+                context_room_id: contextRoomId
             )
         )
         return resp.alreadyReported ?? false

@@ -30,6 +30,7 @@ import {
   MAX_VIDEO_DURATION_SECONDS,
   MEDIA_BUCKET,
   ACTIVE_TTL_SECONDS,
+  VIEW_ONCE_RETENTION_SECONDS,
   storagePathFor,
 } from "../_shared/media.ts";
 
@@ -157,6 +158,12 @@ Deno.serve(async (req) => {
 
   // Create media row first (we know the id, then build storage_path).
   const expiresAt = new Date(Date.now() + ACTIVE_TTL_SECONDS * 1000).toISOString();
+  // 24-hour private retention. The cleanup cron honours this and
+  // moderation_hold_at; nothing here ever flips moderation_hold_at on
+  // its own.
+  const retentionUntil = new Date(
+    Date.now() + VIEW_ONCE_RETENTION_SECONDS * 1000,
+  ).toISOString();
 
   // Reserve an id by inserting with a placeholder path, then update once
   // we know the id. Using returning id keeps this single round-trip.
@@ -164,16 +171,19 @@ Deno.serve(async (req) => {
   const { data: row, error: insErr } = await sb
     .from("media_assets")
     .insert({
-      owner_id:        userId,
-      room_id:         roomId,
-      storage_path:    placeholderPath,
-      mime_type:       mime,
-      size_bytes:      size,
-      duration_seconds: duration,
-      view_once:       true,
-      status:          "pending_upload",
-      expires_at:      expiresAt,
-      preview_data:    previewData,
+      owner_id:           userId,
+      room_id:            roomId,
+      storage_path:       placeholderPath,
+      mime_type:          mime,
+      size_bytes:         size,
+      duration_seconds:   duration,
+      view_once:          true,
+      status:             "pending_upload",
+      expires_at:         expiresAt,
+      retention_until:    retentionUntil,
+      moderation_hold_at: null,
+      storage_deleted_at: null,
+      preview_data:       previewData,
     })
     .select("id")
     .single();

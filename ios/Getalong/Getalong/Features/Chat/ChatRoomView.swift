@@ -95,9 +95,10 @@ struct ChatRoomView: View {
         // Report sheet (profile / message / media).
         .sheet(item: $vm.pendingReport) { ctx in
             ReportSheet(
-                targetType: ctx.targetType,
-                targetId:   ctx.targetId,
-                onClose:    { vm.pendingReport = nil }
+                targetType:    ctx.targetType,
+                targetId:      ctx.targetId,
+                contextRoomId: ctx.roomId,
+                onClose:       { vm.pendingReport = nil }
             )
         }
         // Block confirmation.
@@ -136,6 +137,7 @@ struct ChatRoomView: View {
                 MediaViewerSheet(
                     mediaId: mid,
                     messageType: mt,
+                    roomId:  vm.roomId,
                     onViewed: { vm.markLocalAssetViewed(mid) },
                     onClose:  { vm.closeMediaViewer() }
                 )

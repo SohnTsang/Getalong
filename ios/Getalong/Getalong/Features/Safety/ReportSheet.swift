@@ -6,6 +6,12 @@ import SwiftUI
 struct ReportSheet: View {
     let targetType: ReportTargetType
     let targetId: UUID
+    /// Optional. When the report is filed from inside a chat (reporting
+    /// the partner's profile, a media bubble, or a message), pass the
+    /// room id so the backend can scope evidence preservation to that
+    /// conversation. Ignored server-side for invite/profile-without-room
+    /// reports.
+    var contextRoomId: UUID? = nil
     let onClose: () -> Void
 
     @State private var selectedReason: ReportReason?
@@ -176,10 +182,11 @@ struct ReportSheet: View {
         phase = .submitting
         do {
             _ = try await ReportService.shared.report(
-                targetType: targetType,
-                targetId:   targetId,
-                reason:     reason,
-                details:    details
+                targetType:    targetType,
+                targetId:      targetId,
+                reason:        reason,
+                details:       details,
+                contextRoomId: contextRoomId
             )
             Haptics.success()
             phase = .success
