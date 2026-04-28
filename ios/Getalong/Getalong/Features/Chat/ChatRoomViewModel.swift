@@ -77,6 +77,11 @@ final class ChatRoomViewModel: ObservableObject {
     /// Localized error from the most recent failed delete attempt.
     @Published var deleteError: String?
 
+    /// Realtime token for the app-wide chat_rooms manager. Released on
+    /// detach. We use it to auto-bounce the partner if the other user
+    /// leaves the chat while we have it open.
+    private var roomsListenerToken: UUID?
+
     struct ReportContext: Identifiable, Equatable {
         let id = UUID()
         let targetType: ReportTargetType
@@ -103,6 +108,28 @@ final class ChatRoomViewModel: ObservableObject {
 
         await RealtimeChatManager.shared.start(roomId: roomId) { [weak self] in
             Task { await self?.reloadOnRealtimeInsert() }
+        }
+
+        // Listen for chat_rooms updates so we can auto-bounce when the
+        // partner leaves the chat while we have this view open. The
+        // shared manager is already attached app-wide via MainTabView,
+        // so we only register a listener here.
+        roomsListenerToken = await RealtimeChatRoomsManager.shared
+            .addListener(userId: currentUserId) { [weak self] in
+                Task { await self?.checkRoomActive() }
+            }
+    }
+
+    /// Re-fetches the room status and flips `didDelete` to true if the
+    /// other side has left (status != 'active'). The view is bound to
+    /// `didDelete` and dismisses itself back to ChatsView automatically.
+    private func checkRoomActive() async {
+        guard !didDelete else { return }
+        guard let room = try? await ChatService.shared.fetchRoom(id: roomId) else { return }
+        if room.status != .active {
+            didDelete = true
+            mediaController?.cancel()
+            mediaController = nil
         }
     }
 
@@ -167,6 +194,10 @@ final class ChatRoomViewModel: ObservableObject {
 
     func detach() async {
         await RealtimeChatManager.shared.stop()
+        if let token = roomsListenerToken {
+            RealtimeChatRoomsManager.shared.removeListener(token)
+            roomsListenerToken = nil
+        }
         mediaController?.cancel()
         mediaController = nil
     }
@@ -249,6 +280,14 @@ final class ChatRoomViewModel: ObservableObject {
             // blocked us. Re-check so the input flips to the blocked card.
             if e == .blockedRelationship {
                 await refreshBlockState()
+            }
+            // Other side left the chat; bounce back to Chats so we
+            // don't sit in a dead room. The realtime listener usually
+            // fires first, but this is the belt-and-braces path for
+            // the case where the user hits Send before the row update
+            // has propagated to our socket.
+            if e == .roomNotActive || e == .roomNotFound {
+                didDelete = true
             }
         } catch {
             sendError = String(localized: "chat.error.sendFailed")

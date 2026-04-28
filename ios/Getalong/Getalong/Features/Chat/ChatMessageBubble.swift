@@ -220,21 +220,19 @@ struct ChatMessageBubble: View {
             // Reuse the dotted noise pattern from obscuredBackdrop so
             // the visual language stays consistent with the receiver
             // side and "view-once" is unmistakable.
-            GeometryReader { geo in
-                Canvas { ctx, size in
-                    let dot = Color.white.opacity(0.10)
-                    let step: CGFloat = 14
-                    for x in stride(from: CGFloat(0), to: size.width, by: step) {
-                        for y in stride(from: CGFloat(0), to: size.height, by: step) {
-                            ctx.fill(
-                                Path(ellipseIn: CGRect(x: x, y: y, width: 2, height: 2)),
-                                with: .color(dot)
-                            )
-                        }
+            Canvas { ctx, size in
+                let dot = Color.white.opacity(0.10)
+                let step: CGFloat = 14
+                for x in stride(from: CGFloat(0), to: size.width, by: step) {
+                    for y in stride(from: CGFloat(0), to: size.height, by: step) {
+                        ctx.fill(
+                            Path(ellipseIn: CGRect(x: x, y: y, width: 2, height: 2)),
+                            with: .color(dot)
+                        )
                     }
-                    _ = geo
                 }
             }
+            .drawingGroup()
         }
     }
 
@@ -254,21 +252,21 @@ struct ChatMessageBubble: View {
                 endPoint: .bottomTrailing
             )
             // Soft repeating dots → quiet, premium, "blurred" feel.
-            GeometryReader { geo in
-                Canvas { ctx, size in
-                    let dot = Color.white.opacity(isMine ? 0.06 : 0.04)
-                    let step: CGFloat = 14
-                    for x in stride(from: CGFloat(0), to: size.width, by: step) {
-                        for y in stride(from: CGFloat(0), to: size.height, by: step) {
-                            ctx.fill(
-                                Path(ellipseIn: CGRect(x: x, y: y, width: 2, height: 2)),
-                                with: .color(dot)
-                            )
-                        }
+            // .drawingGroup rasterizes the canvas once instead of
+            // re-running the for-loop on every body re-eval.
+            Canvas { ctx, size in
+                let dot = Color.white.opacity(isMine ? 0.06 : 0.04)
+                let step: CGFloat = 14
+                for x in stride(from: CGFloat(0), to: size.width, by: step) {
+                    for y in stride(from: CGFloat(0), to: size.height, by: step) {
+                        ctx.fill(
+                            Path(ellipseIn: CGRect(x: x, y: y, width: 2, height: 2)),
+                            with: .color(dot)
+                        )
                     }
-                    _ = geo
                 }
             }
+            .drawingGroup()
         }
     }
 
