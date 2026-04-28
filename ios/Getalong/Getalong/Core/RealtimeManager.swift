@@ -224,6 +224,7 @@ final class RealtimeChatManager {
     private var listeners: [UUID: Listener] = [:]
     private var attachedRoomId: UUID?
     private var connectTask: Task<Void, Never>?
+    private var subscribeRetryTask: Task<Void, Never>?
 
     @discardableResult
     func addListener(roomId: UUID, onEvent: @escaping Listener) async -> UUID {
@@ -279,9 +280,12 @@ final class RealtimeChatManager {
         catch {
             GALog.chat.error("realtime chat subscribe failed: \(error.localizedDescription)")
             await Supa.client.realtimeV2.removeChannel(ch)
+            scheduleSubscribeRetry(roomId: roomId, attempt: 1)
             return
         }
         GALog.chat.info("realtime chat subscribed room=\(rid, privacy: .public)")
+        subscribeRetryTask?.cancel()
+        subscribeRetryTask = nil
         channel = ch
         attachedRoomId = roomId
 
@@ -312,6 +316,30 @@ final class RealtimeChatManager {
         for listener in snapshot { listener(event) }
     }
 
+    /// Backoff retry after a thrown subscribe error. Same pattern the
+    /// invite/chat-rooms managers use.
+    private func scheduleSubscribeRetry(roomId: UUID, attempt: Int) {
+        guard attempt <= 5 else {
+            GALog.chat.error("realtime chat subscribe retry: giving up after \(attempt - 1) attempts")
+            return
+        }
+        subscribeRetryTask?.cancel()
+        subscribeRetryTask = Task { @MainActor [weak self] in
+            let delaySec = pow(2.0, Double(attempt - 1))
+            try? await Task.sleep(nanoseconds: UInt64(delaySec * 1_000_000_000))
+            guard !Task.isCancelled, let self else { return }
+            guard self.connectTask == nil else { return }
+            guard self.attachedRoomId == nil || self.attachedRoomId == roomId else { return }
+            let task: Task<Void, Never> = Task { @MainActor [weak self] in
+                guard let self else { return }
+                await self.connect(roomId: roomId)
+            }
+            self.connectTask = task
+            await task.value
+            self.connectTask = nil
+        }
+    }
+
     /// Tolerates ISO-8601 with or without fractional seconds — the
     /// realtime payload's `created_at` etc. comes back without
     /// fractions even though our PostgREST fetches include them.
@@ -335,6 +363,8 @@ final class RealtimeChatManager {
     func stop() async {
         task?.cancel()
         task = nil
+        subscribeRetryTask?.cancel()
+        subscribeRetryTask = nil
         listeners.removeAll()
         attachedRoomId = nil
         if let channel { await Supa.client.realtimeV2.removeChannel(channel) }

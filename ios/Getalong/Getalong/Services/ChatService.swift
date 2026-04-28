@@ -87,6 +87,36 @@ final class ChatService {
         return result.first
     }
 
+    /// Messages strictly newer than `since`, ascending. Returns an
+    /// empty array when nothing has changed. This is the catch-up
+    /// path used by ChatRoomViewModel when a chat_rooms UPDATE event
+    /// fires (which we get even when the per-room realtime channel
+    /// is hung mid-subscribe). Much cheaper than fetching the last
+    /// 50 — typically zero or one row.
+    func fetchMessages(roomId: UUID, since: Date) async throws -> [Message] {
+        do {
+            let iso = Self.iso8601WithFractions.string(from: since)
+            return try await Supa.client
+                .from("messages")
+                .select()
+                .eq("room_id", value: roomId)
+                .eq("is_deleted", value: false)
+                .gt("created_at", value: iso)
+                .order("created_at", ascending: true)
+                .execute()
+                .value
+        } catch {
+            GALog.chat.error("fetchMessages(since:): \(error.localizedDescription)")
+            throw ChatServiceError.loadFailed
+        }
+    }
+
+    private static let iso8601WithFractions: ISO8601DateFormatter = {
+        let f = ISO8601DateFormatter()
+        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return f
+    }()
+
     /// Latest `limit` messages, returned ascending so the UI can append in order.
     func fetchMessages(roomId: UUID, limit: Int = 50) async throws -> [Message] {
         do {

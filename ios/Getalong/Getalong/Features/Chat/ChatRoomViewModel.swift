@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import UIKit
 
 @MainActor
 final class ChatRoomViewModel: ObservableObject {
@@ -83,13 +84,7 @@ final class ChatRoomViewModel: ObservableObject {
     private var roomsListenerToken: UUID?
     /// Realtime token for the per-room messages INSERT stream.
     private var messagesListenerToken: UUID?
-    /// Belt-and-braces polling task. Realtime is the primary signal,
-    /// but if the websocket misses an event (filter mismatch, RLS
-    /// quirk, transient disconnect) we still want messages to appear
-    /// without the user backing out and re-entering. 4-second tick is
-    /// fast enough to feel near-instant while costing one cheap
-    /// fetchMessages per room per interval.
-    private var fallbackPollTask: Task<Void, Never>?
+    private var foregroundObserver: NSObjectProtocol?
 
     struct ReportContext: Identifiable, Equatable {
         let id = UUID()
@@ -146,27 +141,76 @@ final class ChatRoomViewModel: ObservableObject {
             }
         }
 
+        // Use the chat_rooms UPDATE event as a catch-up signal.
+        // createChatMessage bumps `last_message_at` on the room,
+        // which fires this listener even when the per-room messages
+        // channel is hung mid-subscribe. The listener does an
+        // incremental fetch (messages newer than what we already
+        // have) — typically zero or one row.
         Task { [weak self, currentUserId] in
             guard let self else { return }
             let token = await RealtimeChatRoomsManager.shared.addListener(
                 userId: currentUserId
-            ) { [weak self] _ in
-                Task { @MainActor in await self?.checkRoomActive() }
+            ) { [weak self] event in
+                Task { @MainActor in
+                    await self?.checkRoomActive()
+                    if case .roomUpserted(let room) = event,
+                       room?.id == self?.roomId {
+                        await self?.catchUpMessages()
+                    }
+                }
             }
             await MainActor.run { self.roomsListenerToken = token }
         }
 
-        startFallbackPolling()
+        observeAppLifecycle()
     }
 
-    private func startFallbackPolling() {
-        fallbackPollTask?.cancel()
-        fallbackPollTask = Task { [weak self] in
-            while !Task.isCancelled {
-                try? await Task.sleep(nanoseconds: 4_000_000_000)
-                guard !Task.isCancelled else { return }
-                await self?.reloadOnRealtimeInsert()
+    private func observeAppLifecycle() {
+        guard foregroundObserver == nil else { return }
+        // App returning from background: the websocket may have been
+        // suspended. Catch up on any messages that landed while we
+        // weren't listening — incremental fetch, not a 50-row reload.
+        foregroundObserver = NotificationCenter.default.addObserver(
+            forName: UIApplication.willEnterForegroundNotification,
+            object: nil, queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in await self?.catchUpMessages() }
+        }
+    }
+
+    /// Incremental fetch for messages strictly newer than our last
+    /// known message. Used as the chat_rooms-event catch-up path and
+    /// the foreground-resume path. WhatsApp/Telegram pattern: socket
+    /// bumps a counter, app fetches the delta, appends — no
+    /// re-rendering the entire conversation.
+    private func catchUpMessages() async {
+        guard let after = messages.last?.createdAt else {
+            // No baseline (empty conversation) — do a single full
+            // load. Idempotent and only happens once.
+            await reload()
+            return
+        }
+        do {
+            let new = try await ChatService.shared.fetchMessages(
+                roomId: roomId, since: after
+            )
+            guard !new.isEmpty else { return }
+            var changed = false
+            for m in new where !messages.contains(where: { $0.id == m.id }) {
+                messages.append(m)
+                changed = true
             }
+            if changed {
+                await hydrateMediaAssets()
+                if let lastAt = messages.last?.createdAt {
+                    ChatReadState.shared.markRead(roomId, at: lastAt)
+                }
+            }
+        } catch is CancellationError {
+            // View tearing down — not a real failure.
+        } catch {
+            GALog.chat.error("catchUpMessages: \(error.localizedDescription)")
         }
     }
 
@@ -252,8 +296,10 @@ final class ChatRoomViewModel: ObservableObject {
             ChatReadState.shared.markRead(roomId)
         }
         ChatPresence.shared.leave(roomId)
-        fallbackPollTask?.cancel()
-        fallbackPollTask = nil
+        if let token = foregroundObserver {
+            NotificationCenter.default.removeObserver(token)
+            foregroundObserver = nil
+        }
         if let token = messagesListenerToken {
             RealtimeChatManager.shared.removeListener(token)
             messagesListenerToken = nil
