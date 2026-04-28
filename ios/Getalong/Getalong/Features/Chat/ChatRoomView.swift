@@ -6,6 +6,11 @@ struct ChatRoomView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
     @State private var lastMessageId: UUID?
+    /// First scroll-to-bottom must happen *without* animation so the
+    /// view appears already pinned at the latest message — no visible
+    /// scroll-from-top animation when opening the room. Subsequent
+    /// new-message scrolls keep the smooth ease-out.
+    @State private var didInitialScroll: Bool = false
 
     init(roomId: UUID, partner: Profile?) {
         _vm = StateObject(wrappedValue: ChatRoomViewModel(roomId: roomId, partner: partner))
@@ -319,13 +324,25 @@ struct ChatRoomView: View {
             .onChange(of: vm.messages.last?.id) { newId in
                 guard let id = newId, id != lastMessageId else { return }
                 lastMessageId = id
-                withAnimation(.easeOut(duration: 0.15)) {
+                if !didInitialScroll {
+                    // First batch of messages just landed — pin to
+                    // bottom instantly so the room opens already at
+                    // the latest message.
                     proxy.scrollTo(id, anchor: .bottom)
+                    didInitialScroll = true
+                } else {
+                    withAnimation(.easeOut(duration: 0.15)) {
+                        proxy.scrollTo(id, anchor: .bottom)
+                    }
                 }
             }
             .onAppear {
+                // If messages were already in the cache (e.g. quick
+                // re-entry into the same room), pin to bottom right
+                // away without waiting for the .onChange.
                 if let id = vm.messages.last?.id {
                     proxy.scrollTo(id, anchor: .bottom)
+                    didInitialScroll = true
                 }
             }
         }
