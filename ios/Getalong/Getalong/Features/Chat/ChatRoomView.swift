@@ -31,14 +31,28 @@ struct ChatRoomView: View {
     }
 
     var body: some View {
-        ZStack(alignment: .top) {
+        ZStack {
             GAColors.background.ignoresSafeArea()
 
             VStack(spacing: 0) {
                 header
                 Divider().background(GAColors.border)
 
-                messagesScroll
+                // Toast lives below the header (under the divider)
+                // so it doesn't cover identity/menu chrome. Floated
+                // in a ZStack so the messagesScroll layout is
+                // unaffected when it appears or hides.
+                ZStack(alignment: .top) {
+                    messagesScroll
+
+                    if let err = vm.sendError {
+                        ChatErrorToast(message: err) { vm.sendError = nil }
+                            .padding(.horizontal, GASpacing.lg)
+                            .padding(.top, GASpacing.sm)
+                            .transition(.move(edge: .top).combined(with: .opacity))
+                            .zIndex(10)
+                    }
+                }
 
                 if vm.hasBlockedPartner {
                     blockedCard
@@ -50,17 +64,6 @@ struct ChatRoomView: View {
                                  onSend: { Task { await vm.send() } },
                                  onAttachPicked: { src in vm.startMediaPick(src) })
                 }
-            }
-
-            // Top-of-screen toast. Auto-dismisses after 3s; swipe up
-            // to dismiss early. Sits in the ZStack overlay so it can
-            // float above the header without pushing layout.
-            if let err = vm.sendError {
-                ChatErrorToast(message: err) { vm.sendError = nil }
-                    .padding(.horizontal, GASpacing.lg)
-                    .padding(.top, GASpacing.sm)
-                    .transition(.move(edge: .top).combined(with: .opacity))
-                    .zIndex(10)
             }
         }
         .animation(.easeOut(duration: 0.22), value: vm.sendError)
@@ -423,6 +426,17 @@ private struct ChatErrorToast: View {
 
     var body: some View {
         GAErrorBanner(message: message, onDismiss: onDismiss)
+            // Lay an opaque surface beneath the banner — the banner
+            // itself uses an 8% tint background which would let the
+            // chat content show through. The toast must read as a
+            // solid sheet floating over the messages.
+            .background(
+                RoundedRectangle(cornerRadius: GACornerRadius.medium,
+                                 style: .continuous)
+                    .fill(GAColors.surfaceRaised)
+                    .shadow(color: Color.black.opacity(0.10),
+                            radius: 8, x: 0, y: 2)
+            )
             .offset(y: min(dragY, 0))
             .gesture(
                 DragGesture(minimumDistance: 4)
