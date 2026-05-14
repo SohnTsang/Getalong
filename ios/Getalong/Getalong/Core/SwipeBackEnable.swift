@@ -1,4 +1,5 @@
 import UIKit
+import ObjectiveC
 
 /// Re-enables and *expands* the interactive-pop gesture so that:
 ///
@@ -16,7 +17,16 @@ import UIKit
 /// `_UINavigationInteractiveTransition`. The animation, threshold, and
 /// release behaviour all come for free from UIKit — we only have to
 /// avoid firing during vertical scrolls.
-extension UINavigationController: UIGestureRecognizerDelegate {
+///
+/// Implementation note: we used to declare
+/// `extension UINavigationController: UIGestureRecognizerDelegate`,
+/// but that's a retroactive conformance — the Swift compiler warns
+/// because if a future UIKit version adopts the protocol on
+/// UINavigationController itself, both conformances would conflict.
+/// The clean fix is a dedicated delegate object held on the nav
+/// controller via an Obj-C associated object; the extension only
+/// installs the gesture and wires the delegate.
+extension UINavigationController {
     override open func viewDidLoad() {
         super.viewDidLoad()
         installSwipeFromAnywhereIfNeeded()
@@ -24,13 +34,14 @@ extension UINavigationController: UIGestureRecognizerDelegate {
 
     private func installSwipeFromAnywhereIfNeeded() {
         guard let edgePop = interactivePopGestureRecognizer else { return }
-        edgePop.delegate = self
+        let delegate = swipeBackDelegate
+        edgePop.delegate = delegate
         // Don't reinstall on every push.
         if view.gestureRecognizers?.contains(where: { $0 is FullPanRecognizer }) == true {
             return
         }
         let pan = FullPanRecognizer()
-        pan.delegate = self
+        pan.delegate = delegate
         // Reuse the system recognizer's action handlers — that's
         // what drives the interactive pop animation.
         if let targets = edgePop.value(forKey: "targets") {
@@ -39,11 +50,50 @@ extension UINavigationController: UIGestureRecognizerDelegate {
         view.addGestureRecognizer(pan)
     }
 
-    public func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+    /// Lazily-allocated delegate, retained on the nav controller via
+    /// an Obj-C associated object so it lives exactly as long as the
+    /// nav controller does. Same instance is reused across the system
+    /// edge recognizer and our full-screen pan.
+    private var swipeBackDelegate: SwipeBackGestureDelegate {
+        if let existing = objc_getAssociatedObject(self, &swipeBackDelegateKey)
+            as? SwipeBackGestureDelegate {
+            return existing
+        }
+        let d = SwipeBackGestureDelegate(navigationController: self)
+        objc_setAssociatedObject(
+            self,
+            &swipeBackDelegateKey,
+            d,
+            .OBJC_ASSOCIATION_RETAIN_NONATOMIC
+        )
+        return d
+    }
+}
+
+/// Stable pointer identity for the associated-object key. Its value
+/// is never read or mutated — only its address is used by
+/// `objc_get/setAssociatedObject`. File-scope `private var` keeps it
+/// out of any other translation unit's namespace.
+private var swipeBackDelegateKey: UInt8 = 0
+
+/// Real `UIGestureRecognizerDelegate` for the swipe-back gestures.
+/// Owns a weak ref back to the nav controller so it can read
+/// `viewControllers` / `transitionCoordinator` at recognition time
+/// without retaining the controller.
+private final class SwipeBackGestureDelegate: NSObject, UIGestureRecognizerDelegate {
+    weak var navigationController: UINavigationController?
+
+    init(navigationController: UINavigationController) {
+        self.navigationController = navigationController
+        super.init()
+    }
+
+    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        guard let nav = navigationController else { return false }
         // Nothing to pop to → don't engage either gesture.
-        guard viewControllers.count > 1 else { return false }
+        guard nav.viewControllers.count > 1 else { return false }
         // Mid-push animations bork interactive transitions; ignore.
-        if let coordinator = transitionCoordinator, coordinator.isAnimated {
+        if let coordinator = nav.transitionCoordinator, coordinator.isAnimated {
             return false
         }
         if let pan = gestureRecognizer as? UIPanGestureRecognizer {
@@ -58,7 +108,7 @@ extension UINavigationController: UIGestureRecognizerDelegate {
         return true
     }
 
-    public func gestureRecognizer(
+    func gestureRecognizer(
         _ gestureRecognizer: UIGestureRecognizer,
         shouldRecognizeSimultaneouslyWith other: UIGestureRecognizer
     ) -> Bool {

@@ -428,7 +428,7 @@ final class RealtimeChatManager {
         }
     }
 
-    nonisolated(unsafe) private static let decoder: JSONDecoder = {
+    nonisolated static let decoder: JSONDecoder = {
         let d = JSONDecoder()
         d.dateDecodingStrategy = .custom { decoder in
             let s = try decoder.singleValueContainer().decode(String.self)
@@ -503,7 +503,7 @@ final class RealtimeChatRoomsManager {
         state = s
     }
 
-    nonisolated(unsafe) private static let decoder: JSONDecoder = {
+    nonisolated static let decoder: JSONDecoder = {
         let d = JSONDecoder()
         d.dateDecodingStrategy = .custom { decoder in
             let s = try decoder.singleValueContainer().decode(String.self)
