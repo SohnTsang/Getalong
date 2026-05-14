@@ -130,16 +130,17 @@ final class MissedInvitesTracker: ObservableObject {
         // inviting you right now" signal. Outgoing invites are
         // intentionally ignored here; the sender sees their own
         // countdown ring on the Discovery card.
-        async let missedCall   = InviteService.shared.fetchMissedInvites(userId: uid)
-        async let incomingCall = InviteService.shared.fetchIncomingLivePending(userId: uid)
+        //
+        // For the missed badge we ask the server for a single int via
+        // `get_actionable_missed_invite_count` (migration 0028) — the
+        // backend already excludes pairs that have an active chat and
+        // counts distinct senders to match the UI's dedupe rule. No
+        // longer downloads invite rows just to count them.
+        async let missedCountCall = InviteService.shared.fetchActionableMissedInviteCount()
+        async let incomingCall    = InviteService.shared.fetchIncomingLivePending(userId: uid)
         do {
-            let (m, i) = try await (missedCall, incomingCall)
-            // Match the InvitesView dedupe rule: one badge per distinct
-            // sender. Multiple invites from the same person collapse to
-            // one card on screen, so the badge has to as well —
-            // otherwise the number won't agree with what the user sees.
-            let distinctSenders = Set(m.map(\.senderId)).count
-            setMissedCount(distinctSenders)
+            let (count, i) = try await (missedCountCall, incomingCall)
+            setMissedCount(count)
             setHasActiveLiveInvite(!i.isEmpty)
             scheduleLiveExpiryClear(for: i)
         } catch {

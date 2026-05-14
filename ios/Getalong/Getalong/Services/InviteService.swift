@@ -182,58 +182,32 @@ final class InviteService {
             .value
     }
 
+    /// Server-side "actionable missed invites" list. Backed by the
+    /// `get_actionable_missed_invites` SQL RPC (migration 0028): the
+    /// NOT EXISTS against `chat_rooms` is evaluated in Postgres, so
+    /// the client never has to fetch every active room just to filter
+    /// the missed list. `userId` is kept on the signature for symmetry
+    /// with the older API but is unused — the RPC reads `auth.uid()`
+    /// directly and ignores any caller-supplied id.
     func fetchMissedInvitesWithSender(userId: UUID) async throws -> [InviteWithSender] {
-        async let invitesTask: [InviteWithSender] = Supa.client
-            .from("invites")
-            .select(Self.inviteWithSenderSelect)
-            .eq("receiver_id", value: userId)
-            .eq("status", value: "missed")
-            .order("created_at", ascending: false)
+        struct Params: Encodable { let p_limit: Int; let p_offset: Int }
+        return try await Supa.client
+            .rpc("get_actionable_missed_invites",
+                 params: Params(p_limit: 200, p_offset: 0))
             .execute()
             .value
-        async let partnersTask: Set<UUID> = activeChatPartners(userId: userId)
-        let (rows, partners) = try await (invitesTask, partnersTask)
-        // Defensive client-side filter. Migration 0027 closes these
-        // rows server-side on accept and backfills existing stale rows,
-        // so under normal operation this filter is a no-op. It guards
-        // against any future race where a chat is created between the
-        // pair before the invite row's status has been flipped (which
-        // would otherwise let a ghost missed card flash up briefly).
-        return rows.filter { !partners.contains($0.invite.senderId) }
     }
 
-    func fetchMissedInvites(userId: UUID) async throws -> [Invite] {
-        async let invitesTask: [Invite] = Supa.client
-            .from("invites")
-            .select()
-            .eq("receiver_id", value: userId)
-            .eq("status", value: "missed")
-            .order("created_at", ascending: false)
+    /// Distinct-sender count of actionable missed invites. The UI
+    /// dedupes missed cards by sender, so the badge has to as well —
+    /// the SQL RPC uses `count(distinct sender_id)` to match. This is
+    /// a single integer round-trip; we no longer download invite rows
+    /// just to count them.
+    func fetchActionableMissedInviteCount() async throws -> Int {
+        return try await Supa.client
+            .rpc("get_actionable_missed_invite_count")
             .execute()
             .value
-        async let partnersTask: Set<UUID> = activeChatPartners(userId: userId)
-        let (rows, partners) = try await (invitesTask, partnersTask)
-        return rows.filter { !partners.contains($0.senderId) }
-    }
-
-    /// Set of user-ids that the signed-in user already has an active
-    /// chat room with. Used as a client-side "hide stale missed
-    /// invites" filter alongside the server-side cleanup in
-    /// `accept_live_invite` / `accept_missed_invite` (migration 0027).
-    /// Fails open: on transport error the filter is empty and the
-    /// caller sees the raw missed list (matching pre-fix behaviour).
-    private func activeChatPartners(userId: UUID) async -> Set<UUID> {
-        do {
-            let rooms = try await ChatService.shared.fetchRooms()
-            return Set(rooms.compactMap { room -> UUID? in
-                if room.userA == userId { return room.userB }
-                if room.userB == userId { return room.userA }
-                return nil
-            })
-        } catch {
-            GALog.invite.error("activeChatPartners failed: \(error.localizedDescription, privacy: .public)")
-            return []
-        }
     }
 
     func fetchOutgoingLivePending(userId: UUID) async throws -> [Invite] {
