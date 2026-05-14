@@ -183,7 +183,7 @@ final class InviteService {
     }
 
     func fetchMissedInvitesWithSender(userId: UUID) async throws -> [InviteWithSender] {
-        try await Supa.client
+        async let invitesTask: [InviteWithSender] = Supa.client
             .from("invites")
             .select(Self.inviteWithSenderSelect)
             .eq("receiver_id", value: userId)
@@ -191,10 +191,19 @@ final class InviteService {
             .order("created_at", ascending: false)
             .execute()
             .value
+        async let partnersTask: Set<UUID> = activeChatPartners(userId: userId)
+        let (rows, partners) = try await (invitesTask, partnersTask)
+        // Defensive client-side filter. Migration 0027 closes these
+        // rows server-side on accept and backfills existing stale rows,
+        // so under normal operation this filter is a no-op. It guards
+        // against any future race where a chat is created between the
+        // pair before the invite row's status has been flipped (which
+        // would otherwise let a ghost missed card flash up briefly).
+        return rows.filter { !partners.contains($0.invite.senderId) }
     }
 
     func fetchMissedInvites(userId: UUID) async throws -> [Invite] {
-        try await Supa.client
+        async let invitesTask: [Invite] = Supa.client
             .from("invites")
             .select()
             .eq("receiver_id", value: userId)
@@ -202,6 +211,29 @@ final class InviteService {
             .order("created_at", ascending: false)
             .execute()
             .value
+        async let partnersTask: Set<UUID> = activeChatPartners(userId: userId)
+        let (rows, partners) = try await (invitesTask, partnersTask)
+        return rows.filter { !partners.contains($0.senderId) }
+    }
+
+    /// Set of user-ids that the signed-in user already has an active
+    /// chat room with. Used as a client-side "hide stale missed
+    /// invites" filter alongside the server-side cleanup in
+    /// `accept_live_invite` / `accept_missed_invite` (migration 0027).
+    /// Fails open: on transport error the filter is empty and the
+    /// caller sees the raw missed list (matching pre-fix behaviour).
+    private func activeChatPartners(userId: UUID) async -> Set<UUID> {
+        do {
+            let rooms = try await ChatService.shared.fetchRooms()
+            return Set(rooms.compactMap { room -> UUID? in
+                if room.userA == userId { return room.userB }
+                if room.userB == userId { return room.userA }
+                return nil
+            })
+        } catch {
+            GALog.invite.error("activeChatPartners failed: \(error.localizedDescription, privacy: .public)")
+            return []
+        }
     }
 
     func fetchOutgoingLivePending(userId: UUID) async throws -> [Invite] {
