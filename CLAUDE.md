@@ -83,6 +83,7 @@ Note: internal architecture / safety / business docs live in `/design-docs/`. Th
 - Do not rely on client-only security.
 - Use Edge Functions for sensitive actions.
 - Enable RLS on every table.
+- Every new `public.<x>` table in a migration must include explicit `GRANT` statements alongside the `create table` and `enable row level security`. From 2026-10-30 Supabase no longer auto-grants `anon` / `authenticated` / `service_role` on tables newly created in `public`, so without an explicit grant the iOS client (PostgREST) will get `42501` errors. Default pattern: `GRANT SELECT, INSERT, UPDATE, DELETE ON public.x TO authenticated;` plus `GRANT ALL ON public.x TO service_role;` (omit `anon` unless the table is genuinely public-readable). Existing tables (migrations 0001–0026) keep their old grants and don't need re-issuing.
 - Use typed models.
 - Keep SwiftUI views thin.
 - Put business logic in services/view models.
