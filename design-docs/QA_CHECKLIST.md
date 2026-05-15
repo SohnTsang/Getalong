@@ -93,6 +93,11 @@
 - Storage object remains immediately after the receiver closes the viewer (24-hour private retention).
 - Cleanup cron deletes storage only after `retention_until` has elapsed.
 - Cleanup cron skips rows with `moderation_hold_at IS NOT NULL`.
+- `deleteExpiredMedia` cron (`getalong_delete_expired_media_every_2_minutes`) is registered and firing every 2 minutes (`cron.job` + `cron.job_run_details`).
+- Calling `deleteExpiredMedia` with no auth fails 401.
+- Calling `deleteExpiredMedia` with a wrong `x-cleanup-secret` fails 401.
+- Calling `deleteExpiredMedia` with the correct scheduler secret succeeds and removes due bytes.
+- Calling `deleteExpiredMedia` with the service-role Bearer still succeeds (ad-hoc / CI path).
 
 ## Safety
 

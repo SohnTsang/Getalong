@@ -15,12 +15,25 @@
 // moderation_reviewed_at (and a future tool decides what to do with the
 // bytes).
 //
-// Idempotent. Safe to call repeatedly. Service-role only.
+// Idempotent. Safe to call repeatedly.
 //
-// pg_cron runs `public.cleanup_expired_media()` every 2 minutes. This
-// HTTP endpoint exists for ad-hoc invocation (CI tests, manual
-// remediation, "I want it gone now"). The two share semantics — if you
-// change one, change the other.
+// Two accepted callers:
+//   * Service-role bearer (ad-hoc / CI / manual "I want it gone now").
+//   * Scheduler: pg_cron + pg_net posts here every 2 minutes with a
+//     dedicated secret in the `x-cleanup-secret` header. The secret
+//     lives in Supabase Vault (see migration 0033) and in the
+//     `CLEANUP_SCHEDULER_SECRET` Edge Function env var. Using a
+//     dedicated secret (not the service-role key) keeps cron at
+//     least privilege.
+//
+// Gateway: `verify_jwt = false` for this function in
+// `supabase/config.toml` — REQUIRED so the cron's non-JWT
+// `x-cleanup-secret` request can reach this handler. Application-level
+// auth is enforced below in `authorize()`; the gateway disable does
+// NOT make this function publicly callable.
+//
+// `cleanup_expired_media()` in SQL is metadata-only — this function is
+// the only path that removes storage bytes.
 
 import { ok, fail, preflight } from "../_shared/response.ts";
 import { admin } from "../_shared/auth.ts";
@@ -29,12 +42,25 @@ import {
   PENDING_TTL_SECONDS,
 } from "../_shared/media.ts";
 
+function timingSafeEq(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
 function authorize(req: Request): boolean {
+  const schedulerSecret = (Deno.env.get("CLEANUP_SCHEDULER_SECRET") ?? "").trim();
+  const presented = (req.headers.get("x-cleanup-secret") ?? "").trim();
+  if (schedulerSecret.length > 0 && presented.length > 0 &&
+      timingSafeEq(presented, schedulerSecret)) {
+    return true;
+  }
   const auth = (req.headers.get("Authorization") ?? "").trim();
   if (!auth.toLowerCase().startsWith("bearer ")) return false;
   const token = auth.slice(7).trim();
-  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-  return serviceKey.length > 0 && token === serviceKey;
+  const serviceKey = (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "").trim();
+  return serviceKey.length > 0 && timingSafeEq(token, serviceKey);
 }
 
 const BATCH_SIZE = 200;
@@ -44,7 +70,7 @@ Deno.serve(async (req) => {
   if (req.method !== "POST" && req.method !== "GET")
     return fail("INVALID_INPUT", "POST or GET required.", 405);
   if (!authorize(req))
-    return fail("AUTH_REQUIRED", "Service role required.", 401);
+    return fail("AUTH_REQUIRED", "Service role or scheduler secret required.", 401);
 
   const sb = admin();
   const nowIso = new Date().toISOString();

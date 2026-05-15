@@ -248,9 +248,19 @@ Behavior:
 
 ### deleteExpiredMedia
 
-The only path that actually removes storage bytes for view-once media. Service-role only. Uses the Storage API (`sb.storage.from(bucket).remove([...])`) — direct SQL deletes against `storage.objects` are blocked by Supabase's `storage.protect_delete()` trigger.
+The only path that actually removes storage bytes for view-once media. Uses the Storage API (`sb.storage.from(bucket).remove([...])`) — direct SQL deletes against `storage.objects` are blocked by Supabase's `storage.protect_delete()` trigger.
 
-The companion SQL function `cleanup_expired_media()` (mig 0031) is metadata-only: it flips `pending_upload`/`active` rows to `expired` and emits retention-elapsed row ids for observability, but never touches `storage.objects` and never stamps `storage_deleted_at`. If pg_cron is ever enabled, scheduling should invoke this Edge Function (e.g. via pg_net) rather than the SQL function.
+Auth — accepts either:
+- `Authorization: Bearer <service-role>` for ad-hoc / CI invocation, or
+- `x-cleanup-secret: <scheduler secret>` for the recurring cron (least-privilege path; secret stored in Vault as `getalong_delete_expired_media_scheduler_secret` and in the function env as `CLEANUP_SCHEDULER_SECRET`).
+
+Gateway: this is the only Edge Function with `verify_jwt = false` (see `supabase/config.toml`). The gateway-level JWT check is disabled INTENTIONALLY because the cron path authenticates with a custom `x-cleanup-secret` header rather than a JWT bearer — without this override the Supabase gateway would reject every cron request before the handler runs. Disabling `verify_jwt` does NOT make this function public: the handler enforces application-level auth (scheduler secret OR service-role Bearer) and rejects everything else with 401. Any other function in this repo MUST keep `verify_jwt = true` (the default).
+
+Deploy command: `supabase functions deploy deleteExpiredMedia --no-verify-jwt`. The CLI flag is required on every deploy (older CLI versions including v2.90.0 do not apply the `verify_jwt = false` value from `config.toml` on deploy — the flag is the canonical mechanism). If you deploy without the flag the gateway will revert to `verify_jwt = true` and the cron will start failing with `UNAUTHORIZED_NO_AUTH_HEADER`.
+
+Scheduling — migration 0033 registers a pg_cron job `getalong_delete_expired_media_every_2_minutes` that POSTs here every 2 minutes via `net.http_post`. The URL is read from Vault (`getalong_project_url`); the scheduler secret is read from Vault. This is the authoritative recurring runner.
+
+The companion SQL function `cleanup_expired_media()` (mig 0031) is metadata-only: it flips `pending_upload`/`active` rows to `expired` and emits retention-elapsed row ids for observability, but never touches `storage.objects` and never stamps `storage_deleted_at`.
 
 Deletes:
 - pending_upload rows older than 30 minutes (skip held)

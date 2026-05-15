@@ -1,0 +1,26 @@
+project_id = "gdqyjewtfvkchglvktuj"
+
+# Per-function overrides. Anything not listed here uses the platform
+# default (verify_jwt = true, JWT enforced at the gateway).
+
+[functions.deleteExpiredMedia]
+# Gateway JWT verification is disabled INTENTIONALLY. The pg_cron
+# scheduler (migration 0033) authenticates with a dedicated custom
+# secret in the `x-cleanup-secret` header — not a JWT bearer — so the
+# Supabase gateway must let the request reach the handler. The
+# handler itself enforces application-level auth: it requires either
+#   * `x-cleanup-secret: <CLEANUP_SCHEDULER_SECRET env var>`  (cron), or
+#   * `Authorization: Bearer <service-role key>`              (ad-hoc / CI).
+# Anything else is rejected with 401 inside the function.
+#
+# IMPORTANT (CLI quirk): on Supabase CLI versions older than the one
+# that fully applies per-function config.toml flags on deploy
+# (verified-broken on v2.90.0), THIS LINE ALONE IS NOT ENOUGH. Every
+# deploy of this function must also pass `--no-verify-jwt`:
+#
+#   supabase functions deploy deleteExpiredMedia --no-verify-jwt
+#
+# Without that flag the gateway will reject the cron request with
+# `UNAUTHORIZED_NO_AUTH_HEADER` before the handler runs. The current
+# remote-state setting was applied via the flag.
+verify_jwt = false

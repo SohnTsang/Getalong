@@ -152,6 +152,19 @@ from `active` to `deleted` (idempotent), stamping `deleted_at` and
 `deleted_by`. Soft-delete only — messages, media, and reports are
 preserved for moderation and the cleanup cron.
 
+## Media cleanup pipeline
+
+Storage-byte cleanup of expired view-once media has exactly one runner:
+the `deleteExpiredMedia` Edge Function. pg_cron (migration 0033) posts
+to it every 2 minutes via `net.http_post`, authenticating with a
+dedicated scheduler secret pulled from Supabase Vault. The companion
+SQL function `cleanup_expired_media()` is metadata-only; it never
+touches `storage.objects` (Supabase's `storage.protect_delete()` blocks
+that path anyway). Moderation-held rows
+(`moderation_hold_at is not null`) are skipped indefinitely until the
+manual review path clears them. See `design-docs/EDGE_FUNCTIONS.md` and
+`design-docs/ONE_TIME_MEDIA_SECURITY.md` for details.
+
 A deleted room:
 - disappears from `ChatService.fetchRooms()` (filters `status='active'`)
 - stops counting against `_ga_count_active_chats` (also filters `'active'`),
