@@ -99,7 +99,7 @@ Show:
 ## Retention and Moderation Hold
 
 - Normal view-once media is retained privately for up to 24 hours after upload (`retention_until = created_at + 24h`).
-- After 24 hours, `cleanup_expired_media` (pg_cron, every 2 minutes) deletes the storage object and stamps `storage_deleted_at`.
+- After 24 hours, the `deleteExpiredMedia` Edge Function is the only path that actually deletes the storage bytes and stamps `storage_deleted_at` (via the Storage API, not SQL — Supabase's `storage.protect_delete()` trigger blocks direct SQL deletes against `storage.objects`). The companion SQL function `cleanup_expired_media()` only marks candidates (flips `pending_upload`/`active` rows to `expired` and emits the retention-elapsed row ids for observability); it deliberately never touches `storage.objects`.
 - If a report is filed against the media, the message, the chat room, or the partner-from-chat (with `context_room_id`), the relevant media rows are stamped with `moderation_hold_at`. Held rows are never deleted by cleanup.
 - `chat_rooms.moderation_hold_at` is also stamped for chat-room and user-from-chat reports so the hold survives even if the underlying media rows are gone.
 - Already-deleted media (storage_deleted_at IS NOT NULL) cannot be recovered. Reports still succeed, but no bytes are preserved.

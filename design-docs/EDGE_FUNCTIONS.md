@@ -248,7 +248,9 @@ Behavior:
 
 ### deleteExpiredMedia
 
-Primary deletion path for view-once media (in tandem with `cleanup_expired_media` running every 2 minutes via pg_cron). Service-role only.
+The only path that actually removes storage bytes for view-once media. Service-role only. Uses the Storage API (`sb.storage.from(bucket).remove([...])`) — direct SQL deletes against `storage.objects` are blocked by Supabase's `storage.protect_delete()` trigger.
+
+The companion SQL function `cleanup_expired_media()` (mig 0031) is metadata-only: it flips `pending_upload`/`active` rows to `expired` and emits retention-elapsed row ids for observability, but never touches `storage.objects` and never stamps `storage_deleted_at`. If pg_cron is ever enabled, scheduling should invoke this Edge Function (e.g. via pg_net) rather than the SQL function.
 
 Deletes:
 - pending_upload rows older than 30 minutes (skip held)
