@@ -70,7 +70,17 @@ Deno.serve(async (req) => {
     .select("id, deleted_at")
     .maybeSingle();
 
-  if (uErr) return fail("DELETE_FAILED", uErr.message, 500);
+  if (uErr) {
+    // Log full Postgres details so the next "DELETE_FAILED" in the
+    // wild is debuggable from server logs alone (the iOS client only
+    // sees the error_code, never the message).
+    const e = uErr as { code?: string; message?: string; details?: string; hint?: string };
+    console.error(
+      `deleteConversation chat_rooms update failed code=${e.code ?? "-"} ` +
+      `message=${e.message ?? "-"} details=${e.details ?? "-"} hint=${e.hint ?? "-"}`,
+    );
+    return fail("DELETE_FAILED", uErr.message, 500);
+  }
   if (!updated) {
     // Concurrent write or row vanished — re-read to decide.
     const { data: reread } = await sb
@@ -79,6 +89,29 @@ Deno.serve(async (req) => {
       return ok({ room_id: reread.id, deleted_at: reread.deleted_at, already: true });
     }
     return fail("DELETE_FAILED", "Could not delete the conversation.", 500);
+  }
+
+  // Secondary cleanup. Flips the room's media rows to status='deleted'
+  // and makes them immediately eligible for the retention sweep
+  // (deleteExpiredMedia). Moderation-held rows are skipped — the
+  // safety hold survives a leave-chat. This used to be done by an
+  // AFTER-UPDATE trigger (purge_media_on_room_delete); migration
+  // 0030 dropped that trigger because any error inside it rolled
+  // back the chat_rooms transition and the user could not leave.
+  // We now run it explicitly here: a failure is logged but never
+  // demotes a successful leave-chat back to DELETE_FAILED.
+  const { error: mErr } = await sb
+    .from("media_assets")
+    .update({ status: "deleted", retention_until: nowIso })
+    .eq("room_id", room.id)
+    .is("storage_deleted_at", null)
+    .is("moderation_hold_at", null);
+  if (mErr) {
+    console.warn(
+      `deleteConversation media_assets cleanup failed room=${room.id} ` +
+      `message=${mErr.message ?? "-"} — leave-chat still succeeded; ` +
+      `retention sweep will catch up.`,
+    );
   }
 
   return ok({ room_id: updated.id, deleted_at: updated.deleted_at, already: false });
