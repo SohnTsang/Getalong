@@ -171,7 +171,7 @@ struct ReportSheet: View {
     }
 
     private var successView: some View {
-        VStack(alignment: .leading, spacing: GASpacing.md) {
+        VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: GASpacing.sm) {
                 Image(systemName: "checkmark.circle.fill")
                     .foregroundStyle(GAColors.success)
@@ -180,9 +180,9 @@ struct ReportSheet: View {
                     .font(GATypography.bodyEmphasized)
                     .foregroundStyle(GAColors.textPrimary)
             }
-            GAButton(title: String(localized: "common.close"),
-                     kind: .ghost, action: onClose)
+            Spacer(minLength: 0)
         }
+        .frame(maxWidth: .infinity, alignment: .topLeading)
     }
 
     // MARK: -

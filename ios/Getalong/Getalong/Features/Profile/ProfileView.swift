@@ -40,6 +40,7 @@ struct ProfileView: View {
                         if let note = saveSuccessNote {
                             successNote(note)
                         }
+                        identitySection(profile)
                         signalSection(profile)
                         tagsSection
                         regionSection(profile)
@@ -150,6 +151,33 @@ struct ProfileView: View {
     }
 
     // MARK: - Sections (tap-the-card opens the editor)
+
+    /// Read-only identity card. The handle (`getalongId`) is the user's
+    /// stable @-mention on Getalong and can't be changed once chosen, so
+    /// we surface it at the top of the profile with a subtitle that tells
+    /// the user they can long-press to copy and share it. Display name
+    /// follows underneath as the editable, public-facing name.
+    private func identitySection(_ p: Profile) -> some View {
+        VStack(alignment: .leading, spacing: GASpacing.sm) {
+            GASectionHeader(title: String(localized: "profile.username.title"),
+                            subtitle: String(localized: "profile.username.subtitle"))
+            GACard {
+                VStack(alignment: .leading, spacing: GASpacing.xs) {
+                    Text("@\(p.getalongId)")
+                        .font(GATypography.title)
+                        .foregroundStyle(GAColors.textPrimary)
+                        .textSelection(.enabled)
+                    if !p.displayName.isEmpty {
+                        Text(p.displayName)
+                            .font(GATypography.callout)
+                            .foregroundStyle(GAColors.textSecondary)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.vertical, GASpacing.xs)
+            }
+        }
+    }
 
     private func signalSection(_ p: Profile) -> some View {
         Button {
