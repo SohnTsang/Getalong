@@ -271,10 +271,16 @@ struct BlockedUser: Identifiable, Hashable {
 
     var id: UUID { userId }
 
-    var displayName: String {
-        if let name = profile?.displayName, !name.isEmpty { return name }
-        if let h = profile?.getalongId, !h.isEmpty { return "@\(h)" }
-        return String(localized: "chat.title.fallback")
+    /// Identity rule for blocked-users surfaces: the one-line profile
+    /// (`bio`) is the primary label; `@handle` is secondary. If the
+    /// bio is empty we fall through to a localized "No line yet"
+    /// placeholder rather than promoting the raw handle to primary.
+    var primaryLine: String {
+        if let bio = profile?.bio?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !bio.isEmpty {
+            return bio
+        }
+        return String(localized: "safety.identity.noLine")
     }
 
     var handle: String? {

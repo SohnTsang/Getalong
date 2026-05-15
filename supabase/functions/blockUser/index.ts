@@ -5,9 +5,19 @@
 // Behaviour:
 //   * Inserts a row into public.blocks. Idempotent — a repeated block on
 //     the same user returns ok with already_blocked = true.
+//   * Soft-deletes the active chat room between the pair (if any), in
+//     a single transaction, so the conversation disappears from BOTH
+//     users' Chats lists and neither side can keep sending messages
+//     / media in that room. Existing message/media history rows are
+//     preserved.
 //   * Cancels any active live_pending invites between the two users in
-//     either direction so a stale 15-second timer can't surface after the
-//     block is in place.
+//     either direction so a stale 15-second timer can't surface after
+//     the block is in place.
+//
+// Atomicity: all four side effects (block row, room close, invite
+// cancel, media-cleanup mark) run inside one SQL function
+// `_ga_block_user_and_close_rooms` (migration 0032). A failure in any
+// step rolls the whole thing back — there's no half-blocked state.
 //
 // Errors: AUTH_REQUIRED, INVALID_INPUT, PROFILE_NOT_FOUND,
 //         SELF_BLOCK_NOT_ALLOWED, BLOCK_FAILED.
@@ -56,34 +66,30 @@ Deno.serve(async (req) => {
   if (!target || target.deleted_at !== null)
     return fail("PROFILE_NOT_FOUND", "User not found.", 404);
 
-  // Idempotent insert. Existing row → already_blocked.
-  const { error: insErr } = await sb
-    .from("blocks")
-    .insert({ blocker_id: blockerId, blocked_id: blockedId });
-  let alreadyBlocked = false;
-  if (insErr) {
-    const code = (insErr as { code?: string }).code;
-    if (code === "23505") {
-      alreadyBlocked = true;
-    } else {
-      return fail("BLOCK_FAILED", insErr.message, 500);
-    }
-  }
-
-  // Tear down active live_pending invites between the two users so the
-  // receiver doesn't see a stale countdown after the block lands.
-  const { error: cancelErr } = await sb
-    .from("invites")
-    .update({ status: "cancelled" })
-    .eq("status", "live_pending")
-    .or(
-      `and(sender_id.eq.${blockerId},receiver_id.eq.${blockedId}),` +
-      `and(sender_id.eq.${blockedId},receiver_id.eq.${blockerId})`
+  // Single transactional RPC. Inserts the block row, soft-deletes
+  // every active chat room between the pair (with deleted_at/by
+  // stamps), cancels pending live invites, and marks the closed
+  // rooms' media for retention cleanup — all-or-nothing.
+  const { data: rpcData, error: rpcErr } = await sb
+    .rpc("_ga_block_user_and_close_rooms", {
+      p_blocker: blockerId,
+      p_blocked: blockedId,
+    });
+  if (rpcErr) {
+    const e = rpcErr as { code?: string; message?: string; details?: string; hint?: string };
+    console.error(
+      `blockUser RPC failed code=${e.code ?? "-"} message=${e.message ?? "-"} ` +
+      `details=${e.details ?? "-"} hint=${e.hint ?? "-"}`,
     );
-  if (cancelErr) console.warn("blockUser: cancel invites failed:", cancelErr.message);
+    return fail("BLOCK_FAILED", rpcErr.message ?? "Block failed.", 500);
+  }
+  const row = Array.isArray(rpcData) ? rpcData[0] : rpcData;
+  const alreadyBlocked = Boolean(row?.already_blocked);
+  const roomsClosed = Number(row?.rooms_closed ?? 0);
 
   return ok({
     blocked_user_id: blockedId,
     already_blocked: alreadyBlocked,
+    rooms_closed:    roomsClosed,
   });
 });

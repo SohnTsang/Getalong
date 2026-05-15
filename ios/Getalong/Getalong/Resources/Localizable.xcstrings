@@ -5294,6 +5294,7 @@
       }
     },
     "profile.validation.signalRequired" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -6549,6 +6550,116 @@
     },
     "safety.blockedUsers.unblockSuccess" : {
       "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "User unblocked."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ブロックを解除しました。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已解除封鎖。"
+          }
+        }
+      }
+    },
+    "safety.identity.noLine" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No line yet"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "まだ一言はありません"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目前還沒有一句自我介紹"
+          }
+        }
+      }
+    },
+    "safety.unblock.alert.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unblock this user?"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このユーザーのブロックを解除しますか？"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要解除封鎖這位使用者嗎？"
+          }
+        }
+      }
+    },
+    "safety.unblock.alert.message" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "They may be able to send you invites or messages again."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "相手からの招待やメッセージが再び届く可能性があります。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "對方之後可能可以再次向你送出邀請或訊息。"
+          }
+        }
+      }
+    },
+    "safety.unblock.alert.action" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unblock user"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ブロックを解除"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "解除封鎖"
+          }
+        }
+      }
+    },
+    "safety.unblock.toast.success" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {

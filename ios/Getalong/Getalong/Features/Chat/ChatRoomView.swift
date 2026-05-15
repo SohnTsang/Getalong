@@ -101,12 +101,15 @@ struct ChatRoomView: View {
                 onClose:       { vm.pendingReport = nil }
             )
         }
-        // Block confirmation.
+        // Block confirmation. Identity is the partner's line (bio) +
+        // @handle — display name is intentionally not shown, matching
+        // the rest of the app's chat-identity model.
         .sheet(isPresented: $vm.isBlockConfirmPresented) {
             if let p = vm.partner {
                 BlockUserSheet(
                     userId: p.id,
-                    displayName: p.displayName,
+                    line:   p.bio,
+                    handle: p.getalongId,
                     onBlocked: { Task { await vm.confirmedBlock() } },
                     onClose:   { vm.isBlockConfirmPresented = false }
                 )

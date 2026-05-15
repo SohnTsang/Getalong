@@ -74,7 +74,8 @@ struct InvitesView: View {
             .sheet(item: $vm.pendingBlock) { ctx in
                 BlockUserSheet(
                     userId: ctx.userId,
-                    displayName: ctx.displayName,
+                    line:   ctx.line,
+                    handle: ctx.handle,
                     onBlocked: { Task { await vm.confirmBlocked(senderId: ctx.userId) } },
                     onClose:   { vm.pendingBlock = nil }
                 )

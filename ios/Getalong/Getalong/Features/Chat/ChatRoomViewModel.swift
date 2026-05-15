@@ -280,13 +280,20 @@ final class ChatRoomViewModel: ObservableObject {
     }
 
     func confirmedBlock() async {
-        // BlockUserSheet already called the backend successfully; just
-        // reflect locally and tear down any in-flight composer.
+        // BlockUserSheet already called the backend successfully. The
+        // blockUser Edge Function (migration 0032) soft-deletes the
+        // active chat room between the pair in the same transaction,
+        // so this room is now `status='deleted'` server-side. Mirror
+        // that locally and bounce out of the chat immediately — the
+        // realtime chat_rooms UPDATE will reach the other party and
+        // eject them too. didDelete is the same flag the leave-chat
+        // path uses; the view is already bound to it to dismiss.
         hasBlockedPartner = true
         isBlockConfirmPresented = false
         blockSuccessFeedback = true
         mediaController?.cancel()
         mediaController = nil
+        didDelete = true
         await refreshBlockState()
     }
 

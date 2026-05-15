@@ -42,7 +42,13 @@ final class DiscoveryViewModel: ObservableObject {
     struct BlockContext: Identifiable, Equatable {
         let id = UUID()
         let userId: UUID
-        let displayName: String?
+        /// The blocked user's one-line profile (bio). Primary identity
+        /// in BlockUserSheet; falls back to a localized "No line yet"
+        /// if empty so the sheet never shows the raw handle as primary.
+        let line: String?
+        /// `@handle` without the leading `@`. Shown as secondary text
+        /// in the sheet.
+        let handle: String?
     }
 
     /// Hard rate limit for the manual refresh button: at least this many
@@ -237,7 +243,11 @@ final class DiscoveryViewModel: ObservableObject {
     }
 
     func presentBlock(_ profile: DiscoveryProfile) {
-        pendingBlock = .init(userId: profile.id, displayName: profile.displayName)
+        pendingBlock = .init(
+            userId: profile.id,
+            line:   profile.bio,
+            handle: profile.getalongId
+        )
     }
 
     /// Called by BlockUserSheet's onBlocked closure after the server has

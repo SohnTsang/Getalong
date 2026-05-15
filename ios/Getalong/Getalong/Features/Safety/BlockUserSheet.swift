@@ -3,9 +3,18 @@ import SwiftUI
 /// Calm confirmation sheet shown before blocking a user. Submission is
 /// idempotent server-side. After success the caller is responsible for
 /// updating its local state (disabling the chat input, etc.).
+///
+/// Identity rule: the row's one-line profile (`bio`) is the primary
+/// label; `@handle` is secondary. If the bio is empty we fall through
+/// to a localized "No line yet" placeholder so the user never sees a
+/// raw handle as the sole identity. Display name is intentionally not
+/// shown — Getalong's chat identity is the line, not the name.
 struct BlockUserSheet: View {
     let userId: UUID
-    let displayName: String?
+    /// The user's one-line profile / bio. Primary identity in the sheet.
+    let line: String?
+    /// `@handle` without the leading `@`. Shown as secondary text.
+    let handle: String?
     let onBlocked: () -> Void
     let onClose: () -> Void
 
@@ -27,9 +36,14 @@ struct BlockUserSheet: View {
             Spacer(minLength: GASpacing.md)
             actions
         }
-        .padding(GASpacing.lg)
+        // Extra top padding: the title was sitting too tight against
+        // the drag indicator. Use a shared safety-sheet constant so
+        // BlockUserSheet and ReportSheet stay aligned.
+        .padding(.top, GASafetySheet.topPadding)
+        .padding(.horizontal, GASpacing.lg)
+        .padding(.bottom, GASpacing.lg)
         .background(GAColors.background.ignoresSafeArea())
-        .presentationDetents([.fraction(0.4), .medium])
+        .presentationDetents([.fraction(0.45), .medium])
         .presentationDragIndicator(.visible)
         .interactiveDismissDisabled(phase == .submitting)
     }
@@ -39,12 +53,26 @@ struct BlockUserSheet: View {
             Text("safety.block.title")
                 .font(GATypography.title)
                 .foregroundStyle(GAColors.textPrimary)
-            if let name = displayName, !name.isEmpty {
-                Text(name)
+            // Primary identity = the one-line profile.
+            Text(primaryIdentity)
+                .font(GATypography.bodyEmphasized)
+                .foregroundStyle(GAColors.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+            // Secondary = @handle if we have one.
+            if let h = handle, !h.isEmpty {
+                Text("@\(h)")
                     .font(GATypography.callout)
-                    .foregroundStyle(GAColors.textSecondary)
+                    .foregroundStyle(GAColors.textTertiary)
             }
         }
+    }
+
+    private var primaryIdentity: String {
+        if let l = line?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !l.isEmpty {
+            return l
+        }
+        return String(localized: "safety.identity.noLine")
     }
 
     private var subtitle: some View {
@@ -86,4 +114,13 @@ struct BlockUserSheet: View {
             Haptics.error()
         }
     }
+}
+
+/// Shared spacing constants for safety-flow sheets so BlockUserSheet
+/// and ReportSheet stay aligned without one-off magic numbers.
+enum GASafetySheet {
+    /// Extra distance from the sheet's top edge (drag indicator) to
+    /// the first content line. Larger than the default to give the
+    /// title visible breathing room.
+    static let topPadding: CGFloat = 32
 }

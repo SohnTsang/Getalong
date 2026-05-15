@@ -34,7 +34,12 @@ struct ReportSheet: View {
                 content
             }
         }
-        .padding(GASpacing.lg)
+        // Use the shared safety-sheet top padding so this and
+        // BlockUserSheet sit at the same vertical rhythm. Title no
+        // longer hugs the drag indicator.
+        .padding(.top, GASafetySheet.topPadding)
+        .padding(.horizontal, GASpacing.lg)
+        .padding(.bottom, GASpacing.lg)
         .background(GAColors.background.ignoresSafeArea())
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
@@ -103,18 +108,23 @@ struct ReportSheet: View {
         Button {
             selectedReason = reason
         } label: {
-            HStack {
+            HStack(spacing: GASpacing.md) {
                 Text(reason.localizedLabel)
                     .font(GATypography.body)
                     .foregroundStyle(GAColors.textPrimary)
                 Spacer()
                 Image(systemName: selectedReason == reason
                       ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 20, weight: .regular))
                     .foregroundStyle(selectedReason == reason
                                      ? GAColors.accent : GAColors.textTertiary)
             }
-            .padding(.horizontal, GASpacing.md)
-            .padding(.vertical, GASpacing.sm)
+            // More vertical breathing room per row + better touch
+            // target. The old `GASpacing.sm` (8 pt) made the list
+            // read like a dense settings table; 16 pt feels like
+            // proper picker spacing without bloating the sheet.
+            .padding(.horizontal, GASpacing.lg)
+            .padding(.vertical, 16)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

@@ -46,7 +46,8 @@ final class InvitesViewModel: ObservableObject {
     struct BlockContext: Identifiable, Equatable {
         let id = UUID()
         let userId: UUID
-        let displayName: String?
+        let line: String?
+        let handle: String?
     }
 
     func presentReportInvite(_ invite: Invite) {
@@ -54,7 +55,20 @@ final class InvitesViewModel: ObservableObject {
     }
 
     func presentBlockSender(_ item: InviteWithSender) {
-        pendingBlock = .init(userId: item.invite.senderId, displayName: nil)
+        // Use the sender's bio as the sheet's primary identity, matching
+        // the rest of the app's chat-identity model. Falls through to
+        // the "No line yet" placeholder in BlockUserSheet if empty.
+        // `InviteSenderSummary` doesn't currently include the handle
+        // (the embedded PostgREST select / RPC return shape only
+        // carries bio + tags). Pass nil for handle — BlockUserSheet
+        // hides the secondary line gracefully. Line alone is enough
+        // identity here since the user is looking at the invite card
+        // they're acting on.
+        pendingBlock = .init(
+            userId: item.invite.senderId,
+            line:   item.sender.bio,
+            handle: nil
+        )
     }
 
     /// Called by BlockUserSheet's onBlocked closure after the server has
