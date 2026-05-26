@@ -46,6 +46,7 @@ targets:
           - "Getalong.entitlements"
     resources:
       - Getalong/Resources/Secrets.plist
+      - Getalong/Resources/PrivacyInfo.xcprivacy
     # No `info:` block — XcodeGen would rewrite the plist on every run
     # and strip our hand-edited keys (URL types, launch screen, etc).
     # The static plist is referenced via INFOPLIST_FILE below.
