@@ -114,6 +114,14 @@ struct ChatMessageBubble: View {
     /// True when there's no longer a viewable image — either because
     /// the receiver has opened it, the storage object was deleted, or
     /// the row TTL'd. Both sides converge to the expired text bubble.
+    ///
+    /// We also collapse the bubble client-side when `retention_until` or
+    /// `expires_at` has passed, even if `status` is still `active` and
+    /// `storage_deleted_at` is still null. That covers the window where
+    /// the byte-cleanup cron hasn't reached the row yet (or the cached
+    /// asset predates the sweep). Without this, the bubble looks
+    /// openable and only the backend's `openViewOnceMedia` rejects the
+    /// tap — landing the user on a "no longer available" preview.
     private var isExpiredMedia: Bool {
         guard let a = mediaAsset else { return false }
         if a.storageDeletedAt != nil { return true }
@@ -121,6 +129,9 @@ struct ChatMessageBubble: View {
             return true
         }
         if a.viewedAt != nil { return true }
+        let now = Date()
+        if let ret = a.retentionUntil, ret <= now { return true }
+        if let exp = a.expiresAt,      exp <= now { return true }
         return false
     }
 

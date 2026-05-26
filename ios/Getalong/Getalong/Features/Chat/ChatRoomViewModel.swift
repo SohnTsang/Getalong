@@ -430,8 +430,12 @@ final class ChatRoomViewModel: ObservableObject {
         if asset.viewedAt != nil { return true }
         switch asset.status {
         case .viewed, .expired, .deleted, .quarantined: return true
-        default: return false
+        default: break
         }
+        let now = Date()
+        if let ret = asset.retentionUntil, ret <= now { return true }
+        if let exp = asset.expiresAt,      exp <= now { return true }
+        return false
     }
 
     /// Number of media bubbles that have collapsed from a 220×220

@@ -5206,6 +5206,7 @@
       }
     },
     "profile.username.subtitle" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5228,6 +5229,7 @@
       }
     },
     "profile.username.title" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {

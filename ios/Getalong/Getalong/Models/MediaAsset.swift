@@ -25,6 +25,12 @@ struct MediaAsset: Codable, Identifiable, Hashable {
     var uploadedAt: Date?
     var attachedMessageId: UUID?
     var storageDeletedAt: Date?
+    /// `created_at + 24h` for view-once. Once this passes, the byte-cleanup
+    /// cron is eligible to delete the storage object even before the
+    /// receiver opens, so the row should be treated as gone client-side
+    /// even if `storage_deleted_at` hasn't been stamped yet (cron hasn't
+    /// caught up, stale cached row, etc.).
+    var retentionUntil: Date?
     var createdAt: Date
     /// Base64-encoded tiny JPEG (~24px). Both participants render it
     /// as a heavily blurred backdrop with our dotted-noise overlay so
@@ -49,6 +55,7 @@ struct MediaAsset: Codable, Identifiable, Hashable {
         case uploadedAt         = "uploaded_at"
         case attachedMessageId  = "attached_message_id"
         case storageDeletedAt   = "storage_deleted_at"
+        case retentionUntil     = "retention_until"
         case createdAt          = "created_at"
         case previewData        = "preview_data"
     }
