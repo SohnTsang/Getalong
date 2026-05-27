@@ -69,24 +69,26 @@ struct GAAppTopBar<Leading: View, Trailing: View>: View {
     }
 }
 
-/// Compact Getalong brand mark — the same concentric-circle "signal
-/// dot" used on the auth screen, scaled down for the top bar.
+/// Compact Getalong brand mark — renders the app icon artwork
+/// (`BrandMark` image set, same PNG that backs `AppIcon`) clipped
+/// to the iOS continuous-corner "squircle" so it reads as the
+/// home-screen icon both in the top bar and on the auth screen.
 struct BrandMark: View {
-    var size: CGFloat = 22
+    var size: CGFloat = 32
+
+    /// iOS uses a continuous-curve corner ≈ 22.37% of the icon side.
+    /// SwiftUI's `.continuous` style is the same superellipse shape.
+    private var cornerRadius: CGFloat { size * 0.2237 }
 
     var body: some View {
-        ZStack {
-            Circle()
-                .stroke(GAColors.accent.opacity(0.18), lineWidth: 1)
-                .frame(width: size, height: size)
-            Circle()
-                .stroke(GAColors.accent.opacity(0.32), lineWidth: 3)
-                .frame(width: size * 0.65, height: size * 0.65)
-            Circle()
-                .fill(GAColors.accent)
-                .frame(width: size * 0.30, height: size * 0.30)
-        }
-        .accessibilityLabel("Getalong")
+        Image("BrandMark")
+            .resizable()
+            .interpolation(.high)
+            .scaledToFill()
+            .frame(width: size, height: size)
+            .clipShape(RoundedRectangle(cornerRadius: cornerRadius,
+                                        style: .continuous))
+            .accessibilityLabel("Getalong")
     }
 }
 

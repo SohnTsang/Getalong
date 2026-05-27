@@ -55,21 +55,12 @@ struct SignInView: View {
 
     // MARK: - Wordmark
 
-    /// Centered, prominent brand block. The "signal dot" (concentric
-    /// circle + filled core) is the brand mark; the wordmark sits below.
+    /// Centered, prominent brand block. The home-screen app icon
+    /// artwork (via shared `BrandMark`) sits above the wordmark so
+    /// the auth screen matches what users tapped to launch.
     private var centeredWordmark: some View {
         VStack(spacing: GASpacing.md) {
-            ZStack {
-                Circle()
-                    .stroke(GAColors.accent.opacity(0.18), lineWidth: 1.5)
-                    .frame(width: 56, height: 56)
-                Circle()
-                    .stroke(GAColors.accent.opacity(0.32), lineWidth: 6)
-                    .frame(width: 38, height: 38)
-                Circle()
-                    .fill(GAColors.accent)
-                    .frame(width: 14, height: 14)
-            }
+            BrandMark(size: 64)
             Text("GETALONG")
                 .font(.system(size: 16, weight: .semibold, design: .rounded))
                 .tracking(3.6)
