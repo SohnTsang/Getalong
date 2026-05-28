@@ -12,12 +12,34 @@ struct Profile: Codable, Identifiable, Hashable {
     var city: String?
     var country: String?
     var languageCodes: [String]
+    /// Taipei beta "conversation fit" chips. All optional — legacy
+    /// users have nulls until they pick. Discovery treats these as
+    /// soft context only (sort hint, never a hard filter).
+    var connectionIntent: String?
+    var lifestyleRhythm: String?
+    var conversationDomain: String?
+    /// Free-text opener seed (≤120 chars). Surfaced by the partner's
+    /// chat opener suggestions when present.
+    var openerPrompt: String?
     var trustScore: Int
     var plan: SubscriptionPlan
     var isBanned: Bool
     var deletedAt: Date?
     var createdAt: Date
     var updatedAt: Date
+
+    /// Convenience: typed accessors. Unknown raw values resolve to nil
+    /// rather than crashing — protects against drift between migration
+    /// CHECK and Swift enum.
+    var connectionIntentTyped: ConnectionIntent? {
+        connectionIntent.flatMap { ConnectionIntent(rawValue: $0) }
+    }
+    var lifestyleRhythmTyped: LifestyleRhythm? {
+        lifestyleRhythm.flatMap { LifestyleRhythm(rawValue: $0) }
+    }
+    var conversationDomainTyped: ConversationDomain? {
+        conversationDomain.flatMap { ConversationDomain(rawValue: $0) }
+    }
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -30,8 +52,12 @@ struct Profile: Codable, Identifiable, Hashable {
         case birthYear          = "birth_year"
         case city
         case country
-        case languageCodes = "language_codes"
-        case trustScore    = "trust_score"
+        case languageCodes      = "language_codes"
+        case connectionIntent   = "connection_intent"
+        case lifestyleRhythm    = "lifestyle_rhythm"
+        case conversationDomain = "conversation_domain"
+        case openerPrompt       = "opener_prompt"
+        case trustScore         = "trust_score"
         case plan
         case isBanned      = "is_banned"
         case deletedAt     = "deleted_at"

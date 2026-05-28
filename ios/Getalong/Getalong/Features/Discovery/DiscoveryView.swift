@@ -161,6 +161,9 @@ private struct DiscoveryCard: View {
             GACard(kind: .standard, padding: GASpacing.xl) {
                 VStack(alignment: .leading, spacing: GASpacing.md) {
                     signalRow
+                    if hasFitChips {
+                        fitChipsBlock
+                    }
                     if !profile.tags.isEmpty {
                         tagsBlock
                     }
@@ -299,6 +302,41 @@ private struct DiscoveryCard: View {
                 .frame(width: 28, height: 28)
         }
         .accessibilityLabel(String(localized: "common.more"))
+    }
+
+    /// Taipei beta fit chips below the hero line. Soft visual weight —
+    /// these are context, not filters. Distinct from `tagsBlock` (which
+    /// is the user's own free-form profile tags). Renders short labels
+    /// so the row stays one line on most devices.
+    private var hasFitChips: Bool {
+        profile.connectionIntentTyped != nil
+            || profile.lifestyleRhythmTyped != nil
+            || profile.conversationDomainTyped != nil
+    }
+
+    private var fitChipsBlock: some View {
+        FlowLayout(spacing: GASpacing.sm) {
+            if let intent = profile.connectionIntentTyped {
+                fitChip(label: intent.localizedShort)
+            }
+            if let rhythm = profile.lifestyleRhythmTyped {
+                fitChip(label: rhythm.localizedShort)
+            }
+            if let domain = profile.conversationDomainTyped {
+                fitChip(label: domain.localizedShort)
+            }
+        }
+    }
+
+    private func fitChip(label: String) -> some View {
+        Text(label)
+            .font(GATypography.footnote.weight(.medium))
+            .foregroundStyle(GAColors.textSecondary)
+            .padding(.horizontal, GASpacing.sm)
+            .padding(.vertical, 6)
+            .background(GAColors.surfaceRaised,
+                        in: Capsule())
+            .overlay(Capsule().strokeBorder(GAColors.border, lineWidth: 0.5))
     }
 
     private var tagsBlock: some View {

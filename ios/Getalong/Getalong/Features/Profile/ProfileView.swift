@@ -9,6 +9,7 @@ struct ProfileView: View {
     @State private var isBasicsPresented: Bool = false
     @State private var isRegionPresented: Bool = false
     @State private var isPreferencesPresented: Bool = false
+    @State private var isFitPresented: Bool = false
     @State private var saveSuccessNote: String?
     @State private var isDeleteConfirmPresented: Bool = false
     @State private var isDeleting: Bool = false
@@ -42,6 +43,7 @@ struct ProfileView: View {
                         }
                         identitySection(profile)
                         signalSection(profile)
+                        fitSection(profile)
                         tagsSection
                         regionSection(profile)
                         preferencesSection(profile)
@@ -100,6 +102,19 @@ struct ProfileView: View {
                             flashSuccess()
                         },
                         onClose: { isRegionPresented = false }
+                    )
+                }
+            }
+            .sheet(isPresented: $isFitPresented) {
+                if let p = profile {
+                    EditConversationFitSheet(
+                        initial: p,
+                        onSaved: { updated in
+                            session.setAuthenticated(updated)
+                            isFitPresented = false
+                            flashSuccess()
+                        },
+                        onClose: { isFitPresented = false }
                     )
                 }
             }
@@ -177,6 +192,41 @@ struct ProfileView: View {
                 .padding(.vertical, GASpacing.xs)
             }
         }
+    }
+
+    /// Taipei beta conversation-fit section. Three chips: intent,
+    /// rhythm, domain. Tap-the-card opens `EditConversationFitSheet`.
+    /// Missing values render as a subtle "Add" affordance so the row
+    /// doesn't read as broken when nothing is set yet (most legacy
+    /// users will land here with all three nil).
+    private func fitSection(_ p: Profile) -> some View {
+        Button {
+            isFitPresented = true
+        } label: {
+            VStack(alignment: .leading, spacing: GASpacing.sm) {
+                GASectionHeader(title: String(localized: "profile.fit.title"),
+                                subtitle: String(localized: "profile.fit.subtitle"))
+                GACard {
+                    VStack(spacing: 0) {
+                        detailRow(
+                            label: String(localized: "profile.fit.intent.row"),
+                            value: p.connectionIntentTyped?.localizedTitle
+                        )
+                        divider
+                        detailRow(
+                            label: String(localized: "profile.fit.rhythm.row"),
+                            value: p.lifestyleRhythmTyped?.localizedTitle
+                        )
+                        divider
+                        detailRow(
+                            label: String(localized: "profile.fit.domain.row"),
+                            value: p.conversationDomainTyped?.localizedTitle
+                        )
+                    }
+                }
+            }
+        }
+        .buttonStyle(.plain)
     }
 
     private func signalSection(_ p: Profile) -> some View {

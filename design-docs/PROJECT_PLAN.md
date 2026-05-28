@@ -219,3 +219,23 @@ Solution:
 ### Scope Risk
 
 Do not build Android, group chat, or AI matching before the iOS MVP loop is validated.
+
+## Taipei beta product adjustment (2026-05)
+
+Profile identity for the Taipei beta is **one honest line + three lightweight "conversation fit" chips**. Tags stay capped at 3. Discovery sort uses the chips as a soft hint only; rows are never filtered out by chips. The chips give discovery enough context to disambiguate "what kind of chat is this" without turning the profile into a dating-app condition table.
+
+The three chips (all optional, all settable later):
+
+- **Connection intent** — `slow_chat`, `new_friends`, `dating_open`, `not_sure`
+- **Lifestyle rhythm** — `early_bird`, `night_owl`, `weekend_person`, `flexible`
+- **Conversation domain** — `daily_life`, `food_cafes`, `city_walks`, `music_films`, `work_study`, `travel`, `values`, `random`
+
+A fourth column `opener_prompt` (≤120 chars, free text) is reserved for a future surface; the chat opener currently uses the partner's `conversation_domain` as its seed.
+
+### Voice — deliberately excluded from phase 1
+
+No voice messaging, no voice rooms, no mandatory voice intro. The product hypothesis is that the friction of voice deters the audience Taipei research surfaced (people wanting low-pressure text first). A future iteration may unlock voice notes **only after mutual interest + mutual opt-in** — never as an onboarding requirement or as a one-sided send.
+
+### Safety / anti-off-platform copy
+
+Quiet but visible safety copy lives in two places: the onboarding screen (`safety.taipei.onboarding`) and the new-chat opener card (`safety.taipei.chat`). Copy steers users to keep early conversation inside Getalong, avoid rushing LINE swaps or money topics, and use block/report when something feels off. No content moderation / auto-warning logic in this phase.

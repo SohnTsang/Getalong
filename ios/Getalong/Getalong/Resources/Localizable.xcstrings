@@ -8034,6 +8034,447 @@
           }
         }
       }
+    },
+    "fit.intent.slowChat.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Just chat, no rush" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ゆっくり話したい" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "慢慢聊聊" } }
+      }
+    },
+    "fit.intent.slowChat.short" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Slow chat" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ゆっくり話す" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "慢慢聊聊" } }
+      }
+    },
+    "fit.intent.newFriends.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Meet new people" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "新しい人と知り合いたい" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "認識新朋友" } }
+      }
+    },
+    "fit.intent.newFriends.short" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "New friends" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "新しい友達" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "認識新朋友" } }
+      }
+    },
+    "fit.intent.datingOpen.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Open to dating if it clicks" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "気が合えば恋愛も" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "有感覺再看看" } }
+      }
+    },
+    "fit.intent.datingOpen.short" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Dating open" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "恋愛もあり" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "有感覺再看看" } }
+      }
+    },
+    "fit.intent.notSure.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Not sure yet" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "まだ決めていない" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "還不確定" } }
+      }
+    },
+    "fit.intent.notSure.short" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Not sure" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "未定" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "還不確定" } }
+      }
+    },
+    "fit.rhythm.earlyBird.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Early to bed, early to rise" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "早寝早起き" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "早睡早起" } }
+      }
+    },
+    "fit.rhythm.earlyBird.short" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Early bird" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "朝型" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "早睡早起" } }
+      }
+    },
+    "fit.rhythm.nightOwl.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Night owl" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "夜型" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "夜型人" } }
+      }
+    },
+    "fit.rhythm.nightOwl.short" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Night owl" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "夜型" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "夜型人" } }
+      }
+    },
+    "fit.rhythm.weekendPerson.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Free mostly on weekends" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "週末がメインで空く" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "週末比較有空" } }
+      }
+    },
+    "fit.rhythm.weekendPerson.short" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Weekend person" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "週末メイン" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "週末有空" } }
+      }
+    },
+    "fit.rhythm.flexible.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Flexible schedule" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "時間は柔軟" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "時間彈性" } }
+      }
+    },
+    "fit.rhythm.flexible.short" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Flexible" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "柔軟" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "時間彈性" } }
+      }
+    },
+    "fit.domain.dailyLife.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Daily life" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "日常のこと" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "日常生活" } }
+      }
+    },
+    "fit.domain.dailyLife.short" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Daily life" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "日常" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "日常生活" } }
+      }
+    },
+    "fit.domain.foodCafes.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Food & cafés" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ごはん・カフェ" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "咖啡/吃飯" } }
+      }
+    },
+    "fit.domain.foodCafes.short" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Food & cafés" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ごはん・カフェ" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "咖啡/吃飯" } }
+      }
+    },
+    "fit.domain.cityWalks.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "City walks" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "街歩き" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "城市散步" } }
+      }
+    },
+    "fit.domain.cityWalks.short" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "City walks" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "街歩き" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "城市散步" } }
+      }
+    },
+    "fit.domain.musicFilms.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Music & films" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "音楽・映画" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "音樂/電影" } }
+      }
+    },
+    "fit.domain.musicFilms.short" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Music & films" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "音楽・映画" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "音樂/電影" } }
+      }
+    },
+    "fit.domain.workStudy.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Work & study" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "仕事・勉強" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "工作/學習" } }
+      }
+    },
+    "fit.domain.workStudy.short" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Work & study" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "仕事・勉強" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "工作/學習" } }
+      }
+    },
+    "fit.domain.travel.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Travel" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "旅行" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "旅行" } }
+      }
+    },
+    "fit.domain.travel.short" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Travel" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "旅行" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "旅行" } }
+      }
+    },
+    "fit.domain.values.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Values" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "価値観" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "價值觀" } }
+      }
+    },
+    "fit.domain.values.short" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Values" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "価値観" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "價值觀" } }
+      }
+    },
+    "fit.domain.random.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Random topics" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "雑談・なんでも" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "隨機話題" } }
+      }
+    },
+    "fit.domain.random.short" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Random" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "雑談" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "隨機話題" } }
+      }
+    },
+    "quickstart.fit.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Help them know if you click" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "話が合いそうかが伝わる三つの目印" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "幫對方更快知道你適不適合聊" } }
+      }
+    },
+    "quickstart.fit.subtitle" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Pick three small signals. Not a checklist — just something to make the first chat less awkward." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "三つだけ選んでみてください。条件表ではなく、最初の会話をぎこちなくしないための合図です。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "選三個小訊號就好。\n這不是條件表，只是讓對話比較不尷尬。" } }
+      }
+    },
+    "quickstart.fit.intent.label" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Why you're here" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "どんな出会いを求めて" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "你想要的連結" } }
+      }
+    },
+    "quickstart.fit.rhythm.label" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Your rhythm" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "あなたのリズム" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "你的生活節奏" } }
+      }
+    },
+    "quickstart.fit.domain.label" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "What to talk about" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "話してみたいこと" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "想聊的話題" } }
+      }
+    },
+    "quickstart.signal.taipei.label" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Write one line that sounds like you" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "あなたらしい一行を書いてみてください" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "先寫一句像你的話" } }
+      }
+    },
+    "quickstart.signal.taipei.helper" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Doesn't need to be perfect or read like a résumé. Just enough that someone thinks \"I could talk to this person.\"" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "完璧じゃなくていい、履歴書みたいじゃなくていい。\n「この人なら話せそう」と思ってもらえれば十分です。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "不用完美，不用像履歷。\n只要讓人感覺「這個人好像可以聊聊」。" } }
+      }
+    },
+    "quickstart.adult.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Please confirm you're 18 or older" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "18歳以上であることをご確認ください" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "請確認你已年滿 18 歲" } }
+      }
+    },
+    "quickstart.adult.confirm" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "I'm 18 or older" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "18歳以上です" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "我已年滿 18 歲" } }
+      }
+    },
+    "safety.taipei.onboarding" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Keep the conversation inside Getalong. Don't rush to swap LINE or send money. Block or report any time something feels off." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "まずは Getalong の中で話しましょう。すぐに LINE を交換したり、お金の話に進むのは避けてください。違和感があればいつでもブロックや通報ができます。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "先在 Getalong 裡聊聊。不要急著交換 LINE 或金錢資訊；覺得不舒服可以隨時封鎖或檢舉。" } }
+      }
+    },
+    "safety.taipei.chat" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Stay inside Getalong for now. Don't rush to swap LINE. Block or report if something feels off." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "まずは Getalong の中で話しましょう。すぐに LINE を交換しないで、違和感があればブロックや通報を。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "先在 Getalong 裡聊聊。不要急著交換 LINE；不舒服就封鎖或檢舉。" } }
+      }
+    },
+    "chat.opener.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Start easy" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "自然に始める" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "自然開始" } }
+      }
+    },
+    "chat.opener.subtitle" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Not sure how to start? Try one of these." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "切り出し方に迷ったら、まずはひとつ質問してみましょう。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "不知道怎麼開頭的話，可以先用一個簡單問題。" } }
+      }
+    },
+    "chat.opener.food_cafes" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Any place you've been wanting to go back to recently?" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "最近もう一度行きたいお店ってありますか？" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "最近有沒有一間你想再去一次的店？" } }
+      }
+    },
+    "chat.opener.city_walks" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "What's your favourite stretch of road to walk?" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "歩いていて一番好きな道筋はどこですか？" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "你在台北最喜歡哪一段路？" } }
+      }
+    },
+    "chat.opener.work_study" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "What's the most frustrating thing in your work or study right now?" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "最近、仕事や勉強で一番引っかかっていることは何ですか？" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "最近工作/學習裡最卡的是什麼？" } }
+      }
+    },
+    "chat.opener.values" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "What's something you've been caring more about lately?" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "最近、自分が大事だと思うようになってきたことはありますか？" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "最近有什麼想法是你越來越在意的？" } }
+      }
+    },
+    "chat.opener.daily_life" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "What did your today look like, roughly?" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "今日はどんな一日でしたか？" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "你今天大概過得怎麼樣？" } }
+      }
+    },
+    "chat.opener.music_films" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "What's something you've been listening to or watching lately?" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "最近よく聴いている曲か、観ているものはありますか？" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "你最近在聽什麼、看什麼？" } }
+      }
+    },
+    "chat.opener.travel" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Anywhere you've been thinking about going next?" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "今度どこかへ行きたいと考えていますか？" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "你最近有想去哪裡走走嗎？" } }
+      }
+    },
+    "chat.opener.random" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "When did the line you wrote come to mind?" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "あの一行は、いつ頃思いついたんですか？" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "你剛剛那句話是什麼時候想到的？" } }
+      }
+    },
+    "chat.opener.default" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "When did the line you wrote come to mind?" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "あの一行は、いつ頃思いついたんですか？" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "你剛剛那句話是什麼時候想到的？" } }
+      }
+    },
+    "profile.fit.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Conversation fit" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "話の合わせ方" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "聊天時的合適度" } }
+      }
+    },
+    "profile.fit.subtitle" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Three small signals to help others know if you click. Optional — you can change them any time." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "話しやすいかどうかが伝わる三つの目印。任意です。いつでも変えられます。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "三個小訊號，幫別人快點知道你適不適合聊。可選，隨時可以調整。" } }
+      }
+    },
+    "profile.fit.empty" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Add" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "追加" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "新增" } }
+      }
+    },
+    "profile.fit.intent.row" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Intent" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "目的" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "想要的連結" } }
+      }
+    },
+    "profile.fit.rhythm.row" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Rhythm" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "リズム" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "生活節奏" } }
+      }
+    },
+    "profile.fit.domain.row" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Talk about" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "話題" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "想聊的話題" } }
+      }
+    },
+    "profile.fit.edit.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Edit conversation fit" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "話の合わせ方を編集" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "編輯聊天合適度" } }
+      }
+    },
+    "common.save" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Save" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "保存" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "儲存" } }
+      }
+    },
+    "common.clear" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Clear" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "クリア" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "清除" } }
+      }
     }
   },
   "version" : "1.1"

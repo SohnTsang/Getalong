@@ -57,6 +57,10 @@ struct ChatRoomView: View {
                 if vm.hasBlockedPartner {
                     blockedCard
                 } else {
+                    if !vm.hasUserSent {
+                        openerCard
+                            .transition(.opacity)
+                    }
                     ChatInputBar(text: $vm.draft,
                                  isSending: vm.isSending,
                                  canSend: vm.canSend,
@@ -395,6 +399,73 @@ struct ChatRoomView: View {
                     pinToBottom(proxy: proxy, animated: false)
                 }
             }
+        }
+    }
+
+    /// Taipei beta opener card. Shown above the composer while the
+    /// current user hasn't sent a message yet — disappears the moment
+    /// they do. Tapping a suggestion fills the composer (does NOT
+    /// auto-send) so the user can edit before tapping send.
+    private var openerCard: some View {
+        let suggestions = vm.openerSuggestions
+        return VStack(alignment: .leading, spacing: GASpacing.sm) {
+            HStack(spacing: GASpacing.xs) {
+                Image(systemName: "sparkles")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(GAColors.accent)
+                Text("chat.opener.title")
+                    .font(GATypography.footnote.weight(.semibold))
+                    .foregroundStyle(GAColors.textPrimary)
+            }
+            Text("chat.opener.subtitle")
+                .font(GATypography.caption)
+                .foregroundStyle(GAColors.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+            // Safety hint lives right next to the opener — same moment
+            // in the funnel, low friction, no extra modal.
+            Text("safety.taipei.chat")
+                .font(GATypography.caption)
+                .foregroundStyle(GAColors.textTertiary)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.top, 2)
+            VStack(spacing: GASpacing.xs) {
+                ForEach(Array(suggestions.enumerated()), id: \.offset) { _, line in
+                    Button {
+                        vm.draft = line
+                    } label: {
+                        HStack(alignment: .top, spacing: GASpacing.sm) {
+                            Text(line)
+                                .font(GATypography.callout)
+                                .foregroundStyle(GAColors.textPrimary)
+                                .multilineTextAlignment(.leading)
+                                .fixedSize(horizontal: false, vertical: true)
+                            Spacer(minLength: 0)
+                            Image(systemName: "arrow.up.left")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundStyle(GAColors.textTertiary)
+                                .padding(.top, 4)
+                        }
+                        .padding(.horizontal, GASpacing.md)
+                        .padding(.vertical, GASpacing.sm)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(GAColors.surface,
+                                    in: RoundedRectangle(cornerRadius: GACornerRadius.medium,
+                                                         style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: GACornerRadius.medium,
+                                             style: .continuous)
+                                .strokeBorder(GAColors.border, lineWidth: 0.5)
+                        )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        .padding(.horizontal, GASpacing.lg)
+        .padding(.vertical, GASpacing.md)
+        .background(GAColors.backgroundElevated)
+        .overlay(alignment: .top) {
+            Rectangle().fill(GAColors.border).frame(height: 0.5)
         }
     }
 

@@ -15,18 +15,39 @@ struct DiscoveryProfile: Identifiable, Hashable, Decodable {
     let plan: String
     let tags: [String]
     let sharedTags: [String]
+    /// Taipei beta fit chips. Any of the three may be nil (legacy
+    /// rows, or users who skipped the chips during onboarding).
+    let connectionIntent: String?
+    let lifestyleRhythm: String?
+    let conversationDomain: String?
 
     enum CodingKeys: String, CodingKey {
         case id
-        case getalongId  = "getalong_id"
-        case displayName = "display_name"
+        case getalongId         = "getalong_id"
+        case displayName        = "display_name"
         case bio
         case city
         case country
         case gender
         case plan
         case tags
-        case sharedTags  = "shared_tags"
+        case sharedTags         = "shared_tags"
+        case connectionIntent   = "connection_intent"
+        case lifestyleRhythm    = "lifestyle_rhythm"
+        case conversationDomain = "conversation_domain"
+    }
+
+    /// Typed accessors for the three fit chips. Unknown raw values
+    /// resolve to nil rather than crashing — defends against drift
+    /// between server CHECK and client enum during rollout.
+    var connectionIntentTyped: ConnectionIntent? {
+        connectionIntent.flatMap { ConnectionIntent(rawValue: $0) }
+    }
+    var lifestyleRhythmTyped: LifestyleRhythm? {
+        lifestyleRhythm.flatMap { LifestyleRhythm(rawValue: $0) }
+    }
+    var conversationDomainTyped: ConversationDomain? {
+        conversationDomain.flatMap { ConversationDomain(rawValue: $0) }
     }
 
     var location: String? {

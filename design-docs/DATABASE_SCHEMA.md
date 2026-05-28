@@ -380,3 +380,34 @@ The client must not directly:
 - update invite status
 - create chat rooms
 - increment missed-invite usage
+
+## Migration 0034 — profile conversation fit (Taipei beta)
+
+Adds four nullable columns to `public.profiles`. All-nullable so legacy rows stay valid; CHECK constraints pass on null per Postgres semantics, so no backfill is required and onboarding for existing users is not re-triggered.
+
+```sql
+alter table public.profiles
+  add column if not exists connection_intent     text,
+  add column if not exists lifestyle_rhythm      text,
+  add column if not exists conversation_domain   text,
+  add column if not exists opener_prompt         text;
+```
+
+Allowed values (CHECK-enforced):
+
+| Column | Allowed values |
+|---|---|
+| `connection_intent` | `slow_chat`, `new_friends`, `dating_open`, `not_sure` |
+| `lifestyle_rhythm` | `early_bird`, `night_owl`, `weekend_person`, `flexible` |
+| `conversation_domain` | `daily_life`, `food_cafes`, `city_walks`, `music_films`, `work_study`, `travel`, `values`, `random` |
+| `opener_prompt` | free text, `char_length(opener_prompt) <= 120` |
+
+Discovery (`getDiscoveryFeed`) consumes all four. Soft ranking only — never filters rows out:
+
+- `+2` candidate's `conversation_domain` equals caller's
+- `+1` candidate's `lifestyle_rhythm` is the same as caller's OR either side is `flexible`
+- `+1` candidate's `connection_intent` is the same as caller's OR either side is `not_sure`
+
+Tag overlap still leads sort; fit score is a secondary tie-breaker, with a random jitter beneath it so identical-score profiles don't always appear in the same order on refresh.
+
+`profiles_lock_sensitive_columns` (mig 0011) intentionally does not protect these columns — users update them freely via the profile editor.

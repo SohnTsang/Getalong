@@ -133,3 +133,24 @@
 - Private media bucket is not public.
 - Account deletion works.
 - Privacy labels ready.
+
+## Taipei beta (2026-05)
+
+- New user can complete onboarding with the one-line input + chips.
+- New user can skip any/all of the three fit chips.
+- 18+ checkbox is required; "Continue" is disabled until ticked.
+- Existing users are NOT forced through a broken re-onboarding (legacy NULL chip columns are valid).
+- Profile page shows the new "Conversation fit" section.
+- Tapping the fit section opens the edit sheet; saving persists the three chips.
+- Tapping a selected chip in the edit sheet clears it (server receives explicit JSON null).
+- Discovery card shows hero line + fit chips (when set) + tags.
+- Empty fit fields don't crash or break Discovery cards.
+- Discovery feed still returns the same 10-card batch behaviour.
+- New chat with no user-sent messages shows the opener card.
+- Tapping an opener fills the composer; it does NOT auto-send.
+- Opener card disappears after the user sends the first message in the room.
+- Block / report / view-once media still build and behave unchanged.
+- No raw enum strings (e.g. `slow_chat`) appear anywhere in the UI.
+- No new voice UI appears.
+- Traditional Chinese strings contain no banned Cantonese tokens (搵, 嘅, 啱傾, 傾偈, 傾落去, 錯過咗, 用緊).
+- Light and dark modes both render the new chips and opener card.

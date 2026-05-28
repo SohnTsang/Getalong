@@ -67,6 +67,15 @@ interface DiscoveryProfile {
   /// must not render this as a percentage. Always included for parity with
   /// the iOS card's `sameWavelength` chip.
   shared_tags: string[];
+  /// Taipei beta conversation-fit chips. Any of the three may be null
+  /// (legacy rows / users who skipped during onboarding). These are
+  /// SOFT context — used as a sort hint only, never to filter rows.
+  connection_intent: string | null;
+  lifestyle_rhythm: string | null;
+  conversation_domain: string | null;
+  /// Free-text opener seed (≤120 chars). Returned so the chat opener
+  /// in ChatRoomView can surface it as a personalised suggestion.
+  opener_prompt: string | null;
 }
 
 // Discovery returns 10 cards per page by default. Smaller pages mean the
@@ -109,10 +118,11 @@ Deno.serve(async (req) => {
 
   const sb = admin();
 
-  // Caller must exist and not be banned/deleted.
+  // Caller must exist and not be banned/deleted. Also pull the caller's
+  // own fit chips so we can compute the soft sort hint below.
   const { data: me, error: meErr } = await sb
     .from("profiles")
-    .select("id, is_banned, deleted_at")
+    .select("id, is_banned, deleted_at, connection_intent, lifestyle_rhythm, conversation_domain")
     .eq("id", userId)
     .maybeSingle();
   if (meErr) return fail("INTERNAL_ERROR", meErr.message, 500);
@@ -209,6 +219,7 @@ Deno.serve(async (req) => {
   // tight to avoid any client/SDK string-massaging surprises.
   const selectCols = "id,getalong_id,display_name,bio,city,country,"
     + "gender,gender_visible,plan,updated_at,created_at,"
+    + "connection_intent,lifestyle_rhythm,conversation_domain,opener_prompt,"
     + "profile_tags(tag,normalized_tag)";
 
   let q = sb
@@ -246,25 +257,66 @@ Deno.serve(async (req) => {
     plan: string;
     updated_at: string | null;
     created_at: string;
+    connection_intent: string | null;
+    lifestyle_rhythm: string | null;
+    conversation_domain: string | null;
+    opener_prompt: string | null;
     profile_tags: { tag: string; normalized_tag: string }[] | null;
   };
 
   const intent = new Set(intentNormalized);
+  const myIntent = me.connection_intent  as string | null;
+  const myRhythm = me.lifestyle_rhythm   as string | null;
+  const myDomain = me.conversation_domain as string | null;
   const enriched = (rows as Row[] | null ?? []).map((r) => {
     const tags = r.profile_tags ?? [];
     const sharedNormalized = intent.size === 0
       ? []
       : tags.filter(t => intent.has(t.normalized_tag));
+    // Taipei beta soft ranking. NEVER a hard filter — any candidate
+    // with score 0 still rides through; we only break ties in the
+    // direction of "more compatible fit chips".
+    //   +2 same conversation_domain
+    //   +1 compatible lifestyle_rhythm (same, or either side flexible)
+    //   +1 compatible connection_intent (same, or either side not_sure)
+    let fitScore = 0;
+    if (myDomain && r.conversation_domain && myDomain === r.conversation_domain) {
+      fitScore += 2;
+    }
+    if (myRhythm && r.lifestyle_rhythm) {
+      if (myRhythm === r.lifestyle_rhythm
+          || myRhythm === "flexible"
+          || r.lifestyle_rhythm === "flexible") {
+        fitScore += 1;
+      }
+    }
+    if (myIntent && r.connection_intent) {
+      if (myIntent === r.connection_intent
+          || myIntent === "not_sure"
+          || r.connection_intent === "not_sure") {
+        fitScore += 1;
+      }
+    }
     return {
       row: r,
       sharedTags: sharedNormalized.map(t => t.tag),
       overlap: sharedNormalized.length,
+      fitScore,
+      // Stable random tie-breaker per request, so two profiles with
+      // identical scores don't always appear in the same order across
+      // refreshes. Computed once here so the sort is stable.
+      jitter: Math.random(),
     };
   });
 
-  // 4. Stable sort: overlap desc, then keep the SQL order (already
-  //    updated_at desc, created_at desc, id desc).
-  enriched.sort((a, b) => b.overlap - a.overlap);
+  // 4. Stable sort: tag overlap first (existing wavelength signal),
+  //    then fit score (Taipei beta), then SQL order. Tags > chips so
+  //    the wavelength promise still leads.
+  enriched.sort((a, b) => {
+    if (b.overlap !== a.overlap) return b.overlap - a.overlap;
+    if (b.fitScore !== a.fitScore) return b.fitScore - a.fitScore;
+    return a.jitter - b.jitter;
+  });
 
   // 4a. Refresh-diversity step: if the caller passed exclude_ids and
   //     enough alternates exist, prefer fresh candidates over repeating
@@ -287,16 +339,20 @@ Deno.serve(async (req) => {
                 || (rows?.length ?? 0) === fetchSize;
 
   const items: DiscoveryProfile[] = page.map(({ row, sharedTags }) => ({
-    id:           row.id,
-    getalong_id:  row.getalong_id,
-    display_name: row.display_name,
-    bio:          row.bio,
-    city:         row.city,
-    country:      row.country,
-    gender:       row.gender_visible ? row.gender : null,
-    plan:         row.plan,
-    tags:         (row.profile_tags ?? []).map(t => t.tag),
-    shared_tags:  sharedTags,
+    id:                  row.id,
+    getalong_id:         row.getalong_id,
+    display_name:        row.display_name,
+    bio:                 row.bio,
+    city:                row.city,
+    country:             row.country,
+    gender:              row.gender_visible ? row.gender : null,
+    plan:                row.plan,
+    tags:                (row.profile_tags ?? []).map(t => t.tag),
+    shared_tags:         sharedTags,
+    connection_intent:   row.connection_intent,
+    lifestyle_rhythm:    row.lifestyle_rhythm,
+    conversation_domain: row.conversation_domain,
+    opener_prompt:       row.opener_prompt,
   }));
 
   return ok({

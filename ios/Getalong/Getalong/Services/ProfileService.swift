@@ -28,16 +28,26 @@ struct ProfilePatch: Encodable {
     var country: String?
     var languageCodes: [String]?
     var interestedInGender: String?
+    /// Taipei beta conversation-fit chips (mig 0034). All three are
+    /// optional and may be cleared by sending an explicit JSON null
+    /// via a dedicated clearing payload — Foundation's Encodable
+    /// otherwise omits nil optionals.
+    var connectionIntent: String?
+    var lifestyleRhythm: String?
+    var conversationDomain: String?
 
     enum CodingKeys: String, CodingKey {
-        case displayName        = "display_name"
+        case displayName         = "display_name"
         case bio
         case gender
-        case genderVisible      = "gender_visible"
+        case genderVisible       = "gender_visible"
         case city
         case country
-        case languageCodes      = "language_codes"
-        case interestedInGender = "interested_in_gender"
+        case languageCodes       = "language_codes"
+        case interestedInGender  = "interested_in_gender"
+        case connectionIntent    = "connection_intent"
+        case lifestyleRhythm     = "lifestyle_rhythm"
+        case conversationDomain  = "conversation_domain"
     }
 }
 
@@ -65,19 +75,27 @@ struct ProfileInsert: Encodable {
     let gender: String?
     let genderVisible: Bool
     let interestedInGender: String?
+    /// Taipei beta fit chips. Onboarding picks these but allows skip,
+    /// so all three are optional even at insert time.
+    let connectionIntent: String?
+    let lifestyleRhythm: String?
+    let conversationDomain: String?
 
     enum CodingKeys: String, CodingKey {
         case id
-        case getalongId         = "getalong_id"
-        case displayName        = "display_name"
+        case getalongId          = "getalong_id"
+        case displayName         = "display_name"
         case bio
-        case birthYear          = "birth_year"
+        case birthYear           = "birth_year"
         case city
         case country
-        case languageCodes      = "language_codes"
+        case languageCodes       = "language_codes"
         case gender
-        case genderVisible      = "gender_visible"
-        case interestedInGender = "interested_in_gender"
+        case genderVisible       = "gender_visible"
+        case interestedInGender  = "interested_in_gender"
+        case connectionIntent    = "connection_intent"
+        case lifestyleRhythm     = "lifestyle_rhythm"
+        case conversationDomain  = "conversation_domain"
     }
 }
 
@@ -146,6 +164,60 @@ final class ProfileService {
             return updated
         } catch {
             GALog.profile.error("updateMyProfile failed: \(error.localizedDescription)")
+            throw Self.translate(error)
+        }
+    }
+
+    /// Update the Taipei beta conversation-fit chips. Encodes JSON
+    /// nulls for cleared values (Foundation's default Encodable would
+    /// otherwise omit them, leaving stale values server-side). Any
+    /// combination of nil/value is allowed — the chips are optional.
+    func updateMyConversationFit(
+        intent: ConnectionIntent?,
+        rhythm: LifestyleRhythm?,
+        domain: ConversationDomain?
+    ) async throws -> Profile {
+        struct FitPayload: Encodable {
+            let intent: String?
+            let rhythm: String?
+            let domain: String?
+            func encode(to encoder: Encoder) throws {
+                var c = encoder.container(keyedBy: Keys.self)
+                // encodeIfPresent skips nil → field absent → server
+                // keeps old value. We want the OPPOSITE: explicit null
+                // when the user cleared the chip.
+                if let v = intent { try c.encode(v, forKey: .intent) }
+                else              { try c.encodeNil(forKey: .intent) }
+                if let v = rhythm { try c.encode(v, forKey: .rhythm) }
+                else              { try c.encodeNil(forKey: .rhythm) }
+                if let v = domain { try c.encode(v, forKey: .domain) }
+                else              { try c.encodeNil(forKey: .domain) }
+            }
+            enum Keys: String, CodingKey {
+                case intent = "connection_intent"
+                case rhythm = "lifestyle_rhythm"
+                case domain = "conversation_domain"
+            }
+        }
+        guard let userId = try? await Supa.client.auth.session.user.id else {
+            throw ProfileError.underlying("not signed in")
+        }
+        let payload = FitPayload(intent: intent?.rawValue,
+                                 rhythm: rhythm?.rawValue,
+                                 domain: domain?.rawValue)
+        do {
+            let updated: Profile = try await Supa.client
+                .from("profiles")
+                .update(payload)
+                .eq("id", value: userId)
+                .select()
+                .single()
+                .execute()
+                .value
+            GALog.profile.info("updateMyConversationFit ok")
+            return updated
+        } catch {
+            GALog.profile.error("updateMyConversationFit failed: \(error.localizedDescription)")
             throw Self.translate(error)
         }
     }

@@ -733,6 +733,51 @@ final class ChatRoomViewModel: ObservableObject {
         return localMediaThumbnails[mid]
     }
 
+    /// True once the current user has sent at least one message in this
+    /// room. Drives the Taipei beta opener card: structured suggestions
+    /// only show until the user has actually started the conversation —
+    /// after that the card disappears for good.
+    var hasUserSent: Bool {
+        guard let me = currentUserId else { return false }
+        return messages.contains { $0.senderId == me }
+    }
+
+    /// Three localized opener suggestions based on the partner's
+    /// `conversation_domain`. Always returns three distinct lines so the
+    /// card never looks half-empty. Order: domain-flavoured prompt →
+    /// "ask about their line" → light daily-life fallback.
+    var openerSuggestions: [String] {
+        let domain = partner?.conversationDomainTyped
+        let primaryKey: String
+        switch domain {
+        case .foodCafes:  primaryKey = "chat.opener.food_cafes"
+        case .cityWalks:  primaryKey = "chat.opener.city_walks"
+        case .workStudy:  primaryKey = "chat.opener.work_study"
+        case .values:     primaryKey = "chat.opener.values"
+        case .musicFilms: primaryKey = "chat.opener.music_films"
+        case .travel:     primaryKey = "chat.opener.travel"
+        case .dailyLife:  primaryKey = "chat.opener.daily_life"
+        case .random:     primaryKey = "chat.opener.random"
+        case .none:       primaryKey = "chat.opener.default"
+        }
+        let primary   = String(localized: String.LocalizationValue(primaryKey))
+        let secondary = String(localized: "chat.opener.default")
+        // Pick a distinct third line so the card never repeats itself.
+        let tertiary: String
+        if primaryKey == "chat.opener.daily_life" {
+            tertiary = String(localized: "chat.opener.values")
+        } else {
+            tertiary = String(localized: "chat.opener.daily_life")
+        }
+        // Dedupe defensively (e.g. when the default and primary happen
+        // to collide because no domain is set).
+        var out: [String] = []
+        for s in [primary, secondary, tertiary] where !out.contains(s) {
+            out.append(s)
+        }
+        return out
+    }
+
     var headerTitle: String {
         partner?.displayName.isEmpty == false
             ? partner!.displayName

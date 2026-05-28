@@ -146,3 +146,13 @@ A complete end-to-end flow works:
 13. If a live invite is missed, it appears in missed invites.
 14. Free user can accept only within free missed-invite quota.
 15. User can report/block.
+
+## Taipei beta delta (2026-05)
+
+Profile model = **one honest line + three "conversation fit" chips** (connection_intent / lifestyle_rhythm / conversation_domain). Chips are optional, settable later, and used by Discovery only as a soft sort hint — they are never hard filters. Tags stay capped at 3.
+
+Chat rooms with no message from the current user show a structured **opener card** above the composer with three suggestions seeded by the partner's `conversation_domain`. Tapping a suggestion fills the composer (no auto-send). The card disappears the moment the user sends.
+
+Safety copy: a quiet anti-off-platform reminder shows on the onboarding screen and on the opener card. No automatic moderation in this phase.
+
+**Voice is intentionally excluded from phase 1.** No voice messaging, no mandatory voice intro. A future iteration may unlock voice notes only after **mutual interest + mutual opt-in** — never one-sided, never as an onboarding gate. Documented here so future contributors don't reintroduce it.
