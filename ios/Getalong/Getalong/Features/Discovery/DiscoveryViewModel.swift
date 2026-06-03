@@ -21,6 +21,12 @@ final class DiscoveryViewModel: ObservableObject {
     @Published var isRefreshing: Bool = false
     @Published var loadError: String?
 
+    /// Global warning toast triggered by soft validation errors that do
+    /// NOT belong inline under a Discovery card. The "already has an
+    /// active live invite" rejection lives here so the card layout
+    /// stays stable (no height jump, no per-card error chip).
+    @Published var inviteToast: String?
+
     /// Per-card send state keyed by profile id. Cleared on every
     /// successful refresh so a stale "sent" never carries over.
     @Published var sendStates: [UUID: CardSendState] = [:]
@@ -190,6 +196,28 @@ final class DiscoveryViewModel: ObservableObject {
             if e == .blockedRelationship || e == .receiverBanned {
                 profiles.removeAll { $0.id == profile.id }
                 sendStates.removeValue(forKey: profile.id)
+                return
+            }
+            // "Already have an active live invite" is a global, not a
+            // per-card failure — surface it as a top toast so the card
+            // layout doesn't jump under the user's tap. Reset the
+            // tapped card back to idle so they can retry once the
+            // existing invite settles.
+            //
+            // Anti-spam: only set the toast (and fire the haptic) if
+            // one isn't already on screen. Rapid taps while the toast
+            // is visible bounce off cheaply — the toast itself runs a
+            // single 3.2-s auto-dismiss timer keyed on the message
+            // string, so an identical re-set wouldn't restart it
+            // anyway, but skipping the haptic + state churn keeps the
+            // experience clean.
+            if e == .liveInviteSlotFull {
+                sendStates.removeValue(forKey: profile.id)
+                if inviteToast == nil {
+                    inviteToast = e.errorDescription
+                        ?? String(localized: "error.liveSignalSlotFull")
+                    Haptics.warning()
+                }
                 return
             }
             sendStates[profile.id] = .failed(

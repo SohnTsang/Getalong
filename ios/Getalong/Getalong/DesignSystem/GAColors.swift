@@ -59,6 +59,22 @@ enum GAColors {
     /// Missed invite tone — softer, more amber.
     static let inviteMissed      = dyn(light: 0xC0822B, dark: 0xE9B252)
 
+    // MARK: - Conversation-fit chip tints
+    //
+    // Each of the three Taipei-beta fit chips on the Discovery card has
+    // its own warm pastel palette — coral for "intent" (the connection
+    // you want), green for "rhythm" (lifestyle pace), wheat for "domain"
+    // (what you want to talk about). Light-mode values are the
+    // designer-supplied spec; dark-mode values are derived from the
+    // same hue at low chroma so the chip still reads as the same
+    // category without glowing on a dark surface.
+    static let fitIntentText     = dyn(light: 0xD96A4E, dark: 0xFFB59A)
+    static let fitIntentBg       = dyn(light: 0xFBE9E1, dark: 0x3A201A)
+    static let fitRhythmText     = dyn(light: 0x6F8A74, dark: 0xB5CCA0)
+    static let fitRhythmBg       = dyn(light: 0xEEF3E9, dark: 0x1F2C20)
+    static let fitDomainText     = dyn(light: 0x9A7A42, dark: 0xE8C77F)
+    static let fitDomainBg       = dyn(light: 0xF6EEDB, dark: 0x2D2616)
+
     /// Subtle shadow colour. Use as `Color.black.opacity` directly for
     /// shadows; this token is here for places where we need a tinted
     /// shadow to hint at warmth.

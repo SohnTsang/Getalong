@@ -11,7 +11,7 @@ struct DiscoveryView: View {
 
     var body: some View {
         NavigationStack {
-            ZStack {
+            ZStack(alignment: .top) {
                 GAColors.background.ignoresSafeArea()
                 VStack(spacing: 0) {
                     GAAppTopBar(trailing: {
@@ -29,7 +29,21 @@ struct DiscoveryView: View {
                     }
                     .refreshable { await vm.tryManualRefresh() }
                 }
+
+                // Global warning toast for soft validation errors that
+                // do NOT belong inline under a card — currently just
+                // "already has an active live invite". Shares the
+                // GATopToast surface with the safety success toast.
+                if let msg = vm.inviteToast {
+                    GATopToast(kind: .warning,
+                               message: msg) { vm.inviteToast = nil }
+                        .padding(.horizontal, GASpacing.lg)
+                        .padding(.top, GASpacing.md)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .zIndex(1)
+                }
             }
+            .animation(.easeOut(duration: 0.2), value: vm.inviteToast)
             .navigationTitle("")
             .toolbar(.hidden, for: .navigationBar)
             .task { await vm.loadInitial() }
@@ -317,26 +331,46 @@ private struct DiscoveryCard: View {
     private var fitChipsBlock: some View {
         FlowLayout(spacing: GASpacing.sm) {
             if let intent = profile.connectionIntentTyped {
-                fitChip(label: intent.localizedShort)
+                fitChip(label: intent.localizedShort, kind: .intent)
             }
             if let rhythm = profile.lifestyleRhythmTyped {
-                fitChip(label: rhythm.localizedShort)
+                fitChip(label: rhythm.localizedShort, kind: .rhythm)
             }
             if let domain = profile.conversationDomainTyped {
-                fitChip(label: domain.localizedShort)
+                fitChip(label: domain.localizedShort, kind: .domain)
             }
         }
     }
 
-    private func fitChip(label: String) -> some View {
+    /// Each conversation-fit chip carries its own warm pastel palette
+    /// (coral / green / wheat) so the three categories are
+    /// distinguishable at a glance without needing labels. Colors are
+    /// the designer-supplied fit-chip tokens on `GAColors`.
+    private enum FitChipKind {
+        case intent, rhythm, domain
+        var textColor: Color {
+            switch self {
+            case .intent: return GAColors.fitIntentText
+            case .rhythm: return GAColors.fitRhythmText
+            case .domain: return GAColors.fitDomainText
+            }
+        }
+        var backgroundColor: Color {
+            switch self {
+            case .intent: return GAColors.fitIntentBg
+            case .rhythm: return GAColors.fitRhythmBg
+            case .domain: return GAColors.fitDomainBg
+            }
+        }
+    }
+
+    private func fitChip(label: String, kind: FitChipKind) -> some View {
         Text(label)
             .font(GATypography.footnote.weight(.medium))
-            .foregroundStyle(GAColors.textSecondary)
+            .foregroundStyle(kind.textColor)
             .padding(.horizontal, GASpacing.sm)
             .padding(.vertical, 6)
-            .background(GAColors.surfaceRaised,
-                        in: Capsule())
-            .overlay(Capsule().strokeBorder(GAColors.border, lineWidth: 0.5))
+            .background(kind.backgroundColor, in: Capsule())
     }
 
     /// Taipei beta: tags read as simple plain hashtags below the fit

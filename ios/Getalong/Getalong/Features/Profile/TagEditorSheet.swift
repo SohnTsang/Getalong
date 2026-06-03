@@ -44,7 +44,7 @@ struct TagEditorSheet: View {
         NavigationStack {
             GAScreen(maxWidth: 520, topPadding: GASpacing.xxl) {
                 VStack(alignment: .leading, spacing: GASpacing.sectionGap) {
-                    header
+                    subtitle
                     inputCard
                     suggestionsSection
                     if let error {
@@ -53,8 +53,8 @@ struct TagEditorSheet: View {
                     }
                 }
             }
-            .navigationTitle("")
-            .toolbar(.hidden, for: .navigationBar)
+            .navigationTitle(String(localized: "profile.tags"))
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(String(localized: "common.cancel")) { dismiss() }
@@ -71,18 +71,18 @@ struct TagEditorSheet: View {
             .task { await loadSuggestions() }
         }
         .presentationDetents([.large])
+        .presentationDragIndicator(.visible)
     }
 
-    private var header: some View {
-        VStack(alignment: .leading, spacing: GASpacing.xs) {
-            Text("profile.tags")
-                .font(GATypography.screenTitle)
-                .foregroundStyle(GAColors.textPrimary)
-            Text("profile.tags.subtitle")
-                .font(GATypography.callout)
-                .foregroundStyle(GAColors.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
-        }
+    /// Subtitle that previously lived inside a custom in-content
+    /// header. The title now lives in the navigation bar to match the
+    /// other profile edit sheets; we keep the subtitle as a quiet
+    /// intro line so the editor still feels guided.
+    private var subtitle: some View {
+        Text("profile.tags.subtitle")
+            .font(GATypography.callout)
+            .foregroundStyle(GAColors.textSecondary)
+            .fixedSize(horizontal: false, vertical: true)
     }
 
     private var inputCard: some View {

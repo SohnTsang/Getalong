@@ -1,11 +1,11 @@
 import SwiftUI
 
-/// Edit sheet for the Taipei beta "conversation fit" chips. Each row
-/// is a tappable FlowLayout of pickerTiles; selecting a tile sets the
-/// value, tapping the selected tile clears it (so the chip is truly
-/// optional even after the user has touched it). Save persists via
-/// `ProfileService.updateMyProfile`; sensitive fields are still
-/// locked at the DB level.
+/// Edit sheet for the Taipei beta "conversation fit" chips. Visually
+/// matches the canonical profile edit sheets (EditPreferencesSheet,
+/// EditProfileBasicsSheet, EditRegionSheet): NavigationStack shell,
+/// inline navigation title, leading-toolbar Cancel, primary Save
+/// button in the content. Each fit row is an optional chip — tapping
+/// the selected chip clears it.
 struct EditConversationFitSheet: View {
     let initial: Profile
     let onSaved: (Profile) -> Void
@@ -14,8 +14,7 @@ struct EditConversationFitSheet: View {
     @State private var intent: ConnectionIntent?
     @State private var rhythm: LifestyleRhythm?
     @State private var domain: ConversationDomain?
-    @State private var isSaving: Bool = false
-    @State private var errorMessage: String?
+    @State private var phase: SavePhase = .editing
 
     init(initial: Profile,
          onSaved: @escaping (Profile) -> Void,
@@ -29,10 +28,14 @@ struct EditConversationFitSheet: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: GASpacing.lg) {
-            header
-            ScrollView {
-                VStack(alignment: .leading, spacing: GASpacing.lg) {
+        NavigationStack {
+            GAScreen(maxWidth: 560, topPadding: GASpacing.xxl) {
+                VStack(alignment: .leading, spacing: GASpacing.xl) {
+                    Text("profile.fit.subtitle")
+                        .font(GATypography.callout)
+                        .foregroundStyle(GAColors.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+
                     pickerSection(title: String(localized: "quickstart.fit.intent.label"),
                                   options: ConnectionIntent.allCases,
                                   selection: $intent,
@@ -45,50 +48,31 @@ struct EditConversationFitSheet: View {
                                   options: ConversationDomain.allCases,
                                   selection: $domain,
                                   label: { $0.localizedTitle })
-                    if let err = errorMessage {
-                        GAErrorBanner(message: err,
-                                      onDismiss: { errorMessage = nil })
+
+                    if case .error(let message) = phase {
+                        GAErrorBanner(message: message,
+                                      onDismiss: { phase = .editing })
                     }
+
+                    Spacer(minLength: GASpacing.md)
+                    saveButton
                 }
             }
-            GAButton(title: String(localized: "common.save"),
-                     kind: .primary,
-                     isLoading: isSaving) {
-                Task { await save() }
+            .navigationTitle(String(localized: "profile.fit.edit.title"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(String(localized: "common.cancel"), action: onClose)
+                        .disabled(phase == .saving)
+                }
             }
+            .interactiveDismissDisabled(phase == .saving)
         }
-        .padding(.top, GASafetySheet.topPadding)
-        .padding(.horizontal, GASpacing.lg)
-        .padding(.bottom, GASpacing.lg)
-        .background(GAColors.background.ignoresSafeArea())
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)
-        .interactiveDismissDisabled(isSaving)
     }
 
-    private var header: some View {
-        HStack(alignment: .firstTextBaseline) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text("profile.fit.edit.title")
-                    .font(GATypography.title)
-                    .foregroundStyle(GAColors.textPrimary)
-                Text("profile.fit.subtitle")
-                    .font(GATypography.callout)
-                    .foregroundStyle(GAColors.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            Spacer()
-            Button(action: onClose) {
-                Image(systemName: "xmark")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(GAColors.textSecondary)
-                    .frame(width: 32, height: 32)
-                    .background(GAColors.surfaceRaised, in: Circle())
-            }
-            .accessibilityLabel(String(localized: "common.cancel"))
-            .disabled(isSaving)
-        }
-    }
+    // MARK: - Sections
 
     @ViewBuilder
     private func pickerSection<T: CaseIterable & Identifiable & Hashable>(
@@ -97,22 +81,22 @@ struct EditConversationFitSheet: View {
         selection: Binding<T?>,
         label: @escaping (T) -> String
     ) -> some View {
-        VStack(alignment: .leading, spacing: GASpacing.xs) {
-            Text(title.uppercased())
-                .font(GATypography.sectionTitle)
-                .tracking(0.6)
-                .foregroundStyle(GAColors.textTertiary)
-            FlowLayout(spacing: GASpacing.sm) {
-                ForEach(Array(options)) { option in
-                    pickerTile(title: label(option),
-                               isSelected: selection.wrappedValue == option) {
-                        if selection.wrappedValue == option {
-                            selection.wrappedValue = nil
-                        } else {
-                            selection.wrappedValue = option
+        VStack(alignment: .leading, spacing: GASpacing.sm) {
+            GASectionHeader(title: title)
+            GACard {
+                FlowLayout(spacing: GASpacing.sm) {
+                    ForEach(Array(options)) { option in
+                        pickerTile(title: label(option),
+                                   isSelected: selection.wrappedValue == option) {
+                            if selection.wrappedValue == option {
+                                selection.wrappedValue = nil
+                            } else {
+                                selection.wrappedValue = option
+                            }
                         }
                     }
                 }
+                .padding(.vertical, GASpacing.xs)
             }
         }
     }
@@ -142,19 +126,34 @@ struct EditConversationFitSheet: View {
         .buttonStyle(.plain)
     }
 
-    private func save() async {
-        guard !isSaving else { return }
-        isSaving = true
-        defer { isSaving = false }
+    private var saveButton: some View {
+        GAButton(
+            title: String(localized: phase == .saving
+                          ? "profile.edit.saving"
+                          : "profile.edit.save"),
+            kind: .primary,
+            isLoading: phase == .saving,
+            isDisabled: phase == .saving
+        ) {
+            Task { await save() }
+        }
+    }
 
+    private func save() async {
+        guard phase != .saving else { return }
+        phase = .saving
         do {
             let updated = try await ProfileService.shared
                 .updateMyConversationFit(intent: intent,
                                          rhythm: rhythm,
                                          domain: domain)
+            Haptics.success()
             onSaved(updated)
+        } catch let e as ProfileError {
+            phase = .error(e.errorDescription ?? String(localized: "profile.edit.error"))
+            Haptics.error()
         } catch {
-            errorMessage = error.localizedDescription
+            phase = .error(error.localizedDescription)
             Haptics.error()
         }
     }

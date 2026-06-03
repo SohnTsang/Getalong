@@ -2123,7 +2123,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "你已經有一個即時訊號正在進行中，請等候或取消後再試。"
+            "value" : "你已經有一個即時邀請正在進行中，請等候或取消後再試。"
           }
         }
       }
@@ -4595,6 +4595,7 @@
       }
     },
     "profile.fit.edit.title" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5230,7 +5231,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "你會收到 Live 邀請與新訊息提醒。"
+            "value" : "你會收到即時邀請與新訊息提醒。"
           }
         }
       }
@@ -5322,7 +5323,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Live 邀請與訊息回覆。"
+            "value" : "即時邀請與訊息回覆。"
           }
         }
       }
@@ -5737,6 +5738,7 @@
       }
     },
     "profile.tags" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {

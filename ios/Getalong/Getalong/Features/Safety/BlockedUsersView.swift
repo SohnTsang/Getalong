@@ -86,11 +86,13 @@ struct BlockedUsersView: View {
                 }
             }
 
-            // Top-of-screen success toast (same auto-dismiss + drag-up
-            // pattern ChatRoomView uses). Placed in the same ZStack so
-            // it floats above scroll content.
+            // Top-of-screen success toast (shared GATopToast shell —
+            // same auto-dismiss + drag-up pattern as the Discovery
+            // warning toast). Placed in the same ZStack so it floats
+            // above scroll content.
             if let ok = vm.unblockedToast {
-                GATopSuccessToast(message: ok) { vm.unblockedToast = nil }
+                GATopToast(kind: .success,
+                           message: ok) { vm.unblockedToast = nil }
                     .padding(.horizontal, GASpacing.lg)
                     .padding(.top, GASpacing.md)
                     .transition(.move(edge: .top).combined(with: .opacity))
@@ -186,60 +188,3 @@ private struct BlockedUserRow: View {
     }
 }
 
-/// Top-of-content success toast. Mirrors the auto-dismiss + drag-up
-/// dismiss pattern `ChatErrorToast` uses inside chat rooms so the
-/// app's toast surfaces stay consistent. Solid surface + soft shadow
-/// so it reads as a floating sheet over scroll content.
-struct GATopSuccessToast: View {
-    let message: String
-    let onDismiss: () -> Void
-
-    @State private var dragY: CGFloat = 0
-
-    var body: some View {
-        HStack(spacing: GASpacing.sm) {
-            Image(systemName: "checkmark.circle.fill")
-                .foregroundStyle(GAColors.success)
-                .font(.system(size: 18, weight: .regular))
-            Text(message)
-                .font(GATypography.bodyEmphasized)
-                .foregroundStyle(GAColors.textPrimary)
-            Spacer(minLength: 0)
-        }
-        .padding(.horizontal, GASpacing.md)
-        .padding(.vertical, GASpacing.sm + 2)
-        .background(
-            RoundedRectangle(cornerRadius: GACornerRadius.medium,
-                             style: .continuous)
-                .fill(GAColors.surfaceRaised)
-                .shadow(color: Color.black.opacity(0.10),
-                        radius: 8, x: 0, y: 2)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: GACornerRadius.medium,
-                             style: .continuous)
-                .strokeBorder(GAColors.border, lineWidth: 0.5)
-        )
-        .offset(y: min(dragY, 0))
-        .gesture(
-            DragGesture(minimumDistance: 4)
-                .onChanged { v in
-                    dragY = min(v.translation.height, 0)
-                }
-                .onEnded { v in
-                    if v.translation.height < -28 {
-                        onDismiss()
-                    } else {
-                        withAnimation(.easeOut(duration: 0.18)) {
-                            dragY = 0
-                        }
-                    }
-                }
-        )
-        .task(id: message) {
-            try? await Task.sleep(nanoseconds: 2_400_000_000)
-            guard !Task.isCancelled else { return }
-            onDismiss()
-        }
-    }
-}
