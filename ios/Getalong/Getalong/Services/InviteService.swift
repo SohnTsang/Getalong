@@ -166,9 +166,13 @@ final class InviteService {
     }
 
     /// Pending live invites with the sender's profile fields embedded.
-    /// Drives the user-card style list on the Invites tab.
+    /// Drives the user-card style list on the Invites tab. The three
+    /// `connection_intent` / `lifestyle_rhythm` / `conversation_domain`
+    /// columns power the Taipei beta fit chips so the Invite card can
+    /// render the same chip row Discovery does — all three are nullable
+    /// for legacy profiles and the card hides the chip when null.
     private static let inviteWithSenderSelect =
-        "*, sender:profiles!sender_id(id, bio, gender, gender_visible, profile_tags(tag))"
+        "*, sender:profiles!sender_id(id, bio, gender, gender_visible, connection_intent, lifestyle_rhythm, conversation_domain, profile_tags(tag))"
 
     func fetchIncomingLivePendingWithSender(userId: UUID) async throws -> [InviteWithSender] {
         try await Supa.client

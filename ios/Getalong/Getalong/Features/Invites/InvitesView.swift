@@ -126,6 +126,7 @@ struct InvitesView: View {
                     InviteUserCard(
                         invite: item.invite,
                         sender: item.sender,
+                        myNormalizedTags: vm.myNormalizedTags,
                         mode:   .live(liveExpiresAt: item.invite.liveExpiresAt),
                         isBusy: vm.processingInviteId == item.invite.id,
                         onAccept:  { Task { await vm.acceptLive(item.invite) } },
@@ -159,6 +160,7 @@ struct InvitesView: View {
                     InviteUserCard(
                         invite: item.invite,
                         sender: item.sender,
+                        myNormalizedTags: vm.myNormalizedTags,
                         mode:   .missed,
                         isBusy: vm.processingInviteId == item.invite.id,
                         onAccept:  { Task { await vm.acceptMissed(item.invite) } },

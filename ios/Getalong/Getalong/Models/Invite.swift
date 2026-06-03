@@ -63,21 +63,41 @@ struct InviteSenderSummary: Codable, Hashable {
     var gender: String?
     var genderVisible: Bool
     var tags: [String]
+    /// Taipei beta conversation-fit chips. All three are optional —
+    /// legacy profiles (and any payload that predates the RPC update
+    /// in migration 0035 / the embed update in InviteService) decode
+    /// these as nil and the Invite card simply hides the chip.
+    var connectionIntent:   String?
+    var lifestyleRhythm:    String?
+    var conversationDomain: String?
 
     enum CodingKeys: String, CodingKey {
         case id
         case bio
         case gender
-        case genderVisible = "gender_visible"
-        case profileTags = "profile_tags"
+        case genderVisible       = "gender_visible"
+        case connectionIntent    = "connection_intent"
+        case lifestyleRhythm     = "lifestyle_rhythm"
+        case conversationDomain  = "conversation_domain"
+        case profileTags         = "profile_tags"
     }
 
-    init(id: UUID, bio: String?, gender: String?, genderVisible: Bool, tags: [String]) {
+    init(id: UUID,
+         bio: String?,
+         gender: String?,
+         genderVisible: Bool,
+         tags: [String],
+         connectionIntent: String? = nil,
+         lifestyleRhythm: String? = nil,
+         conversationDomain: String? = nil) {
         self.id = id
         self.bio = bio
         self.gender = gender
         self.genderVisible = genderVisible
         self.tags = tags
+        self.connectionIntent = connectionIntent
+        self.lifestyleRhythm = lifestyleRhythm
+        self.conversationDomain = conversationDomain
     }
 
     init(from decoder: Decoder) throws {
@@ -86,6 +106,9 @@ struct InviteSenderSummary: Codable, Hashable {
         self.bio = try c.decodeIfPresent(String.self, forKey: .bio)
         self.gender = try c.decodeIfPresent(String.self, forKey: .gender)
         self.genderVisible = try c.decodeIfPresent(Bool.self, forKey: .genderVisible) ?? false
+        self.connectionIntent   = try c.decodeIfPresent(String.self, forKey: .connectionIntent)
+        self.lifestyleRhythm    = try c.decodeIfPresent(String.self, forKey: .lifestyleRhythm)
+        self.conversationDomain = try c.decodeIfPresent(String.self, forKey: .conversationDomain)
         struct TagRow: Decodable { let tag: String }
         let rows = try c.decodeIfPresent([TagRow].self, forKey: .profileTags) ?? []
         self.tags = rows.map(\.tag)
@@ -97,12 +120,29 @@ struct InviteSenderSummary: Codable, Hashable {
         try c.encode(bio, forKey: .bio)
         try c.encode(gender, forKey: .gender)
         try c.encode(genderVisible, forKey: .genderVisible)
+        try c.encodeIfPresent(connectionIntent,   forKey: .connectionIntent)
+        try c.encodeIfPresent(lifestyleRhythm,    forKey: .lifestyleRhythm)
+        try c.encodeIfPresent(conversationDomain, forKey: .conversationDomain)
         struct TagRow: Encodable { let tag: String }
         try c.encode(tags.map(TagRow.init), forKey: .profileTags)
     }
 
     /// Visible gender for badge rendering. Hidden if the sender opted out.
     var visibleGender: String? { genderVisible ? gender : nil }
+
+    /// Convenience typed accessors. Mirror the pattern on
+    /// `Profile.connectionIntentTyped` etc. — unknown raw values
+    /// resolve to nil rather than crashing if backend enums drift
+    /// ahead of the Swift enum.
+    var connectionIntentTyped:   ConnectionIntent? {
+        connectionIntent.flatMap { ConnectionIntent(rawValue: $0) }
+    }
+    var lifestyleRhythmTyped:    LifestyleRhythm? {
+        lifestyleRhythm.flatMap { LifestyleRhythm(rawValue: $0) }
+    }
+    var conversationDomainTyped: ConversationDomain? {
+        conversationDomain.flatMap { ConversationDomain(rawValue: $0) }
+    }
 }
 
 /// Wraps an invite with the sender's profile fields needed for the

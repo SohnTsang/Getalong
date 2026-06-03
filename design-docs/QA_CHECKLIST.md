@@ -83,6 +83,26 @@ Active chat partners stay hard-excluded; recently deleted partners drop into a l
 - Accepting missed invite consumes quota only for free users.
 - Accepting live invite never consumes missed quota.
 
+### Invite-card visual parity with Discovery (added 2026-06)
+
+The Invite-tab user card now mirrors the Discovery card's profile-identity hierarchy. Mode-specific controls (countdown ring, Accept button, decline/menu, received timestamp) remain.
+
+- Incoming **live** invite card renders: gender badge → one honest line → conversation-fit chips (if any) → plain `#tag #tag` hashtags (if any) → countdown ring trailing.
+- **Missed** invite card renders the same hierarchy plus: received-relative timestamp footer + Accept button + 3-dot menu.
+- Card with no conversation-fit chips (legacy profile) hides the chip row entirely — no empty space.
+- Card with no tags hides the hashtag row entirely.
+- Card with both empty falls back to gender badge + line only (no breakage).
+- Shared hashtags (tags the caller also has) render in `GAColors.accent`; other tags render in `textTertiary`.
+- The shared-tag intersection is case-insensitive and uses the same `ProfileTag.normalize` rule the backend uses (lowercase + collapsed whitespace, ≤30 chars), so `Coffee` on the sender side matches `coffee` on the caller side.
+- Hashtags are plain text — no capsule, no border, no icon, no "Tags" label (same treatment as Discovery).
+- Conversation-fit chips use the existing `GAColors.fit{Intent,Rhythm,Domain}{Text,Bg}` tokens — coral / sage / wheat — identical to Discovery.
+- No raw enum strings (e.g. `slow_chat`) appear; chips show `localizedShort`.
+- Existing live-invite countdown still ticks down based on `live_expires_at`.
+- Existing Accept / Decline / report / block actions still work; no behavioural change.
+- Existing missed-badge count still updates on accept / decline / dedupe.
+- Existing payloads without `connection_intent` / `lifestyle_rhythm` / `conversation_domain` decode successfully (legacy senders just show no chip row).
+- Light & dark modes render the fit chip palette correctly.
+
 ## Chat
 
 - Chat list loads.

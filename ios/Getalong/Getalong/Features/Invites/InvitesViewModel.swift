@@ -21,6 +21,15 @@ final class InvitesViewModel: ObservableObject {
     // Missed invites the user can still act on.
     @Published var missed: [InviteWithSender] = []
 
+    /// Normalized tag set for the current user, fetched once on
+    /// attach. Passed down to InviteUserCard so it can accent the
+    /// hashtags it shares with the sender — exactly the same shared-
+    /// wavelength signal Discovery shows. Computed client-side
+    /// because the existing invite-sender RPC and PostgREST embed
+    /// already return the sender's tags; layering a server-side
+    /// `shared_tags` field would be redundant data on every row.
+    @Published var myNormalizedTags: Set<String> = []
+
     // UI
     @Published var tab: Tab = .live
     @Published var isLoading: Bool = false
@@ -91,6 +100,10 @@ final class InvitesViewModel: ObservableObject {
 
     func attach(userId: UUID) async {
         currentUserId = userId
+        // Fire-and-forget the caller's tag fetch — independent of
+        // the invite list, so it doesn't block the first render and
+        // we don't crash the list refresh if tag fetch errors.
+        Task { [weak self] in await self?.refreshMyTags() }
         await refresh()
         // Register on the shared multi-listener channel — the tracker
         // already keeps the socket alive at the tab-bar level, so this
@@ -101,6 +114,20 @@ final class InvitesViewModel: ObservableObject {
             Task { await self?.refresh() }
         }
         realtimeToken = token
+    }
+
+    /// Pull the caller's own profile tags and stash a normalized set
+    /// for shared-tag intersection on each Invite card. Re-fetched
+    /// only when explicitly called (e.g. after the user edits their
+    /// own tags elsewhere); a stale set just under-accents shared
+    /// hashtags for one render — never a correctness bug.
+    func refreshMyTags() async {
+        do {
+            let mine = try await ProfileTagService.shared.fetchMyTags()
+            myNormalizedTags = Set(mine.map(\.normalizedTag))
+        } catch {
+            GALog.invite.warning("invites.refreshMyTags failed: \(error.localizedDescription, privacy: .public)")
+        }
     }
 
     func detach() async {

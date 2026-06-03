@@ -15,6 +15,12 @@ struct InviteUserCard: View {
 
     let invite: Invite
     let sender: InviteSenderSummary
+    /// Normalized-tag set for the current user — passed down from
+    /// InvitesViewModel so the card can accent the hashtags it shares
+    /// with the sender (same shared-wavelength signal Discovery
+    /// shows). Empty set is fine: just renders every tag in tertiary
+    /// color.
+    var myNormalizedTags: Set<String> = []
     let mode: Mode
     let isBusy: Bool
     let onAccept: () -> Void
@@ -65,6 +71,9 @@ struct InviteUserCard: View {
         GACard(kind: .standard, padding: GASpacing.xl) {
             VStack(alignment: .leading, spacing: GASpacing.md) {
                 headlineRow
+                if hasFitChips {
+                    fitChipsBlock
+                }
                 if !sender.tags.isEmpty {
                     tagsBlock
                 }
@@ -82,6 +91,62 @@ struct InviteUserCard: View {
                              style: .continuous)
                 .strokeBorder(borderColor, lineWidth: borderWidth)
         )
+    }
+
+    // MARK: - Conversation-fit chips
+    //
+    // Mirrors `DiscoveryCard.fitChipsBlock` exactly: each of the three
+    // categories carries its own warm pastel palette (coral / sage /
+    // wheat) via the existing GAColors.fit* tokens, so the Invite tab
+    // reads as the same product surface as Discovery. Soft visual
+    // weight — context, not a filter — and any subset of the three may
+    // be present.
+
+    private var hasFitChips: Bool {
+        sender.connectionIntentTyped != nil
+            || sender.lifestyleRhythmTyped != nil
+            || sender.conversationDomainTyped != nil
+    }
+
+    private var fitChipsBlock: some View {
+        FlowLayout(spacing: GASpacing.sm) {
+            if let intent = sender.connectionIntentTyped {
+                fitChip(label: intent.localizedShort, kind: .intent)
+            }
+            if let rhythm = sender.lifestyleRhythmTyped {
+                fitChip(label: rhythm.localizedShort, kind: .rhythm)
+            }
+            if let domain = sender.conversationDomainTyped {
+                fitChip(label: domain.localizedShort, kind: .domain)
+            }
+        }
+    }
+
+    private enum FitChipKind {
+        case intent, rhythm, domain
+        var textColor: Color {
+            switch self {
+            case .intent: return GAColors.fitIntentText
+            case .rhythm: return GAColors.fitRhythmText
+            case .domain: return GAColors.fitDomainText
+            }
+        }
+        var backgroundColor: Color {
+            switch self {
+            case .intent: return GAColors.fitIntentBg
+            case .rhythm: return GAColors.fitRhythmBg
+            case .domain: return GAColors.fitDomainBg
+            }
+        }
+    }
+
+    private func fitChip(label: String, kind: FitChipKind) -> some View {
+        Text(label)
+            .font(GATypography.footnote.weight(.medium))
+            .foregroundStyle(kind.textColor)
+            .padding(.horizontal, GASpacing.sm)
+            .padding(.vertical, 6)
+            .background(kind.backgroundColor, in: Capsule())
     }
 
     // MARK: -
@@ -236,9 +301,10 @@ struct InviteUserCard: View {
     /// Plain `#tag #tag` text run in tertiary footnote — matches the
     /// Discovery card's hashtag treatment so the two cards share the
     /// same visual language. No capsule, no border, no "Tags" label;
-    /// the tags wrap naturally as one Text view. The Invite sender
-    /// summary doesn't yet carry shared-tags data, so we render every
-    /// tag in tertiary color (Discovery accents the shared ones).
+    /// the tags wrap naturally as one Text view. Shared hashtags
+    /// (those the current user also has, intersected via
+    /// `myNormalizedTags`) pick up `GAColors.accent` on just that
+    /// token — the same subtle "in common" signal Discovery shows.
     private var tagsBlock: some View {
         Text(senderHashtagAttributedString)
             .font(GATypography.footnote)
@@ -251,7 +317,18 @@ struct InviteUserCard: View {
         var out = AttributedString()
         for (idx, tag) in sender.tags.enumerated() {
             if idx > 0 { out += AttributedString(" ") }
-            out += AttributedString("#\(tag)")
+            var piece = AttributedString("#\(tag)")
+            // Use the same canonical normalize as ProfileTag (and the
+            // backend trigger) so a sender's "Coffee" and the
+            // caller's "coffee" still match. Falls through to no-
+            // accent on any input the normalizer rejects (empty,
+            // >30 chars) — those couldn't possibly be in the user's
+            // own normalized tag set anyway.
+            if let normalized = ProfileTag.normalize(tag),
+               myNormalizedTags.contains(normalized) {
+                piece.foregroundColor = GAColors.accent
+            }
+            out += piece
         }
         return out
     }

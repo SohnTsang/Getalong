@@ -220,6 +220,19 @@ for early-beta liquidity is: fresh always wins when fresh exists.
 Optional `tags` body filter is matched against
 `profile_tags.normalized_tag`.
 
+### get_actionable_missed_invites / inviteWithSenderSelect (Invite-tab user-card payload)
+
+Not an Edge Function — these are the SQL RPC + PostgREST embed string that drive the Invites tab. Both return one row per actionable invite with the same `sender` JSON shape so the iOS `InviteUserCard` can render the same identity hierarchy Discovery shows.
+
+Embedded sender keys (both paths):
+- `id`, `bio`, `gender`, `gender_visible`
+- `connection_intent`, `lifestyle_rhythm`, `conversation_domain` — the Taipei-beta conversation-fit chips (nullable; the card hides any chip whose value is null)
+- `profile_tags` — array of `{ tag }` rows, sorted by tag
+
+Shared-hashtag accent is computed **client-side** in `InvitesViewModel` by intersecting the sender's tags against the caller's own `profile_tags` (fetched once via `ProfileTagService.fetchMyTags()`), using the same `ProfileTag.normalize` rule the backend trigger uses. No `shared_tags` field is returned by the RPC or the embed — that would just be redundant data per row.
+
+`get_actionable_missed_invite_count()` is unchanged — it returns only the distinct-sender count and never reads the fit columns.
+
 ### createChatMessage
 
 Creates a text or media chat message.
