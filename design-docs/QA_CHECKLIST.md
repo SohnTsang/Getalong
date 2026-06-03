@@ -143,14 +143,20 @@
 - Profile page shows the new "Conversation fit" section.
 - Tapping the fit section opens the edit sheet; saving persists the three chips.
 - Tapping a selected chip in the edit sheet clears it (server receives explicit JSON null).
-- Discovery card shows hero line + fit chips (when set) + tags.
+- Discovery card shows the honest line as hero text.
+- Fit chips appear as capsule/badge elements (the only badge-style row).
+- Hashtags appear as simple plain `#tag` text below the chips, no capsule, no border, no icon, no label.
+- Hashtag row hides completely when the partner has no tags.
+- Discovery card with chips + tags, with tags only (no chips), and with no chips + no tags all render without breaking.
 - Empty fit fields don't crash or break Discovery cards.
 - Discovery feed still returns the same 10-card batch behaviour.
-- New chat with no user-sent messages shows the opener card.
-- Tapping an opener fills the composer; it does NOT auto-send.
-- Opener card disappears after the user sends the first message in the room.
+- New empty chat shows the message composer directly — no "Start easy" / opener card / suggestion list / auto-fill.
+- Existing chats continue to render messages, attachments, and the composer normally.
+- Sending the first message works; realtime delivery to the partner unchanged.
 - Block / report / view-once media still build and behave unchanged.
 - No raw enum strings (e.g. `slow_chat`) appear anywhere in the UI.
 - No new voice UI appears.
 - Traditional Chinese strings contain no banned Cantonese tokens (搵, 嘅, 啱傾, 傾偈, 傾落去, 錯過咗, 用緊).
-- Light and dark modes both render the new chips and opener card.
+- `grep -r "chat\.opener\|safety\.taipei\.chat" ios/Getalong --include="*.swift"` returns no matches.
+- Light and dark modes both render Discovery cards (hero + chips + hashtags) and the chat composer.
+- `xcodebuild` succeeds for the Getalong scheme.

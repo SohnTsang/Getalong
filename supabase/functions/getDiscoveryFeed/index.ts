@@ -73,9 +73,6 @@ interface DiscoveryProfile {
   connection_intent: string | null;
   lifestyle_rhythm: string | null;
   conversation_domain: string | null;
-  /// Free-text opener seed (≤120 chars). Returned so the chat opener
-  /// in ChatRoomView can surface it as a personalised suggestion.
-  opener_prompt: string | null;
 }
 
 // Discovery returns 10 cards per page by default. Smaller pages mean the
@@ -219,7 +216,7 @@ Deno.serve(async (req) => {
   // tight to avoid any client/SDK string-massaging surprises.
   const selectCols = "id,getalong_id,display_name,bio,city,country,"
     + "gender,gender_visible,plan,updated_at,created_at,"
-    + "connection_intent,lifestyle_rhythm,conversation_domain,opener_prompt,"
+    + "connection_intent,lifestyle_rhythm,conversation_domain,"
     + "profile_tags(tag,normalized_tag)";
 
   let q = sb
@@ -260,7 +257,6 @@ Deno.serve(async (req) => {
     connection_intent: string | null;
     lifestyle_rhythm: string | null;
     conversation_domain: string | null;
-    opener_prompt: string | null;
     profile_tags: { tag: string; normalized_tag: string }[] | null;
   };
 
@@ -352,7 +348,6 @@ Deno.serve(async (req) => {
     connection_intent:   row.connection_intent,
     lifestyle_rhythm:    row.lifestyle_rhythm,
     conversation_domain: row.conversation_domain,
-    opener_prompt:       row.opener_prompt,
   }));
 
   return ok({

@@ -339,13 +339,32 @@ private struct DiscoveryCard: View {
             .overlay(Capsule().strokeBorder(GAColors.border, lineWidth: 0.5))
     }
 
+    /// Taipei beta: tags read as simple plain hashtags below the fit
+    /// chips so the chips stay the only badge-style row on the card.
+    /// One Text run wraps naturally; shared tags are subtly tinted with
+    /// the accent so they still feel like a quiet "in common" signal
+    /// without competing visually with the chips.
     private var tagsBlock: some View {
-        FlowLayout(spacing: GASpacing.sm) {
-            ForEach(profile.tags, id: \.self) { tag in
-                GAChip(label: tag,
-                       kind: profile.sharedTags.contains(tag) ? .selected : .neutral)
+        Text(taggedHashtagAttributedString)
+            .font(GATypography.footnote)
+            .foregroundStyle(GAColors.textTertiary)
+            .lineSpacing(2)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private var taggedHashtagAttributedString: AttributedString {
+        var out = AttributedString()
+        for (idx, tag) in profile.tags.enumerated() {
+            var piece = AttributedString("#\(tag)")
+            if profile.sharedTags.contains(tag) {
+                piece.foregroundColor = GAColors.accent
             }
+            if idx > 0 {
+                out += AttributedString(" ")
+            }
+            out += piece
         }
+        return out
     }
 
     private var sharedRow: some View {

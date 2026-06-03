@@ -230,7 +230,7 @@ The three chips (all optional, all settable later):
 - **Lifestyle rhythm** — `early_bird`, `night_owl`, `weekend_person`, `flexible`
 - **Conversation domain** — `daily_life`, `food_cafes`, `city_walks`, `music_films`, `work_study`, `travel`, `values`, `random`
 
-A fourth column `opener_prompt` (≤120 chars, free text) is reserved for a future surface; the chat opener currently uses the partner's `conversation_domain` as its seed.
+A fourth column `opener_prompt` (≤120 chars, free text) is reserved in the schema for a future surface but is currently unused by the client. The earlier "structured chat opener" experiment was removed — new chats land directly on the normal composer. Future conversation-support features (opener seeds, prompts, etc.) are future exploration, not current MVP.
 
 ### Voice — deliberately excluded from phase 1
 
@@ -238,4 +238,4 @@ No voice messaging, no voice rooms, no mandatory voice intro. The product hypoth
 
 ### Safety / anti-off-platform copy
 
-Quiet but visible safety copy lives in two places: the onboarding screen (`safety.taipei.onboarding`) and the new-chat opener card (`safety.taipei.chat`). Copy steers users to keep early conversation inside Getalong, avoid rushing LINE swaps or money topics, and use block/report when something feels off. No content moderation / auto-warning logic in this phase.
+Quiet but visible safety copy lives on the onboarding screen (`safety.taipei.onboarding`). It steers users to keep early conversation inside Getalong, avoid rushing LINE swaps or money topics, and use block/report when something feels off. The earlier chat-side safety hint was removed together with the opener card; safety copy now lives in onboarding (+ profile / public legal pages) only. No content moderation / auto-warning logic in this phase.

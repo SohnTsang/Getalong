@@ -151,8 +151,10 @@ A complete end-to-end flow works:
 
 Profile model = **one honest line + three "conversation fit" chips** (connection_intent / lifestyle_rhythm / conversation_domain). Chips are optional, settable later, and used by Discovery only as a soft sort hint — they are never hard filters. Tags stay capped at 3.
 
-Chat rooms with no message from the current user show a structured **opener card** above the composer with three suggestions seeded by the partner's `conversation_domain`. Tapping a suggestion fills the composer (no auto-send). The card disappears the moment the user sends.
+Discovery card shows the honest line as the hero, the three fit chips as the only badge-style row, and tags as **simple plain hashtags** (`#tag #tag #tag`) below — no capsule, no border, no icon, no "Tags" label. The hashtag row hides when there are no tags. Shared tags are subtly tinted with the accent color but stay plain text.
 
-Safety copy: a quiet anti-off-platform reminder shows on the onboarding screen and on the opener card. No automatic moderation in this phase.
+New chats land directly on the normal composer — there is no structured "Start easy" opener card, no suggestion list, no auto-fill. The earlier opener experiment was rolled back; future conversation-support surfaces (opener seeds, prompts, etc.) are future exploration, not current MVP.
+
+Safety copy: a quiet anti-off-platform reminder shows on the onboarding screen only. The chat-side safety hint was removed together with the opener card. No automatic moderation in this phase.
 
 **Voice is intentionally excluded from phase 1.** No voice messaging, no mandatory voice intro. A future iteration may unlock voice notes only after **mutual interest + mutual opt-in** — never one-sided, never as an onboarding gate. Documented here so future contributors don't reintroduce it.

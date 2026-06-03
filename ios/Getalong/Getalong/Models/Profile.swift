@@ -18,9 +18,6 @@ struct Profile: Codable, Identifiable, Hashable {
     var connectionIntent: String?
     var lifestyleRhythm: String?
     var conversationDomain: String?
-    /// Free-text opener seed (≤120 chars). Surfaced by the partner's
-    /// chat opener suggestions when present.
-    var openerPrompt: String?
     var trustScore: Int
     var plan: SubscriptionPlan
     var isBanned: Bool
@@ -56,7 +53,6 @@ struct Profile: Codable, Identifiable, Hashable {
         case connectionIntent   = "connection_intent"
         case lifestyleRhythm    = "lifestyle_rhythm"
         case conversationDomain = "conversation_domain"
-        case openerPrompt       = "opener_prompt"
         case trustScore         = "trust_score"
         case plan
         case isBanned      = "is_banned"
