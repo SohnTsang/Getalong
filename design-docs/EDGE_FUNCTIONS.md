@@ -182,13 +182,43 @@ Behavior:
 
 Returns paginated discovery posts.
 
-Filters:
-- not hidden
-- not deleted
-- not banned author
-- not blocked relationship
-- optional tag/city/language filters (tags are matched against
-  `profile_tags.normalized_tag`)
+Hard exclusions (never appear):
+- self
+- not banned, not deleted
+- profiles I have blocked, profiles that have blocked me
+- profiles with an **active** chat room (`chat_rooms.status='active'`)
+- profiles with a `live_pending` invite either direction
+- profiles already visible in the caller's `exclude_ids` (best-effort,
+  relaxed when too few alternatives exist)
+
+Soft penalty band (deprioritized but still eligible):
+- Profiles with a recently **deleted** chat room
+  (`chat_rooms.status='deleted'`, `deleted_at` within the last 30 days).
+  Per partner using the most recent `deleted_at`:
+  - within 7 days → band 20 (strong)
+  - within 30 days → band 8 (weak)
+  - older than 30 days → band 0 (fresh, no penalty)
+  Deliberately NOT a hard filter: during early-beta liquidity, an empty
+  Discovery page is worse than briefly resurfacing a partner from a
+  past chat. Deleted-room partners stay eligible and surface to fill
+  thin pools — they just sort below every fresh candidate.
+
+Sort order:
+1. `deletedRoomPenalty` ascending — the penalty IS the primary key.
+   Any band-0 (fresh) candidate ranks above every band-8 or band-20
+   candidate, regardless of their tag overlap or fit-chip match.
+   Deleted partners only surface after the fresh band is exhausted.
+2. tag overlap desc (tie-break within a band on wavelength signal)
+3. Taipei beta fit chip score desc (then on conversation-fit chips)
+4. per-request random jitter asc (refresh variety)
+
+This is stricter than the prior combined-score formula. A recently
+deleted partner with strong tag overlap still ranks below every fresh
+candidate, including fresh zero-overlap strangers. The product rule
+for early-beta liquidity is: fresh always wins when fresh exists.
+
+Optional `tags` body filter is matched against
+`profile_tags.normalized_tag`.
 
 ### createChatMessage
 

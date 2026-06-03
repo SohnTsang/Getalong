@@ -16,7 +16,7 @@
 //   }
 // }
 //
-// Exclusion rules:
+// Exclusion rules (HARD — these candidates never appear):
 //   * self
 //   * deleted / banned profiles
 //   * profiles I have blocked
@@ -28,12 +28,27 @@
 //   * profiles already visible in the caller's current list
 //     (best-effort, only if enough other candidates exist)
 //
+// Recently DELETED chat-room partners are NOT hard-excluded; they
+// sort into a lower band. The product rule for early-beta liquidity
+// is: don't show someone immediately after leaving a chat with them,
+// but never let "deleted partners" empty the Discovery pool — if the
+// available 0-penalty candidates are thin, deleted partners surface
+// to fill the page.
+//
+// Penalty bands (see DELETED_ROOM_* constants below):
+//   * deleted_at within 7 days  → 20 (strong band)
+//   * deleted_at within 30 days → 8  (weak band)
+//   * older than 30 days / none → 0  (fresh band)
+//
 // Sort order (stable):
-//   1. tag overlap count desc (only when caller supplies `tags` OR we
-//      derive from the caller's own profile_tags),
-//   2. profiles.updated_at desc,
-//   3. profiles.created_at desc,
-//   4. profiles.id desc as final tiebreaker.
+//   1. deletedRoomPenalty asc — the penalty IS the primary sort key.
+//      Any 0-penalty candidate ranks above every >0-penalty candidate
+//      regardless of how strong their tag overlap or fit-chip match
+//      would otherwise be. Recently deleted partners only surface
+//      after the entire fresh band is exhausted on the page.
+//   2. tag overlap desc — wavelength signal wins within a band.
+//   3. fitScore desc — Taipei beta fit chips as tertiary signal.
+//   4. jitter asc — per-request random tie-break for refresh variety.
 //
 // We opt for offset pagination keyed by a small JSON cursor — simpler than
 // keyset for v0 and cheap at expected sizes. The cursor is opaque to the
@@ -82,6 +97,16 @@ interface DiscoveryProfile {
 // the default.
 const DEFAULT_LIMIT = 10;
 const MAX_LIMIT     = 50;
+
+// Deleted-chat-room soft penalty. Tuned so a strong-penalty candidate
+// only beats a fresh candidate when the fresh candidate has zero tag
+// overlap AND lower fitScore — i.e. they only resurface when the
+// alternative is genuinely worse, or when there are no alternatives.
+const DELETED_ROOM_STRONG_PENALTY_DAYS = 7;
+const DELETED_ROOM_WEAK_PENALTY_DAYS   = 30;
+const DELETED_ROOM_STRONG_PENALTY      = 20;
+const DELETED_ROOM_WEAK_PENALTY        = 8;
+const MS_PER_DAY = 86_400_000;
 
 function decodeCursor(cursor: string | undefined): { offset: number } {
   if (!cursor) return { offset: 0 };
@@ -177,6 +202,37 @@ Deno.serve(async (req) => {
     }
   }
 
+  // Recently DELETED chat-room partners. NOT added to excludeIds — these
+  // candidates remain eligible. We only build a map of partner_id ->
+  // most-recent deleted_at so the enrichment step can apply a soft
+  // ranking penalty. Scoped to the weak-penalty window (30 d) because
+  // anything older receives no penalty anyway; this keeps the query
+  // small as the deleted-rooms table grows.
+  const deletedRoomMap = new Map<string, string>();
+  {
+    const cutoffIso = new Date(
+      Date.now() - DELETED_ROOM_WEAK_PENALTY_DAYS * MS_PER_DAY
+    ).toISOString();
+    const { data, error } = await sb
+      .from("chat_rooms")
+      .select("user_a, user_b, deleted_at")
+      .eq("status", "deleted")
+      .not("deleted_at", "is", null)
+      .gte("deleted_at", cutoffIso)
+      .or(`user_a.eq.${userId},user_b.eq.${userId}`);
+    if (error) console.warn("deleted rooms:", error.message);
+    for (const r of data ?? []) {
+      const partnerId = r.user_a === userId ? r.user_b : r.user_a;
+      // Multiple deleted rooms with the same partner can exist over
+      // time — keep the most recent so the penalty reflects how long
+      // it's been since they last walked away.
+      const prev = deletedRoomMap.get(partnerId);
+      if (!prev || (r.deleted_at as string) > prev) {
+        deletedRoomMap.set(partnerId, r.deleted_at as string);
+      }
+    }
+  }
+
   // 2. Tag intent: caller-supplied filters take precedence; otherwise we
   //    use the caller's own tags so people see folks who share their
   //    wavelength.
@@ -264,6 +320,7 @@ Deno.serve(async (req) => {
   const myIntent = me.connection_intent  as string | null;
   const myRhythm = me.lifestyle_rhythm   as string | null;
   const myDomain = me.conversation_domain as string | null;
+  const nowMs = Date.now();
   const enriched = (rows as Row[] | null ?? []).map((r) => {
     const tags = r.profile_tags ?? [];
     const sharedNormalized = intent.size === 0
@@ -293,11 +350,30 @@ Deno.serve(async (req) => {
         fitScore += 1;
       }
     }
+
+    // Soft penalty BAND for partners I recently left a chat with.
+    // Active rooms are already hard-excluded above; this only sees
+    // rows where status='deleted'. The band — not a combined score —
+    // is the primary sort key below, so any fresh (band-0) candidate
+    // ranks above every band-8 or band-20 candidate regardless of
+    // their tag overlap or fit-chip match.
+    let deletedRoomPenalty = 0;
+    const lastDeletedIso = deletedRoomMap.get(r.id);
+    if (lastDeletedIso) {
+      const ageDays = (nowMs - new Date(lastDeletedIso).getTime()) / MS_PER_DAY;
+      if (ageDays <= DELETED_ROOM_STRONG_PENALTY_DAYS) {
+        deletedRoomPenalty = DELETED_ROOM_STRONG_PENALTY;
+      } else if (ageDays <= DELETED_ROOM_WEAK_PENALTY_DAYS) {
+        deletedRoomPenalty = DELETED_ROOM_WEAK_PENALTY;
+      }
+    }
+
     return {
       row: r,
       sharedTags: sharedNormalized.map(t => t.tag),
       overlap: sharedNormalized.length,
       fitScore,
+      deletedRoomPenalty,
       // Stable random tie-breaker per request, so two profiles with
       // identical scores don't always appear in the same order across
       // refreshes. Computed once here so the sort is stable.
@@ -305,11 +381,19 @@ Deno.serve(async (req) => {
     };
   });
 
-  // 4. Stable sort: tag overlap first (existing wavelength signal),
-  //    then fit score (Taipei beta), then SQL order. Tags > chips so
-  //    the wavelength promise still leads.
+  // 4. Stable sort. The deleted-room penalty is the *primary* sort key
+  //    (ascending), so candidates partition cleanly into three bands —
+  //    fresh (0) above weak (8) above strong (20). Within a band the
+  //    usual overlap → fitScore → jitter ordering applies. This is
+  //    stricter than a combined score: a recently-deleted partner with
+  //    high tag overlap still ranks below every fresh stranger, which
+  //    is the product rule for early-beta liquidity (fresh always wins
+  //    when fresh exists; deleted only surfaces to fill thin pools).
   enriched.sort((a, b) => {
-    if (b.overlap !== a.overlap) return b.overlap - a.overlap;
+    if (a.deletedRoomPenalty !== b.deletedRoomPenalty) {
+      return a.deletedRoomPenalty - b.deletedRoomPenalty;
+    }
+    if (b.overlap  !== a.overlap)  return b.overlap  - a.overlap;
     if (b.fitScore !== a.fitScore) return b.fitScore - a.fitScore;
     return a.jitter - b.jitter;
   });

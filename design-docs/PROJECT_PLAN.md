@@ -232,6 +232,10 @@ The three chips (all optional, all settable later):
 
 A fourth column `opener_prompt` (≤120 chars, free text) is reserved in the schema for a future surface but is currently unused by the client. The earlier "structured chat opener" experiment was removed — new chats land directly on the normal composer. Future conversation-support features (opener seeds, prompts, etc.) are future exploration, not current MVP.
 
+### Discovery exclusion vs. soft penalty
+
+Active chat-room partners are **hard-excluded** from Discovery (no one wants to be invited into a chat they already have). Profiles I've blocked or have been blocked by, and counterparties of a live-pending invite, are also hard-excluded. Recently *deleted* chat-room partners are **not** hard-excluded — they sort into a lower band: `20` for the first 7 days after `deleted_at`, `8` between days 7 and 30, then back to `0`. The penalty band is the *primary* sort key (ascending), so any fresh (band-0) candidate ranks above every recently deleted candidate regardless of how strong their tag overlap or fit-chip match would otherwise be. Deleted partners only surface after the fresh band is exhausted — which preserves early-beta liquidity in Taipei without showing someone immediately after they left the chat with the caller.
+
 ### Voice — deliberately excluded from phase 1
 
 No voice messaging, no voice rooms, no mandatory voice intro. The product hypothesis is that the friction of voice deters the audience Taipei research surfaced (people wanting low-pressure text first). A future iteration may unlock voice notes **only after mutual interest + mutual opt-in** — never as an onboarding requirement or as a one-sided send.

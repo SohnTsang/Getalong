@@ -37,6 +37,20 @@
 - Pagination works.
 - Empty feed state works.
 
+### Deleted-room soft penalty (added 2026-05)
+
+Active chat partners stay hard-excluded; recently deleted partners drop into a lower band. The penalty band is the primary sort key — any fresh candidate outranks every recently deleted candidate. Verify with two test accounts A and B:
+
+- A and B have an **active** chat room → B does NOT appear in A's Discovery (hard exclusion preserved).
+- A deletes the chat with B yesterday → B is in band 20. B ranks below every fresh (band-0) candidate regardless of tag overlap or fit score. B only appears once the fresh band is exhausted on the page.
+- A deleted the chat with B 10 days ago → B is in band 8. Still ranks below every fresh candidate; above band-20 candidates.
+- A deleted the chat with B 40 days ago → band 0; B ranks normally.
+- A blocked B → B remains hard-excluded regardless of chat history.
+- A has a `live_pending` invite with B → B remains hard-excluded.
+- When A's Discovery pool of fresh candidates is thin (fewer than `limit`), previously deleted partners surface to fill the page rather than returning an empty feed.
+- Within a band, the existing `overlap → fitScore → jitter` tie-break still applies; only the band itself is the new primary key.
+- No iOS UI change required for any of the above — the soft-penalty logic is entirely server-side.
+
 ## 15-Second Live Invites
 
 - User can send live invite.
