@@ -233,12 +233,27 @@ struct InviteUserCard: View {
         .disabled(isBusy)
     }
 
+    /// Plain `#tag #tag` text run in tertiary footnote — matches the
+    /// Discovery card's hashtag treatment so the two cards share the
+    /// same visual language. No capsule, no border, no "Tags" label;
+    /// the tags wrap naturally as one Text view. The Invite sender
+    /// summary doesn't yet carry shared-tags data, so we render every
+    /// tag in tertiary color (Discovery accents the shared ones).
     private var tagsBlock: some View {
-        FlowLayout(spacing: GASpacing.sm) {
-            ForEach(sender.tags, id: \.self) { tag in
-                GAChip(label: tag, kind: .neutral)
-            }
+        Text(senderHashtagAttributedString)
+            .font(GATypography.footnote)
+            .foregroundStyle(GAColors.textTertiary)
+            .lineSpacing(2)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private var senderHashtagAttributedString: AttributedString {
+        var out = AttributedString()
+        for (idx, tag) in sender.tags.enumerated() {
+            if idx > 0 { out += AttributedString(" ") }
+            out += AttributedString("#\(tag)")
         }
+        return out
     }
 
     // MARK: - Border
