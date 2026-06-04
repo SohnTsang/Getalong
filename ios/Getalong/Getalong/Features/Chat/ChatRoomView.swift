@@ -44,7 +44,6 @@ struct ChatRoomView: View {
                 // non-blocking — chat renders even if the tag fetch fails.
                 if vm.hasPartnerContext, let p = vm.partner {
                     ChatPartnerContextStrip(
-                        line:   p.bio,
                         intent: p.connectionIntentTyped,
                         rhythm: p.lifestyleRhythmTyped,
                         domain: p.conversationDomainTyped,

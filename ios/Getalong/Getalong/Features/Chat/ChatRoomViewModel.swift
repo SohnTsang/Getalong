@@ -745,15 +745,15 @@ final class ChatRoomViewModel: ObservableObject {
         }
     }
 
-    /// True when there's any public context worth showing in the strip:
-    /// an honest line, at least one fit chip, or at least one tag. When
-    /// false the view hides the whole strip.
+    /// True when there's lightweight public context worth showing in the
+    /// strip: at least one fit chip OR at least one tag. The one-line bio
+    /// is intentionally excluded (kept out of the chat to stay focused on
+    /// the conversation). When false the view hides the whole strip.
     var hasPartnerContext: Bool {
-        let hasLine = (partner?.bio?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false)
         let hasChips = partner?.connectionIntentTyped != nil
             || partner?.lifestyleRhythmTyped != nil
             || partner?.conversationDomainTyped != nil
-        return hasLine || hasChips || !partnerTags.isEmpty
+        return hasChips || !partnerTags.isEmpty
     }
 
     // MARK: - Display helpers

@@ -1,37 +1,31 @@
 import SwiftUI
 
-/// Compact, read-only context strip shown at the top of a ChatRoom
-/// (under the header, above the message list). Helps the user remember
-/// who they're talking to using ONLY public profile context — the same
-/// fields Discovery and the Invite cards surface:
-///   1. one honest line (bio), max 2 lines
-///   2. up to three conversation-fit chips (intent / rhythm / domain)
-///   3. plain `#tag #tag` hashtags
+/// Compact, read-only context bar shown at the top of a ChatRoom (under
+/// the header divider, above the message list). Helps the user remember
+/// who they're talking to using ONLY lightweight public context — the
+/// same fields Discovery and the Invite cards surface:
+///   1. up to three conversation-fit chips (intent / rhythm / domain)
+///   2. plain `#tag #tag` hashtags
 ///
-/// It is purely informational: no avatar, no handle, no display name, no
-/// buttons, no actions. Any missing piece is hidden; if everything is
-/// empty the parent doesn't render the strip at all (see
-/// `ChatRoomViewModel.hasPartnerContext`). Chip palette + hashtag style
-/// mirror `DiscoveryCard` / `InviteUserCard` so the surfaces read alike.
+/// Deliberately does NOT show the one-line bio (kept out so the chat
+/// stays focused on the conversation, not the profile), nor any avatar,
+/// handle, display name, gender badge, title, or action. Any missing
+/// piece is hidden; if both chips and tags are absent the parent doesn't
+/// render the strip at all (see `ChatRoomViewModel.hasPartnerContext`).
+/// Chip palette + hashtag style mirror `DiscoveryCard` / `InviteUserCard`
+/// so the surfaces read alike.
 struct ChatPartnerContextStrip: View {
-    let line: String?
     let intent: ConnectionIntent?
     let rhythm: LifestyleRhythm?
     let domain: ConversationDomain?
     let tags: [String]
-
-    private var trimmedLine: String? {
-        guard let t = line?.trimmingCharacters(in: .whitespacesAndNewlines),
-              !t.isEmpty else { return nil }
-        return t
-    }
 
     private var hasFitChips: Bool {
         intent != nil || rhythm != nil || domain != nil
     }
 
     private var isEmpty: Bool {
-        trimmedLine == nil && !hasFitChips && tags.isEmpty
+        !hasFitChips && tags.isEmpty
     }
 
     var body: some View {
@@ -39,13 +33,6 @@ struct ChatPartnerContextStrip: View {
             EmptyView()
         } else {
             VStack(alignment: .leading, spacing: GASpacing.sm) {
-                if let line = trimmedLine {
-                    Text(line)
-                        .font(GATypography.footnote.weight(.medium))
-                        .foregroundStyle(GAColors.textSecondary)
-                        .lineLimit(2)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
                 if hasFitChips {
                     fitChipsBlock
                 }
@@ -55,14 +42,18 @@ struct ChatPartnerContextStrip: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, GASpacing.md)
-            .padding(.vertical, GASpacing.sm)
+            .padding(.vertical, GASpacing.md)
             .background(
-                RoundedRectangle(cornerRadius: GACornerRadius.medium, style: .continuous)
+                RoundedRectangle(cornerRadius: GACornerRadius.large, style: .continuous)
                     .fill(GAColors.surfaceRaised)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: GACornerRadius.large, style: .continuous)
+                            .strokeBorder(GAColors.border.opacity(0.6), lineWidth: 0.5)
+                    )
             )
             .padding(.horizontal, GASpacing.lg)
-            .padding(.top, GASpacing.sm)
-            .padding(.bottom, GASpacing.xs)
+            .padding(.top, GASpacing.md)
+            .padding(.bottom, GASpacing.sm)
         }
     }
 
@@ -106,10 +97,11 @@ struct ChatPartnerContextStrip: View {
     // MARK: - Hashtags (plain text, same treatment as Discovery/Invite)
 
     private var hashtagsBlock: some View {
-        Text(tags.map { "#\($0)" }.joined(separator: " "))
+        Text(tags.map { "#\($0)" }.joined(separator: "  "))
             .font(GATypography.footnote)
-            .foregroundStyle(GAColors.textTertiary)
-            .lineSpacing(2)
+            .foregroundStyle(GAColors.textSecondary)
+            .lineSpacing(3)
+            .lineLimit(2)
             .fixedSize(horizontal: false, vertical: true)
     }
 }
