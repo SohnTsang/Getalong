@@ -71,6 +71,10 @@ final class ChatService {
                 .execute()
                 .value
         } catch {
+            // A cancelled refresh (gesture release, tab switch, view
+            // teardown) is not a real failure — rethrow it unchanged so
+            // the caller can no-op instead of showing "couldn't load".
+            if error.isCancellation { throw error }
             GALog.chat.error("fetchRooms: \(error.localizedDescription)")
             throw ChatServiceError.loadFailed
         }
@@ -118,6 +122,7 @@ final class ChatService {
                 .execute()
                 .value
         } catch {
+            if error.isCancellation { throw error }
             GALog.chat.error("fetchMessages(since:): \(error.localizedDescription)")
             throw ChatServiceError.loadFailed
         }
@@ -143,6 +148,7 @@ final class ChatService {
                 .value
             return descending.reversed()
         } catch {
+            if error.isCancellation { throw error }
             GALog.chat.error("fetchMessages: \(error.localizedDescription)")
             throw ChatServiceError.loadFailed
         }

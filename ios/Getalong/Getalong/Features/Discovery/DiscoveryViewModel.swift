@@ -79,6 +79,13 @@ final class DiscoveryViewModel: ObservableObject {
 
     func attach(userId: UUID) async {
         guard currentUserId != userId else { return }
+        // User switched on a reused view model (AppRouter can transition
+        // .authenticated(A) -> .authenticated(B) without rebuilding the
+        // tab tree). Invalidate the previous user's in-flight refresh so
+        // its result can't land in the new user's feed; the session-token
+        // guard in fetchBatch is the final backstop.
+        refreshTask?.cancel()
+        refreshTask = nil
         currentUserId = userId
         // Watch the user's own invite mutations so a sent-state card
         // drops the moment the receiver accepts (or it expires) —
@@ -91,6 +98,13 @@ final class DiscoveryViewModel: ObservableObject {
     }
 
     func detach() {
+        // Cancel any in-flight refresh so a fetch can't complete and
+        // mutate published state after the view has gone away (tab
+        // switch / sign-out). onDisappear — not gesture release — is the
+        // only thing that calls detach(), so this does NOT reintroduce
+        // the refreshable-cancellation bug we fixed.
+        refreshTask?.cancel()
+        refreshTask = nil
         if let t = realtimeListenerToken {
             RealtimeInviteManager.shared.removeListener(t)
             realtimeListenerToken = nil
@@ -99,31 +113,69 @@ final class DiscoveryViewModel: ObservableObject {
 
     // MARK: - Loads
 
+    enum RefreshSource: String { case pull, manual }
+
+    /// The in-flight refresh, owned by the view model rather than the
+    /// SwiftUI `.refreshable` / button closure. Decoupling matters: a
+    /// `.refreshable` task gets cancelled the instant the gesture is
+    /// released or the view subtree rebuilds (we saw refreshes cancelled
+    /// at ~16 ms), which previously aborted the network call. As an
+    /// unstructured `Task` this fetch is NOT a child of the view's task
+    /// tree, so it runs to completion regardless; the closure just awaits
+    /// its result to keep the pull spinner up.
+    private var refreshTask: Task<Bool, Never>?
+
     func loadInitial() async {
         guard isLoadingInitial || profiles.isEmpty else { return }
-        await fetchBatch(excludeCurrent: false)
+        _ = await fetchBatch(excludeCurrent: false)
     }
 
-    func refresh() async {
+    func refresh(source: RefreshSource = .manual) async {
+        // Serialize: if a refresh is already running, await it instead of
+        // launching a duplicate fetch (covers pull + top-bar button both
+        // firing, or a refresh racing the previous one).
+        if let existing = refreshTask {
+            _ = await existing.value
+            return
+        }
         guard !isRefreshing else { return }
+
         isRefreshing = true
-        defer { isRefreshing = false }
+        GALog.discovery.info("refresh.start source=\(source.rawValue, privacy: .public)")
+
         // Refresh-diversity: send the IDs we're currently showing as a
-        // SESSION HINT. This is not the primary mechanism — the server's
-        // `discovery_exposures` history (recorded per returned card) is the
-        // authoritative seen-memory and drives ranking across refreshes and
-        // app restarts. We deliberately do NOT persist seen history in
-        // UserDefaults; the server owns it.
-        await fetchBatch(excludeCurrent: true)
+        // SESSION HINT only — the server `discovery_exposures` history is
+        // the authoritative seen-memory. Run the fetch in a VM-owned
+        // unstructured Task so SwiftUI cancelling the `.refreshable`
+        // closure (gesture release, view rebuild, tab switch) cannot
+        // cancel the actual network request.
+        let task = Task { [weak self] () -> Bool in
+            guard let self else { return false }
+            return await self.fetchBatch(excludeCurrent: true)
+        }
+        refreshTask = task
+        let succeeded = await task.value
+        refreshTask = nil
+        isRefreshing = false
+
+        // Cooldown starts ONLY on a real success. A cancelled or failed
+        // refresh must not arm the cooldown (it would block the next
+        // genuine refresh for no reason).
+        guard succeeded else { return }
         lastRefreshAt = Date()
         startCooldownTickIfNeeded()
+        GALog.discovery.info("cooldown.started")
     }
 
-    /// Manual refresh from the top-bar button. No-ops if a refresh is
-    /// already running or the cooldown window hasn't elapsed yet.
-    func tryManualRefresh() async {
-        guard cooldownRemaining <= 0, !isRefreshing else { return }
-        await refresh()
+    /// Manual refresh from the top-bar button / pull-to-refresh. No-ops if
+    /// a refresh is already running or the cooldown window hasn't elapsed.
+    func tryManualRefresh(source: RefreshSource = .manual) async {
+        guard cooldownRemaining <= 0, !isRefreshing else {
+            let reason = cooldownRemaining > 0 ? "cooldown" : "already-refreshing"
+            GALog.discovery.info("refresh.skip reason=\(reason, privacy: .public)")
+            return
+        }
+        await refresh(source: source)
     }
 
     /// Seconds remaining until the user may manually refresh again.
@@ -150,7 +202,17 @@ final class DiscoveryViewModel: ObservableObject {
         }
     }
 
-    private func fetchBatch(excludeCurrent: Bool) async {
+    /// Returns true ONLY when `profiles` was successfully replaced.
+    /// Returns false on cancellation (no-op, state preserved) and on
+    /// error. Callers use this to decide whether to arm the cooldown.
+    @discardableResult
+    private func fetchBatch(excludeCurrent: Bool) async -> Bool {
+        // Snapshot the session this fetch belongs to. AppRouter can move
+        // .authenticated(A) -> .authenticated(B) without tearing the tab
+        // tree down, so this view model can outlive a user switch. If the
+        // signed-in user changes while the request is in flight, we must
+        // NOT let A's results overwrite B's feed.
+        let requestUserId = currentUserId
         if profiles.isEmpty { isLoadingInitial = true }
         // Session hint only — the currently-visible IDs. Server exposure
         // history is the production seen-memory; this just covers the
@@ -161,6 +223,14 @@ final class DiscoveryViewModel: ObservableObject {
                 limit: Self.pageSize,
                 excludeIds: excluded
             )
+            // Stale-session backstop: discard if the user changed while we
+            // were awaiting. (requestUserId == nil means the very first
+            // load fired before attach() set the id — that result is for
+            // the only/current session, so it's safe to keep.)
+            if let req = requestUserId, req != currentUserId {
+                GALog.discovery.info("refresh.discarded reason=user-changed")
+                return false
+            }
             // Replace the entire list — no append, no merge. This is the
             // whole point of the 10-card batch model: refresh = a new
             // small set, not a longer feed.
@@ -168,19 +238,28 @@ final class DiscoveryViewModel: ObservableObject {
             sendStates = [:]
             sentInviteIds = [:]
             loadError = nil
+            isLoadingInitial = false
+            GALog.discovery.info("refresh.success items=\(resp.items.count, privacy: .public)")
+            return true
         } catch let e as DiscoveryServiceError {
+            isLoadingInitial = false
             // Cancellation = the SwiftUI Task was torn down or a newer
             // request superseded this one. Don't surface that to the
-            // user, and don't blow away an already-good `profiles` list.
+            // user, don't blow away an already-good `profiles` list, and
+            // don't arm the cooldown.
             if e == .cancelled {
-                GALog.discovery.info("vm.fetchBatch cancelled — keeping current state")
-            } else {
-                loadError = e.errorDescription
+                GALog.discovery.info("refresh.cancelled no-cooldown")
+                return false
             }
+            loadError = e.errorDescription
+            GALog.discovery.info("refresh.failed no-cooldown")
+            return false
         } catch {
+            isLoadingInitial = false
             loadError = String(localized: "discovery.error.loadFailed")
+            GALog.discovery.info("refresh.failed no-cooldown")
+            return false
         }
-        isLoadingInitial = false
     }
 
     // MARK: - Send Live Invite

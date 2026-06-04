@@ -99,15 +99,7 @@ enum DiscoveryServiceError: LocalizedError, Equatable {
     /// whenever the surrounding `Task` is cancelled (e.g. SwiftUI
     /// `.task` tearing down on view disappear).
     static func isCancellation(_ error: Error) -> Bool {
-        if error is CancellationError { return true }
-        let ns = error as NSError
-        if ns.domain == NSURLErrorDomain, ns.code == NSURLErrorCancelled {
-            return true
-        }
-        if let url = error as? URLError, url.code == .cancelled {
-            return true
-        }
-        return false
+        error.isCancellation
     }
 }
 

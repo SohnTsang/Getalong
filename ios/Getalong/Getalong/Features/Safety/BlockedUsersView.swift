@@ -22,6 +22,9 @@ final class BlockedUsersViewModel: ObservableObject {
             rows = try await ReportService.shared.fetchBlockedUsers()
             loadError = nil
         } catch {
+            // Pull-to-refresh / view-teardown cancellation is not a real
+            // failure — keep current rows and the empty/normal state.
+            if error.isCancellation { return }
             GALog.app.error("blocked users: \(error.localizedDescription)")
             loadError = String(localized: "safety.blockedUsers.loadError")
         }

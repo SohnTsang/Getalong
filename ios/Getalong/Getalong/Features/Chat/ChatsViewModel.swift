@@ -134,6 +134,7 @@ final class ChatsViewModel: ObservableObject {
         guard let me = currentUserId else { return }
         if rows.isEmpty { isLoading = true }
         defer { isLoading = false }
+        GALog.chat.info("refresh.start")
 
         do {
             let raw = try await ChatService.shared.fetchRooms()
@@ -172,12 +173,20 @@ final class ChatsViewModel: ObservableObject {
             // Successful load — clear any banner left over from a
             // previous transient failure.
             errorMessage = nil
-        } catch is CancellationError {
-            // SwiftUI cancels the .refreshable Task when the user lets
-            // go of the pull gesture or navigates away mid-refresh.
-            // That's not a real failure to surface.
+            GALog.chat.info("refresh.success rooms=\(self.rows.count, privacy: .public)")
         } catch {
-            GALog.chat.error("ChatsViewModel.refresh: \(error.localizedDescription)")
+            // SwiftUI cancels the .refreshable / .task Task when the user
+            // lets go of the pull gesture, switches tabs, or navigates
+            // away mid-refresh. That's not a real failure: no error text,
+            // no clearing of existing rooms, keep the empty state if the
+            // list was empty. (ChatService rethrows cancellation
+            // unchanged so it reaches here as a cancellation, not a
+            // masked loadFailed.)
+            if error.isCancellation {
+                GALog.chat.info("refresh.cancelled no-error")
+                return
+            }
+            GALog.chat.error("refresh.failed visible-error: \(error.localizedDescription)")
             // Only show the load-failed banner when we have nothing on
             // screen. If we already have cached rows, a transient
             // blip during pull-to-refresh shouldn't replace the list

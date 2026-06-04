@@ -18,7 +18,7 @@ struct DiscoveryView: View {
                         GATopBarRefreshButton(
                             isBusy: vm.isRefreshing,
                             cooldownRemaining: vm.cooldownRemaining,
-                            onTap: { Task { await vm.tryManualRefresh() } }
+                            onTap: { Task { await vm.tryManualRefresh(source: .manual) } }
                         )
                     })
                     GAScreen(maxWidth: 560) {
@@ -27,7 +27,7 @@ struct DiscoveryView: View {
                             content
                         }
                     }
-                    .refreshable { await vm.tryManualRefresh() }
+                    .refreshable { await vm.tryManualRefresh(source: .pull) }
                 }
 
                 // Global warning toast for soft validation errors that
