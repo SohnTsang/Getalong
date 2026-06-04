@@ -120,6 +120,21 @@ The Invite-tab user card now mirrors the Discovery card's profile-identity hiera
 - Non-participant cannot read messages.
 - Block stops future messages.
 
+### Partner context strip (added 2026-06)
+
+A compact, read-only context strip sits under the ChatRoom header and above the message list. It shows ONLY public profile context — the same fields Discovery/Invites surface: one honest line (bio, max 2 lines), up to three conversation-fit chips (intent/rhythm/domain, same coral/sage/wheat palette), and plain `#tag #tag` hashtags. No avatar, handle, display name, buttons, or actions. Partner tags are fetched client-side from `profile_tags` (RLS "read visible profiles"); no backend/table change.
+
+- Open a chat where the partner has bio + fit chips + tags → strip shows all three rows under the header.
+- Partner with only tags → only the hashtag row shows; only chips → only the chip row; only bio → only the line.
+- Partner with no bio, no chips, no tags → the whole strip is hidden (no empty bar, no placeholder).
+- The tag fetch is non-blocking and fail-open: messages load (and the rest of the strip shows) even if the tag fetch fails — no user-facing error, hashtag row just stays hidden.
+- Strip never blocks message loading; chat send/receive, realtime, block/report, view-once media all behave exactly as before.
+- Long bio wraps to at most 2 lines and doesn't push the message list excessively.
+- Keyboard show/hide does not cause the strip to jump.
+- No raw enum strings (e.g. `slow_chat`) — chips render `localizedShort`.
+- Hidden gender is not shown (the strip has no gender badge at all).
+- Light & dark modes render the surface + chip palette correctly.
+
 ## One-Time Media
 
 - Image sends.

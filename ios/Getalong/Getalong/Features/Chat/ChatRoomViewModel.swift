@@ -9,6 +9,12 @@ final class ChatRoomViewModel: ObservableObject {
     private(set) var partner: Profile?
     private(set) var currentUserId: UUID?
 
+    /// Partner's public profile tags, fetched lazily for the compact
+    /// context strip at the top of the room. Empty until the (non-
+    /// blocking, fail-open) fetch resolves; an empty array simply hides
+    /// the hashtag row. Never blocks message loading.
+    @Published var partnerTags: [String] = []
+
     @Published var messages: [Message] = []
     /// Asset cache keyed by media_id, populated lazily when rendering media bubbles.
     @Published var mediaAssets: [UUID: MediaAsset] = [:]
@@ -117,6 +123,13 @@ final class ChatRoomViewModel: ObservableObject {
                 partner = try? await ChatService.shared.fetchPartnerProfile(
                     for: room, currentUserId: currentUserId)
             }
+        }
+
+        // Partner tags for the context strip — fire-and-forget so it
+        // never blocks (or breaks) message loading. Failure just leaves
+        // the hashtag row hidden.
+        if let pid = partner?.id {
+            Task { [weak self] in await self?.loadPartnerTags(partnerId: pid) }
         }
 
         await refreshBlockState()
@@ -713,6 +726,34 @@ final class ChatRoomViewModel: ObservableObject {
         }
         openingMediaId = nil
         openingMessageType = nil
+    }
+
+    // MARK: - Partner context strip
+
+    /// Non-blocking, fail-open fetch of the partner's public tags. Reads
+    /// `profile_tags` directly (RLS "read visible profiles" already
+    /// permits this — the same tags Discovery/Invites show). A failure
+    /// logs a warning and leaves `partnerTags` empty; chat is unaffected.
+    private func loadPartnerTags(partnerId: UUID) async {
+        do {
+            let tags = try await ProfileTagService.shared.fetchTags(for: partnerId)
+            partnerTags = tags.map(\.tag)
+        } catch {
+            GALog.chat.warning(
+                "loadPartnerTags failed (non-fatal): \(error.localizedDescription, privacy: .public)"
+            )
+        }
+    }
+
+    /// True when there's any public context worth showing in the strip:
+    /// an honest line, at least one fit chip, or at least one tag. When
+    /// false the view hides the whole strip.
+    var hasPartnerContext: Bool {
+        let hasLine = (partner?.bio?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false)
+        let hasChips = partner?.connectionIntentTyped != nil
+            || partner?.lifestyleRhythmTyped != nil
+            || partner?.conversationDomainTyped != nil
+        return hasLine || hasChips || !partnerTags.isEmpty
     }
 
     // MARK: - Display helpers

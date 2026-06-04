@@ -38,6 +38,20 @@ struct ChatRoomView: View {
                 header
                 Divider().background(GAColors.border)
 
+                // Compact, read-only partner context (public profile
+                // only). Hidden entirely when there's nothing to show, so
+                // it never eats message space unnecessarily. Loads
+                // non-blocking — chat renders even if the tag fetch fails.
+                if vm.hasPartnerContext, let p = vm.partner {
+                    ChatPartnerContextStrip(
+                        line:   p.bio,
+                        intent: p.connectionIntentTyped,
+                        rhythm: p.lifestyleRhythmTyped,
+                        domain: p.conversationDomainTyped,
+                        tags:   vm.partnerTags
+                    )
+                }
+
                 // Toast lives below the header (under the divider)
                 // so it doesn't cover identity/menu chrome. Floated
                 // in a ZStack so the messagesScroll layout is

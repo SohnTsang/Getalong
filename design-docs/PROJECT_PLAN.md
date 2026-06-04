@@ -133,6 +133,7 @@ The MVP is successful if a user can:
 
 - Chat list.
 - Chat room.
+- Compact partner context strip (public profile only: line + fit chips + hashtags; hidden when empty; never blocks chat loading).
 - Text messages.
 - Realtime updates.
 - Message pagination.
