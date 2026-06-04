@@ -170,31 +170,157 @@ const PROFILES: SeedProfile[] = [
     conversationDomain: "food_cafes", tags: ["美食", "日常"] },
 ];
 
-// Three demo chat scripts (sender labels A/B map to viewer/demo at runtime).
-const CHAT_SCRIPTS: { partnerSlug: string; lines: { from: "viewer" | "demo"; body: string }[] }[] = [
+// Seven demo chat scripts: 1 hero (22 msgs), 2 medium (10 msgs each),
+// 4 short (4–6 msgs). Total ≈ 62 messages. Language is natural Taipei /
+// Taiwan written Mandarin — short sentences, no Cantonese tokens
+// (搵 / 嘅 / 啱傾 / 傾偈 / 傾落去 / 錯過咗 / 用緊), no Threads slang,
+// no Mainland-style phrasing. All conversations are safe, 18+ adult-
+// casual, screenshot-friendly.
+//
+// Each script declares its own (a) most-recent-message-minutes-ago and
+// (b) per-message stagger so the Chats list looks naturally
+// time-ordered: hero ~10 min ago, mediums ~3-5 h, shorts spread 8h-1.5d.
+interface ChatScript {
+  partnerSlug: string;
+  /// Minutes-ago of the LATEST message in the script. Drives
+  /// `last_message_at` on the room so the Chats list sorts correctly.
+  lastMessageMinutesAgo: number;
+  /// Minutes between adjacent messages within the chat.
+  staggerMinutes: number;
+  lines: { from: "viewer" | "demo"; body: string }[];
+}
+
+const CHAT_SCRIPTS: ChatScript[] = [
+  // ── Hero ──────────────────────────────────────────────────────────
+  // 22 messages, cafe → walk → text-vs-performance theme. Pairs with
+  // demo_01 (Quiet 01) — slug bio matches the opening hook.
   {
     partnerSlug: "demo_01",
+    lastMessageMinutesAgo: 10,
+    staggerMinutes: 2,
     lines: [
-      { from: "viewer", body: "你那句關於咖啡店的話很有畫面。" },
-      { from: "demo",   body: "哈哈，因為我真的常常下班後去找安靜的地方。" },
-      { from: "viewer", body: "台北有推薦的店嗎？" },
-      { from: "demo",   body: "最近喜歡中山附近的小店，人不多的時候很舒服。" },
+      { from: "demo",   body: "你那句「下班後找安靜咖啡店」很有畫面。" },
+      { from: "viewer", body: "哈哈，因為我真的常常這樣。" },
+      { from: "demo",   body: "是那種想安靜一下，不是真的很想喝咖啡嗎？" },
+      { from: "viewer", body: "對，有時候只是需要一個地方把今天放下來。" },
+      { from: "demo",   body: "這句也很像可以放到個人介紹裡。" },
+      { from: "viewer", body: "太文青了吧，會被滑掉嗎？" },
+      { from: "demo",   body: "不會啦，至少比「喜歡美食旅行」有記憶點。" },
+      { from: "viewer", body: "哈哈 這個大家真的都會寫。" },
+      { from: "demo",   body: "我以前也會寫，後來發現好像看不出一個人。" },
+      { from: "viewer", body: "對，所以我比較想看一句比較像本人會說的話。" },
+      { from: "demo",   body: "那你平常都去哪一區？" },
+      { from: "viewer", body: "中山、大稻埕，或河邊吧。" },
+      { from: "demo",   body: "大稻埕晚上很舒服，不會太吵。" },
+      { from: "viewer", body: "而且不用特別安排，走一走就好。" },
+      { from: "demo",   body: "我喜歡這種，不用一直找行程的感覺。" },
+      { from: "viewer", body: "我也是。行程太滿反而有壓力。" },
+      { from: "demo",   body: "那如果第一次見面，你會比較想喝咖啡還是散步？" },
+      { from: "viewer", body: "可能先散步吧，比較不尷尬。" },
+      { from: "demo",   body: "合理，坐著對看有時候壓力很大。" },
+      { from: "viewer", body: "對啊，走路的時候沉默也比較自然。" },
+      { from: "demo",   body: "這點我同意。沉默不尷尬其實很重要。" },
+      { from: "viewer", body: "能安靜一下也舒服的人，感覺比較難遇到。" },
     ],
   },
-  {
-    partnerSlug: "demo_06",
-    lines: [
-      { from: "viewer", body: "城市散步聽起來很適合週末。" },
-      { from: "demo",   body: "對，我喜歡沒有目的地走一段路。" },
-      { from: "viewer", body: "我也是，尤其是晚上風比較舒服的時候。" },
-    ],
-  },
+
+  // ── Medium A — social app fatigue / honest, demo_08 ──────────────
+  // 10 messages, theme matches Honest 08's bio.
   {
     partnerSlug: "demo_08",
+    lastMessageMinutesAgo: 180,    // ~3 hours ago
+    staggerMinutes: 3,
     lines: [
-      { from: "viewer", body: "你說不想一直表演自己，這句很準。" },
-      { from: "demo",   body: "現在很多社交 app 都像在做履歷。" },
-      { from: "viewer", body: "所以一句自然的話反而比較真實。" },
+      { from: "demo",   body: "你說不想一直表演自己，這句很準。" },
+      { from: "viewer", body: "現在很多 app 都像在做履歷。" },
+      { from: "demo",   body: "照片、介紹、開場白都要包裝，蠻累的。" },
+      { from: "viewer", body: "對，有時候只是想自然聊一下。" },
+      { from: "demo",   body: "但完全沒資料又會不知道怎麼開始。" },
+      { from: "viewer", body: "所以我覺得一句話加幾個小提示剛好。" },
+      { from: "demo",   body: "至少知道對方想慢慢聊，還是只是隨便看看。" },
+      { from: "viewer", body: "對，不用猜太多。" },
+      { from: "demo",   body: "這樣比較不容易一開始就尷尬。" },
+      { from: "viewer", body: "希望啦，還在測試。" },
+    ],
+  },
+
+  // ── Medium B — weekend / exhibition, demo_11 ─────────────────────
+  // 10 messages. demo_11 (Brewer 11) bio mentions weekends.
+  {
+    partnerSlug: "demo_11",
+    lastMessageMinutesAgo: 300,    // ~5 hours ago
+    staggerMinutes: 4,
+    lines: [
+      { from: "demo",   body: "你週末通常會排很多事嗎？" },
+      { from: "viewer", body: "不一定，最近比較想慢一點。" },
+      { from: "demo",   body: "我也是，太滿反而像在完成任務。" },
+      { from: "viewer", body: "哈哈 對，休息也變成待辦事項。" },
+      { from: "demo",   body: "最近想去看展，但不想人太多。" },
+      { from: "viewer", body: "平日晚上可能好一點。" },
+      { from: "demo",   body: "看完如果附近有咖啡店就很完整。" },
+      { from: "viewer", body: "這個安排很台北。" },
+      { from: "demo",   body: "對啊，展、咖啡、走路，差不多就夠了。" },
+      { from: "viewer", body: "簡單但舒服。" },
+    ],
+  },
+
+  // ── Short 1 — music, demo_14 (Kitchen 14) ─────────────────────────
+  // 6 messages. Theme doesn't tie to slug bio but the content carries.
+  {
+    partnerSlug: "demo_14",
+    lastMessageMinutesAgo: 480,    // ~8 hours ago
+    staggerMinutes: 5,
+    lines: [
+      { from: "demo",   body: "你會一直重複聽同一首歌嗎？" },
+      { from: "viewer", body: "會，尤其是晚上。" },
+      { from: "demo",   body: "我也是。有些歌不是好聽，是剛好說中。" },
+      { from: "viewer", body: "對，有時候一句歌詞就夠了。" },
+      { from: "demo",   body: "那你最近有推薦的嗎？" },
+      { from: "viewer", body: "可以，偏安靜一點的那種。" },
+    ],
+  },
+
+  // ── Short 2 — work / study, demo_12 (Worker 12) ───────────────────
+  // 5 messages.
+  {
+    partnerSlug: "demo_12",
+    lastMessageMinutesAgo: 22 * 60,   // ~22 hours ago (yesterday morning)
+    staggerMinutes: 6,
+    lines: [
+      { from: "demo",   body: "最近工作有點多，反而想聊一點不工作的事。" },
+      { from: "viewer", body: "懂，下班還繼續想就太累。" },
+      { from: "demo",   body: "對，所以才會找一點輕的話題。" },
+      { from: "viewer", body: "不一定要聊什麼，慢慢來就好。" },
+      { from: "demo",   body: "謝謝，這樣就剛好。" },
+    ],
+  },
+
+  // ── Short 3 — travel / city, demo_02 (Riverwalk 02) ───────────────
+  // 5 messages. Slug bio matches the river / city-walk theme.
+  {
+    partnerSlug: "demo_02",
+    lastMessageMinutesAgo: 28 * 60,   // ~28 hours ago
+    staggerMinutes: 7,
+    lines: [
+      { from: "demo",   body: "你週末會去河邊嗎？" },
+      { from: "viewer", body: "會，沒事的時候蠻常去。" },
+      { from: "demo",   body: "我也是。其實走一走就放鬆很多。" },
+      { from: "viewer", body: "對啊，不用一定要做什麼。" },
+      { from: "demo",   body: "下次如果剛好有空，一起走也可以。" },
+    ],
+  },
+
+  // ── Short 4 — bookstore / quiet, demo_07 (Notebook 07) ────────────
+  // 4 messages. Shortest, oldest in the list.
+  {
+    partnerSlug: "demo_07",
+    lastMessageMinutesAgo: 36 * 60,   // ~1.5 days ago
+    staggerMinutes: 8,
+    lines: [
+      { from: "demo",   body: "你會去獨立書店嗎？" },
+      { from: "viewer", body: "蠻常，主要是想找安靜的地方。" },
+      { from: "demo",   body: "我也是，比咖啡店少人。" },
+      { from: "viewer", body: "對，看書順便整理一下心情。" },
     ],
   },
 ];
@@ -337,14 +463,26 @@ if (DEMO_VIEWER_USER_ID) {
     console.log(`  ✓ missed from ${slug}`);
   }
 
-  // Chats — 3 active rooms with staggered timestamps so the chat list
-  // sorts naturally (newest first).
+  // Chats — N active rooms. Each script supplies its own
+  // `lastMessageMinutesAgo` and `staggerMinutes` so the Chats list
+  // looks naturally time-ordered (hero is freshest, shorts trail back
+  // into yesterday). Within a chat the LAST line in the script array
+  // is the newest message (latest `lastMessageMinutesAgo`); earlier
+  // lines step back by `staggerMinutes`.
   console.log(`\n→ Seeding ${CHAT_SCRIPTS.length} chat rooms…`);
-  let chatOffsetMinutes = 0;
+  let totalMessages = 0;
   for (const script of CHAT_SCRIPTS) {
     const partnerId = slugToId.get(script.partnerSlug)!;
+    const lineCount = script.lines.length;
+
+    // Oldest message offset (minutes-ago) for line[0]; latest offset
+    // (minutes-ago) for line[lineCount-1]. Larger number = further back.
+    const oldestOffset = script.lastMessageMinutesAgo
+                       + (lineCount - 1) * script.staggerMinutes;
+    // Room created a beat before the first message so created_at sorts
+    // monotonically with the very first message.
     const roomCreated = new Date(
-      Date.now() - (chatOffsetMinutes + 60) * 60_000
+      Date.now() - (oldestOffset + script.staggerMinutes) * 60_000
     ).toISOString();
 
     const { data: room, error: roomErr } = await sb
@@ -362,15 +500,15 @@ if (DEMO_VIEWER_USER_ID) {
       throw new Error(`insert chat_room with ${script.partnerSlug} failed: ${roomErr?.message ?? "no row"}`);
     }
 
-    // Insert messages with staggered created_at (oldest first) so each
-    // chat reads as a natural conversation. Step is 4 minutes per line.
-    let lineOffset = script.lines.length * 4;
+    // Insert messages oldest-first; the last one stamped is the
+    // newest. `lastMessageAt` lands on `lastMessageMinutesAgo`.
     let lastMessageAt = roomCreated;
-    for (const line of script.lines) {
-      const senderId = line.from === "viewer" ? DEMO_VIEWER_USER_ID : partnerId;
-      const createdAt = new Date(
-        Date.now() - (chatOffsetMinutes + lineOffset) * 60_000
-      ).toISOString();
+    for (let i = 0; i < lineCount; i++) {
+      const line = script.lines[i];
+      const offsetMin = script.lastMessageMinutesAgo
+                      + (lineCount - 1 - i) * script.staggerMinutes;
+      const senderId  = line.from === "viewer" ? DEMO_VIEWER_USER_ID : partnerId;
+      const createdAt = new Date(Date.now() - offsetMin * 60_000).toISOString();
       const { error: msgErr } = await sb.from("messages").insert({
         room_id:      room.id,
         sender_id:    senderId,
@@ -380,20 +518,21 @@ if (DEMO_VIEWER_USER_ID) {
       });
       if (msgErr) throw new Error(`insert message in ${script.partnerSlug} failed: ${msgErr.message}`);
       lastMessageAt = createdAt;
-      lineOffset -= 4;
     }
 
-    // Stamp the room's last_message_at to match the most recent message
-    // so the chat list orders correctly.
+    // Stamp the room's last_message_at to match the newest message so
+    // the chat list orders correctly (and to give realtime listeners
+    // the right "latest activity" hint).
     const { error: updErr } = await sb
       .from("chat_rooms")
       .update({ last_message_at: lastMessageAt })
       .eq("id", room.id);
     if (updErr) throw new Error(`stamp last_message_at ${script.partnerSlug} failed: ${updErr.message}`);
 
-    console.log(`  ✓ chat with ${script.partnerSlug} (${script.lines.length} messages)`);
-    chatOffsetMinutes += 30;
+    totalMessages += lineCount;
+    console.log(`  ✓ chat with ${script.partnerSlug} (${lineCount} messages, last ~${script.lastMessageMinutesAgo}m ago)`);
   }
+  console.log(`  → total chat messages seeded: ${totalMessages}`);
 } else {
   console.log("\n→ DEMO_VIEWER_USER_ID not set — skipping invites and chats.");
 }

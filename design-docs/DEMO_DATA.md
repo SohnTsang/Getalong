@@ -153,8 +153,9 @@ demo-prefix handle doesn't trigger a false failure.
 | Discovery card detail (via Block / Report sheets) | Reachable from any card's overflow menu. |
 | Invites — Live tab | 1 incoming live invite from `demo_05`, ticking down for `LIVE_WINDOW_SECONDS` (default 15 s = production parity). |
 | Invites — Missed tab | 3 missed invites from `demo_03`, `demo_09`, `demo_13`. |
-| Chats list | 3 active chat rooms with the viewer (`demo_01`, `demo_06`, `demo_08`), each with 3–4 recent messages and a populated `last_message_at`. |
-| Chat room | Open any of the three chats; the messages render with realistic stagger. |
+| Chats list | **7 active chat rooms** with the viewer: 1 hero + 2 medium + 4 short. Total **~62 messages** across all rooms. `last_message_at` staggered so the list orders newest→oldest naturally (hero ~10 min ago, mediums 3–5 h ago, shorts spread across yesterday + 1.5 days ago). |
+| Chat room | The hero chat (`demo_01`, **22 messages**, 2-min stagger) is the long screenshot-friendly thread — cafe / after-work / text-vs-performance theme. Mediums: `demo_08` (social-app fatigue, **10 msgs**), `demo_11` (weekend / exhibition, **10 msgs**). Shorts: `demo_14` (music, **6 msgs**), `demo_12` (work, **5 msgs**), `demo_02` (river / city walk, **5 msgs**), `demo_07` (bookstore / quiet, **4 msgs**). |
+| Chat language | Natural Taipei / Taiwan written Mandarin throughout — short casual sentences (`對啊` / `蠻` / `不一定` / `慢慢來` / `先不要太趕` / `感覺` / `有空再說`), no Cantonese tokens (`搵 嘅 啱傾 傾偈 傾落去 錯過咗 用緊`), no Threads slang, no Mainland-style phrasing, no romantic / sexual / scam / abusive content. Safe for App Store screenshot review. |
 | Profile (viewer) | Not seeded — set this up manually in the app first if you want a hero line + chips + tags. |
 
 ## 7. Why no media is seeded
@@ -187,3 +188,26 @@ script is idempotent; running it twice is safe.
 
 When in doubt, run the cleanup dry-run first against the same URL
 to confirm whether demo data is currently present.
+
+## 9. Note on the Free plan active-chat cap
+
+A Free-plan viewer is normally capped at 5 active chats by the
+`_ga_assert_active_chat_room_capacity` SQL helper. That helper is
+only called from the `accept_live_invite` / `accept_missed_invite`
+RPCs — there is no DB trigger or CHECK constraint on `chat_rooms`,
+so service-role inserts (this seeder) bypass the cap cleanly. The
+iOS Chats tab has no client-side cap on display, so the seeded
+7 active chats render fine even on a Free plan account. The cap
+will start to bite the moment you try to accept an 8th invite
+through the live app, which is the intended product behaviour.
+
+If you would rather screenshot a viewer who is "naturally" at 7
+chats (i.e. plan-consistent), promote the test account to Gold by
+running:
+
+```sql
+update public.profiles set plan = 'gold' where id = '<viewer uuid>';
+```
+
+…before the seed, and revert it after. This is a one-line change
+that doesn't touch the seeder.
