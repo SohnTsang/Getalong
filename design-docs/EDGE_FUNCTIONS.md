@@ -188,34 +188,72 @@ Hard exclusions (never appear):
 - profiles I have blocked, profiles that have blocked me
 - profiles with an **active** chat room (`chat_rooms.status='active'`)
 - profiles with a `live_pending` invite either direction
-- profiles already visible in the caller's `exclude_ids` (best-effort,
-  relaxed when too few alternatives exist)
 
-Soft penalty band (deprioritized but still eligible):
-- Profiles with a recently **deleted** chat room
-  (`chat_rooms.status='deleted'`, `deleted_at` within the last 30 days).
-  Per partner using the most recent `deleted_at`:
-  - within 7 days → band 20 (strong)
-  - within 30 days → band 8 (weak)
-  - older than 30 days → band 0 (fresh, no penalty)
-  Deliberately NOT a hard filter: during early-beta liquidity, an empty
-  Discovery page is worse than briefly resurfacing a partner from a
-  past chat. Deleted-room partners stay eligible and surface to fill
-  thin pools — they just sort below every fresh candidate.
+Soft penalties (deprioritized but still eligible — they sum into a
+single `priorityBand` used as the primary sort key). Seen-memory is
+SERVER-SIDE via the `discovery_exposures` table (migration 0036), not
+the client:
+
+- **`deletedRoomPenalty`** — recently-deleted (left) chat-room partner,
+  per partner using the most recent `deleted_at`:
+  - within 30 days → **8**
+  - older → 0
+  - (Flat band. The old 7-day "strong" 20-tier was removed: it buried a
+    just-left partner below repeated seen cards, which we proved against
+    live data. 8 sits below fresh-unseen but above any shown card.)
+- **`exposurePenalty`** — from `discovery_exposures`, using the **most
+  recent** `shown_at` for this viewer→profile:
+  - within 10 min → 24
+  - within 1 hour → 16
+  - within 24 hours → 8
+  - older → 0
+- **`repeatPenalty`** — `(exposures in last 24 h − 1) × 4`, capped at 16.
+- **`clientSeenPenalty`** — caller `exclude_ids` session hint → 10 if the
+  candidate is on the client's current screen, else 0.
+
+Combination (avoids double-counting the client hint against the server
+record, since an on-screen card is also a recent exposure):
+
+```
+seenPenalty  = max(clientSeenPenalty, exposurePenalty) + repeatPenalty
+priorityBand = deletedRoomPenalty + seenPenalty
+```
+
+Representative ordering (lower = better):
+
+| scenario | band |
+|---|---|
+| fresh + unseen | 0 |
+| left-chat (≤30 d), never shown | 8 |
+| on client screen only (no server exposure yet) | 10 |
+| shown once in last 10 min | 24 |
+| shown twice in last 10 min | 28 |
+
+A left-chat partner (8) therefore always outranks a recently/repeatedly
+shown card, and a fresh stranger (0) still wins overall. No penalty is a
+hard filter — a thin pool always fills because every candidate is kept;
+they only sort lower, and seen users naturally return as exposure ages.
+
+**Exposure read is fail-open:** if the `discovery_exposures` SELECT
+errors, the feed is served with `exposurePenalty`/`repeatPenalty` = 0
+(the client hint still applies). Exposure never causes an empty feed.
+
+**Exposure write:** after the page is chosen, one row per returned
+profile is inserted (`viewer_id`, `profile_id`, `source='discovery'`).
+A profile shown within the last 60 s is skipped so rapid manual
+refreshes don't inflate the repeat count. The insert is **fail-open** —
+a write error is logged and the feed is still returned.
 
 Sort order:
-1. `deletedRoomPenalty` ascending — the penalty IS the primary key.
-   Any band-0 (fresh) candidate ranks above every band-8 or band-20
-   candidate, regardless of their tag overlap or fit-chip match.
-   Deleted partners only surface after the fresh band is exhausted.
-2. tag overlap desc (tie-break within a band on wavelength signal)
-3. Taipei beta fit chip score desc (then on conversation-fit chips)
-4. per-request random jitter asc (refresh variety)
+1. `priorityBand` asc — combined band.
+2. tag overlap desc — wavelength signal within a band.
+3. Taipei beta fit chip score desc — conversation-fit chips.
+4. per-request random jitter asc — refresh variety.
 
-This is stricter than the prior combined-score formula. A recently
-deleted partner with strong tag overlap still ranks below every fresh
-candidate, including fresh zero-overlap strangers. The product rule
-for early-beta liquidity is: fresh always wins when fresh exists.
+`exclude_ids` is now a best-effort **session hint** only (downgraded
+from the primary mechanism). The prior "step 4a" hard-ish split-visible
+filter was already removed; `priorityBand` is the sole diversity
+mechanism, now backed by server exposure history.
 
 Optional `tags` body filter is matched against
 `profile_tags.normalized_tag`.

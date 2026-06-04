@@ -128,6 +128,10 @@ Stores non-invite abuse-related daily usage counters.
 
 Do not use this table for the main invite-send mechanic. The main invite mechanic is live invite locks + missed-invite accepts.
 
+### discovery_exposures
+
+Server-side Discovery seen-memory (migration 0036). One row per profile shown to a viewer in the Discover feed. Read by `getDiscoveryFeed` to SOFT-penalize recently / repeatedly shown profiles; written (one row per returned card) after each feed request. Short retention — rows older than 14 days are deleted daily by `cleanup_old_discovery_exposures()`. Service-role only (RLS enabled, no user policy; the client never reads it). Never used to hard-exclude anyone.
+
 ## Initial Migration SQL
 
 ```sql
@@ -411,3 +415,26 @@ Discovery (`getDiscoveryFeed`) consumes all four. Soft ranking only — never fi
 Tag overlap still leads sort; fit score is a secondary tie-breaker, with a random jitter beneath it so identical-score profiles don't always appear in the same order on refresh.
 
 `profiles_lock_sensitive_columns` (mig 0011) intentionally does not protect these columns — users update them freely via the profile editor.
+
+## Migration 0036 — discovery_exposures (server-side seen-memory)
+
+Adds `public.discovery_exposures` so Discovery refresh diversity no longer depends on the client `exclude_ids` (which resets per session and only knows the current screen).
+
+```sql
+create table public.discovery_exposures (
+  id         uuid primary key default gen_random_uuid(),
+  viewer_id  uuid not null references public.profiles(id) on delete cascade,
+  profile_id uuid not null references public.profiles(id) on delete cascade,
+  shown_at   timestamptz not null default now(),
+  source     text not null default 'discovery' check (source in ('discovery')),
+  constraint discovery_exposures_no_self check (viewer_id <> profile_id)
+);
+```
+
+Indexes: `(viewer_id, profile_id, shown_at desc)`, `(viewer_id, shown_at desc)`, `(shown_at)`.
+
+**RLS / grants:** RLS enabled with **no user policy** — only the service role (the Edge Function) reads/writes, and it bypasses RLS. `grant all … to service_role`; `authenticated`/`anon` get nothing. The iOS client never touches this table directly.
+
+**Retention:** `cleanup_old_discovery_exposures()` (SECURITY DEFINER, `service_role` execute only) deletes rows where `shown_at < now() - interval '14 days'`. Scheduled daily at 03:17 UTC via pg_cron (`getalong_cleanup_old_discovery_exposures_daily`), guarded so it no-ops where pg_cron isn't installed. Exposure history is never kept indefinitely.
+
+**Ranking use (see EDGE_FUNCTIONS.md):** exposed profiles are SOFT-penalized (recency + repeat-count bands), never hard-excluded. Writes are fail-open — a write error never fails the feed.

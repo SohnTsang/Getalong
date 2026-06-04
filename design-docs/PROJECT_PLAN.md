@@ -234,7 +234,16 @@ A fourth column `opener_prompt` (≤120 chars, free text) is reserved in the sch
 
 ### Discovery exclusion vs. soft penalty
 
-Active chat-room partners are **hard-excluded** from Discovery (no one wants to be invited into a chat they already have). Profiles I've blocked or have been blocked by, and counterparties of a live-pending invite, are also hard-excluded. Recently *deleted* chat-room partners are **not** hard-excluded — they sort into a lower band: `20` for the first 7 days after `deleted_at`, `8` between days 7 and 30, then back to `0`. The penalty band is the *primary* sort key (ascending), so any fresh (band-0) candidate ranks above every recently deleted candidate regardless of how strong their tag overlap or fit-chip match would otherwise be. Deleted partners only surface after the fresh band is exhausted — which preserves early-beta liquidity in Taipei without showing someone immediately after they left the chat with the caller.
+Active chat-room partners are **hard-excluded** from Discovery (no one wants to be invited into a chat they already have). Profiles I've blocked or have been blocked by, and counterparties of a live-pending invite, are also hard-excluded.
+
+**Soft** penalties feed a single `priorityBand` used as the primary sort key — all stay eligible and a thin pool still surfaces them. Seen-memory is **server-side** (`discovery_exposures`, migration 0036), not the client, so diversity survives refreshes, app restarts, and new sessions:
+
+- **Recently-shown profiles** (`discovery_exposures`, most recent `shown_at`) → `24` within 10 min, `16` within 1 h, `8` within 24 h, else `0`.
+- **Repeatedly-shown profiles** → `(exposures in last 24 h − 1) × 4`, capped 16.
+- **Recently-left chat partners** (`chat_rooms.status='deleted'`) → `8` if `deleted_at` within 30 days, else `0`. (The earlier 7-day "strong" 20-tier was removed — it buried a just-left partner below repeated seen cards, the exact bug proven against live data.)
+- **Client `exclude_ids`** → a downgraded `10` session hint, `max`'d with the exposure penalty (not summed) to avoid double-counting.
+
+`seenPenalty = max(clientSeen, exposure) + repeat`; `priorityBand = deletedRoom + seenPenalty`. Representative ordering (lower = better): fresh-unseen `0` < left-chat `8` < client-hint-only `10` < shown-recently `24+`. A just-left partner always outranks a repeatedly-shown card; a fresh stranger always wins overall. No demotion is permanent and exposure history is kept only 14 days. Exposure reads and writes are both fail-open — they never produce an empty feed.
 
 ### Voice — deliberately excluded from phase 1
 

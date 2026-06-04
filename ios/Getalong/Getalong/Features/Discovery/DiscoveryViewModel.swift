@@ -108,9 +108,12 @@ final class DiscoveryViewModel: ObservableObject {
         guard !isRefreshing else { return }
         isRefreshing = true
         defer { isRefreshing = false }
-        // Refresh-diversity: ask the backend to skip the IDs we're
-        // currently showing. The server falls back to repeats if there
-        // aren't enough fresh candidates.
+        // Refresh-diversity: send the IDs we're currently showing as a
+        // SESSION HINT. This is not the primary mechanism — the server's
+        // `discovery_exposures` history (recorded per returned card) is the
+        // authoritative seen-memory and drives ranking across refreshes and
+        // app restarts. We deliberately do NOT persist seen history in
+        // UserDefaults; the server owns it.
         await fetchBatch(excludeCurrent: true)
         lastRefreshAt = Date()
         startCooldownTickIfNeeded()
@@ -149,6 +152,9 @@ final class DiscoveryViewModel: ObservableObject {
 
     private func fetchBatch(excludeCurrent: Bool) async {
         if profiles.isEmpty { isLoadingInitial = true }
+        // Session hint only — the currently-visible IDs. Server exposure
+        // history is the production seen-memory; this just covers the
+        // on-screen cards until the next server exposure read catches up.
         let excluded = excludeCurrent ? profiles.map(\.id) : []
         do {
             let resp = try await DiscoveryService.shared.fetchFeed(

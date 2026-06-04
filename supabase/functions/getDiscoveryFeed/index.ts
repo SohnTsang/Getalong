@@ -25,30 +25,61 @@
 //   * profiles with whom I have a live_pending invite either direction
 //     (so the same user doesn't show up as sendable on a refresh while
 //      the invite is still ticking down)
-//   * profiles already visible in the caller's current list
-//     (best-effort, only if enough other candidates exist)
 //
-// Recently DELETED chat-room partners are NOT hard-excluded; they
-// sort into a lower band. The product rule for early-beta liquidity
-// is: don't show someone immediately after leaving a chat with them,
-// but never let "deleted partners" empty the Discovery pool — if the
-// available 0-penalty candidates are thin, deleted partners surface
-// to fill the page.
+// Recently DELETED chat-room partners and already-seen profiles are
+// NOT hard-excluded. They apply SOFT penalties that sum into a single
+// `priorityBand`. Product rules:
 //
-// Penalty bands (see DELETED_ROOM_* constants below):
-//   * deleted_at within 7 days  → 20 (strong band)
-//   * deleted_at within 30 days → 8  (weak band)
-//   * older than 30 days / none → 0  (fresh band)
+//   * Fresh + unseen candidates rank highest.
+//   * Recently / repeatedly shown candidates rank lower.
+//   * Recently-left chat partners rank lower (but ABOVE repeated
+//     recently-shown cards).
+//   * No demotion is permanent — thin pools still surface penalized
+//     candidates, and seen users naturally return as exposure ages.
+//
+// Seen memory is now SERVER-SIDE (table `discovery_exposures`), not the
+// client. After each request we record one exposure row per returned
+// profile; the next request reads the viewer's last-24h exposures to
+// compute the penalty. This is production-stable across refreshes, app
+// restarts, and sessions. The client's `exclude_ids` is downgraded to a
+// best-effort SESSION HINT (the cards currently on screen) and only ever
+// raises the penalty, never lowers it.
+//
+// Penalty components (per candidate; see constants below):
+//   * deletedRoomPenalty — left-chat partner within 30 d → 8, else 0.
+//   * exposurePenalty    — server exposure recency of the MOST RECENT
+//                          shown_at: ≤10 min → 24, ≤1 h → 16,
+//                          ≤24 h → 8, else 0.
+//   * repeatPenalty      — (exposures in last 24 h − 1) × 4, capped 16.
+//   * clientSeenPenalty  — in caller `exclude_ids` → 10, else 0 (hint).
+//
+//   seenPenalty   = max(clientSeenPenalty, exposurePenalty) + repeatPenalty
+//   priorityBand  = deletedRoomPenalty + seenPenalty
+//
+// `max(...)` avoids double-counting the client hint against the server
+// record (the client card is also a recent exposure). Representative
+// ordering (lower = better):
+//
+//      0   fresh + unseen                          ← strongest
+//      8   left-chat (≤30 d), never shown          ← above any shown card
+//     10   shown only via client hint (exclude_ids)
+//     24   shown once in last 10 min
+//     32   shown twice in last 10 min (24 + 4×… capped) etc.
+//
+// A left-chat partner (8) therefore always outranks a repeatedly-shown
+// card — the regression we proved against live data (the old strong
+// 20-band buried a just-left partner below repeated seen cards).
+//
+// Fail-open: if the exposure read fails the feed still returns with
+// exposure/repeat penalties = 0 (client hint still applies). If the
+// exposure write fails the feed still returns. Exposure never causes an
+// empty feed.
 //
 // Sort order (stable):
-//   1. deletedRoomPenalty asc — the penalty IS the primary sort key.
-//      Any 0-penalty candidate ranks above every >0-penalty candidate
-//      regardless of how strong their tag overlap or fit-chip match
-//      would otherwise be. Recently deleted partners only surface
-//      after the entire fresh band is exhausted on the page.
-//   2. tag overlap desc — wavelength signal wins within a band.
+//   1. priorityBand asc — combined band is the primary key.
+//   2. tag overlap desc — wavelength signal within a band.
 //   3. fitScore desc — Taipei beta fit chips as tertiary signal.
-//   4. jitter asc — per-request random tie-break for refresh variety.
+//   4. jitter asc — per-request random tie-break for variety.
 //
 // We opt for offset pagination keyed by a small JSON cursor — simpler than
 // keyset for v0 and cheap at expected sizes. The cursor is opaque to the
@@ -61,10 +92,11 @@ interface Body {
   tags?: string[];
   limit?: number;
   cursor?: string;
-  /// IDs the iOS client is currently displaying. Excluded for refresh
-  /// diversity *only when there are enough other candidates* — if we'd
-  /// run out of profiles, we relax this and let already-visible IDs
-  /// come back.
+  /// SESSION HINT only — the IDs the iOS client is currently showing.
+  /// Adds a small `clientSeenPenalty` (max'd with the server exposure
+  /// penalty, never summed) so it can't double-count. The authoritative
+  /// seen memory is the server `discovery_exposures` table, not this.
+  /// Never hard-filtered.
   exclude_ids?: string[];
 }
 
@@ -98,15 +130,33 @@ interface DiscoveryProfile {
 const DEFAULT_LIMIT = 10;
 const MAX_LIMIT     = 50;
 
-// Deleted-chat-room soft penalty. Tuned so a strong-penalty candidate
-// only beats a fresh candidate when the fresh candidate has zero tag
-// overlap AND lower fitScore — i.e. they only resurface when the
-// alternative is genuinely worse, or when there are no alternatives.
-const DELETED_ROOM_STRONG_PENALTY_DAYS = 7;
-const DELETED_ROOM_WEAK_PENALTY_DAYS   = 30;
-const DELETED_ROOM_STRONG_PENALTY      = 20;
-const DELETED_ROOM_WEAK_PENALTY        = 8;
+// Deleted-chat-room soft penalty. A single flat band (no 7-day "strong"
+// tier) so a left-chat partner sits at 8 — below fresh-unseen (0) but
+// ABOVE any recently-/repeatedly-shown card. The old strong 20-band
+// buried a just-left partner below repeated seen cards; that is the
+// regression this design removes.
+const DELETED_ROOM_PENALTY_DAYS = 30;
+const DELETED_ROOM_PENALTY      = 8;
 const MS_PER_DAY = 86_400_000;
+
+// Server-side exposure history (`discovery_exposures`). The MOST RECENT
+// shown_at picks the recency tier; the COUNT in the last 24 h drives the
+// repeat penalty.
+const EXPOSURE_LOOKBACK_MS    = 24 * 60 * 60 * 1000;
+const EXPOSURE_PENALTY_10MIN  = 24;   // shown within 10 minutes
+const EXPOSURE_PENALTY_1HOUR  = 16;   // shown within 1 hour
+const EXPOSURE_PENALTY_24HOUR = 8;    // shown within 24 hours
+const REPEAT_PENALTY_STEP     = 4;    // per additional exposure after the 1st
+const REPEAT_PENALTY_CAP      = 16;   // max repeat contribution
+// Skip re-inserting an exposure for a profile shown this recently, so a
+// rapid manual refresh doesn't inflate the repeat count.
+const EXPOSURE_DEDUP_MS       = 60_000;
+
+// Client `exclude_ids` session hint. Max'd with the server exposure
+// penalty (not summed) so the on-screen cards still rank below fresh
+// candidates even on the very first session before any exposure row
+// exists, without double-counting once the server record catches up.
+const SEEN_CARD_PENALTY = 10;
 
 function decodeCursor(cursor: string | undefined): { offset: number } {
   if (!cursor) return { offset: 0 };
@@ -205,13 +255,13 @@ Deno.serve(async (req) => {
   // Recently DELETED chat-room partners. NOT added to excludeIds — these
   // candidates remain eligible. We only build a map of partner_id ->
   // most-recent deleted_at so the enrichment step can apply a soft
-  // ranking penalty. Scoped to the weak-penalty window (30 d) because
-  // anything older receives no penalty anyway; this keeps the query
-  // small as the deleted-rooms table grows.
+  // ranking penalty. Scoped to the penalty window (30 d) because anything
+  // older receives no penalty anyway; this keeps the query small as the
+  // deleted-rooms table grows.
   const deletedRoomMap = new Map<string, string>();
   {
     const cutoffIso = new Date(
-      Date.now() - DELETED_ROOM_WEAK_PENALTY_DAYS * MS_PER_DAY
+      Date.now() - DELETED_ROOM_PENALTY_DAYS * MS_PER_DAY
     ).toISOString();
     const { data, error } = await sb
       .from("chat_rooms")
@@ -229,6 +279,39 @@ Deno.serve(async (req) => {
       const prev = deletedRoomMap.get(partnerId);
       if (!prev || (r.deleted_at as string) > prev) {
         deletedRoomMap.set(partnerId, r.deleted_at as string);
+      }
+    }
+  }
+
+  // Server-side Discovery exposure history — the authoritative seen
+  // memory. Pull this viewer's exposures in the last 24 h and aggregate
+  // per shown profile into { count, latestMs }. FAIL-OPEN: on error we
+  // leave the map empty (exposure/repeat penalties = 0) and still serve
+  // the feed; the client `exclude_ids` hint still applies. Ordered newest
+  // first and capped — the repeat penalty saturates at 5 exposures, so we
+  // never need an unbounded scan.
+  const exposureMap = new Map<string, { count: number; latestMs: number }>();
+  {
+    const sinceIso = new Date(Date.now() - EXPOSURE_LOOKBACK_MS).toISOString();
+    const { data, error } = await sb
+      .from("discovery_exposures")
+      .select("profile_id, shown_at")
+      .eq("viewer_id", userId)
+      .gte("shown_at", sinceIso)
+      .order("shown_at", { ascending: false })
+      .limit(2000);
+    if (error) {
+      console.warn("discovery_exposures fetch (fail-open, seenPenalty=0):", error.message);
+    } else {
+      for (const r of data ?? []) {
+        const ms = new Date(r.shown_at as string).getTime();
+        const prev = exposureMap.get(r.profile_id);
+        if (!prev) {
+          exposureMap.set(r.profile_id, { count: 1, latestMs: ms });
+        } else {
+          prev.count += 1;
+          if (ms > prev.latestMs) prev.latestMs = ms;
+        }
       }
     }
   }
@@ -255,13 +338,13 @@ Deno.serve(async (req) => {
   //    results.
   const fetchSize = Math.min(MAX_LIMIT * 4, 200);
 
-  // Refresh-diversity exclude: caller's currently-visible IDs. Applied
-  // *only* if removing them still leaves us with at least `limit`
-  // candidates after the hard exclusions (self/blocks/active-rooms/
-  // live-pending). When we'd otherwise return too few, we relax this
-  // and let some already-seen profiles come back rather than hand
-  // back an empty feed.
-  const visibleIds = new Set(
+  // Client session hint: caller's currently-visible IDs become a small
+  // `clientSeenPenalty` during enrichment below (max'd with the server
+  // exposure penalty, not summed). They are NOT removed from the
+  // candidate pool, so a thin pool still surfaces them. The server
+  // `discovery_exposures` history is the authoritative seen-memory; this
+  // hint just covers the on-screen cards before the next exposure read.
+  const seenIds = new Set(
     Array.isArray(body.exclude_ids)
       ? body.exclude_ids.filter((s) => typeof s === "string").slice(0, 50)
       : []
@@ -321,7 +404,7 @@ Deno.serve(async (req) => {
   const myRhythm = me.lifestyle_rhythm   as string | null;
   const myDomain = me.conversation_domain as string | null;
   const nowMs = Date.now();
-  const enriched = (rows as Row[] | null ?? []).map((r) => {
+  const enriched = ((rows ?? []) as unknown as Row[]).map((r) => {
     const tags = r.profile_tags ?? [];
     const sharedNormalized = intent.size === 0
       ? []
@@ -351,22 +434,41 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Soft penalty BAND for partners I recently left a chat with.
-    // Active rooms are already hard-excluded above; this only sees
-    // rows where status='deleted'. The band — not a combined score —
-    // is the primary sort key below, so any fresh (band-0) candidate
-    // ranks above every band-8 or band-20 candidate regardless of
-    // their tag overlap or fit-chip match.
+    // Soft penalty for partners I recently left a chat with. Active
+    // rooms are already hard-excluded above; this only sees rows where
+    // status='deleted'. Flat band (8) — below fresh-unseen (0), above
+    // any recently-/repeatedly-shown card.
     let deletedRoomPenalty = 0;
     const lastDeletedIso = deletedRoomMap.get(r.id);
     if (lastDeletedIso) {
       const ageDays = (nowMs - new Date(lastDeletedIso).getTime()) / MS_PER_DAY;
-      if (ageDays <= DELETED_ROOM_STRONG_PENALTY_DAYS) {
-        deletedRoomPenalty = DELETED_ROOM_STRONG_PENALTY;
-      } else if (ageDays <= DELETED_ROOM_WEAK_PENALTY_DAYS) {
-        deletedRoomPenalty = DELETED_ROOM_WEAK_PENALTY;
+      if (ageDays <= DELETED_ROOM_PENALTY_DAYS) {
+        deletedRoomPenalty = DELETED_ROOM_PENALTY;
       }
     }
+
+    // Server exposure penalty. Recency tier from the MOST RECENT
+    // shown_at; repeat penalty from the COUNT in the last 24 h.
+    const exp = exposureMap.get(r.id);
+    let exposurePenalty = 0;
+    let repeatPenalty = 0;
+    if (exp) {
+      const ageMin = (nowMs - exp.latestMs) / 60_000;
+      if (ageMin <= 10)        exposurePenalty = EXPOSURE_PENALTY_10MIN;
+      else if (ageMin <= 60)   exposurePenalty = EXPOSURE_PENALTY_1HOUR;
+      else if (ageMin <= 1440) exposurePenalty = EXPOSURE_PENALTY_24HOUR;
+      repeatPenalty = Math.min(
+        REPEAT_PENALTY_CAP,
+        Math.max(0, exp.count - 1) * REPEAT_PENALTY_STEP,
+      );
+    }
+
+    // Client `exclude_ids` session hint. Max'd with the server exposure
+    // penalty (not summed) to avoid double-counting the same card, then
+    // the repeat penalty is added. priorityBand is the primary sort key.
+    const clientSeenPenalty = seenIds.has(r.id) ? SEEN_CARD_PENALTY : 0;
+    const seenPenalty = Math.max(clientSeenPenalty, exposurePenalty) + repeatPenalty;
+    const priorityBand = deletedRoomPenalty + seenPenalty;
 
     return {
       row: r,
@@ -374,6 +476,11 @@ Deno.serve(async (req) => {
       overlap: sharedNormalized.length,
       fitScore,
       deletedRoomPenalty,
+      exposurePenalty,
+      repeatPenalty,
+      clientSeenPenalty,
+      seenPenalty,
+      priorityBand,
       // Stable random tie-breaker per request, so two profiles with
       // identical scores don't always appear in the same order across
       // refreshes. Computed once here so the sort is stable.
@@ -381,42 +488,57 @@ Deno.serve(async (req) => {
     };
   });
 
-  // 4. Stable sort. The deleted-room penalty is the *primary* sort key
-  //    (ascending), so candidates partition cleanly into three bands —
-  //    fresh (0) above weak (8) above strong (20). Within a band the
-  //    usual overlap → fitScore → jitter ordering applies. This is
-  //    stricter than a combined score: a recently-deleted partner with
-  //    high tag overlap still ranks below every fresh stranger, which
-  //    is the product rule for early-beta liquidity (fresh always wins
-  //    when fresh exists; deleted only surfaces to fill thin pools).
+  // 4. Stable sort. priorityBand (deletedRoomPenalty + seenPenalty,
+  //    where seenPenalty = max(clientSeen, exposure) + repeat) ascending
+  //    is the primary key. Within a band the usual overlap → fitScore →
+  //    jitter ordering applies. We do NOT hard-filter anything past the
+  //    hard-exclusion list — exposed and recently-left candidates remain
+  //    eligible and just sort lower, so a thin pool always fills.
   enriched.sort((a, b) => {
-    if (a.deletedRoomPenalty !== b.deletedRoomPenalty) {
-      return a.deletedRoomPenalty - b.deletedRoomPenalty;
-    }
-    if (b.overlap  !== a.overlap)  return b.overlap  - a.overlap;
-    if (b.fitScore !== a.fitScore) return b.fitScore - a.fitScore;
+    if (a.priorityBand !== b.priorityBand) return a.priorityBand - b.priorityBand;
+    if (b.overlap      !== a.overlap)      return b.overlap      - a.overlap;
+    if (b.fitScore     !== a.fitScore)     return b.fitScore     - a.fitScore;
     return a.jitter - b.jitter;
   });
 
-  // 4a. Refresh-diversity step: if the caller passed exclude_ids and
-  //     enough alternates exist, prefer fresh candidates over repeating
-  //     last refresh's set. Otherwise fall through and include everyone.
-  let candidates = enriched;
-  if (visibleIds.size > 0) {
-    const fresh  = enriched.filter((e) => !visibleIds.has(e.row.id));
-    const repeat = enriched.filter((e) =>  visibleIds.has(e.row.id));
-    if (fresh.length >= limit) {
-      candidates = fresh;
-    } else {
-      // Not enough fresh candidates — top up with repeats so we still
-      // return up to `limit` rather than returning an empty page.
-      candidates = [...fresh, ...repeat];
+  // Step 4a (refresh-diversity hard-ish filter) deliberately removed
+  // — its split-and-fallback behavior caused the bug where a fresh
+  // pool of repeats would still bury a recently-left partner. The
+  // priorityBand above is now the only diversity mechanism.
+
+  const page = enriched.slice(0, limit);
+  const hasMore = enriched.length > limit
+                || (rows?.length ?? 0) === fetchSize;
+
+  // 5. Record exposures for the profiles we're about to return — the
+  //    authoritative server seen-memory the next request reads. FAIL-OPEN:
+  //    a write error is logged and the feed is still returned. Dedup: skip
+  //    a profile shown within the last EXPOSURE_DEDUP_MS so a rapid manual
+  //    refresh doesn't inflate the repeat count (we reuse exposureMap,
+  //    already loaded for ranking — no extra query).
+  if (page.length > 0) {
+    const toInsert = page
+      .filter(({ row }) => {
+        const exp = exposureMap.get(row.id);
+        return !exp || (nowMs - exp.latestMs) > EXPOSURE_DEDUP_MS;
+      })
+      .map(({ row }) => ({
+        viewer_id:  userId,
+        profile_id: row.id,
+        source:     "discovery",
+      }));
+    if (toInsert.length > 0) {
+      const { error: insErr } = await sb
+        .from("discovery_exposures")
+        .insert(toInsert);
+      if (insErr) {
+        console.warn(
+          `discovery_exposures insert (fail-open) rows=${toInsert.length} ` +
+          `message=${insErr.message ?? "-"} — feed still returned.`,
+        );
+      }
     }
   }
-
-  const page = candidates.slice(0, limit);
-  const hasMore = candidates.length > limit
-                || (rows?.length ?? 0) === fetchSize;
 
   const items: DiscoveryProfile[] = page.map(({ row, sharedTags }) => ({
     id:                  row.id,

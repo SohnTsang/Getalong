@@ -37,19 +37,26 @@
 - Pagination works.
 - Empty feed state works.
 
-### Deleted-room soft penalty (added 2026-05)
+### Discovery server-side exposure ranking (updated 2026-06)
 
-Active chat partners stay hard-excluded; recently deleted partners drop into a lower band. The penalty band is the primary sort key — any fresh candidate outranks every recently deleted candidate. Verify with two test accounts A and B:
+Hard exclusions (never appear): self, banned/deleted, blocked either direction, **active** chat partners, **live `live_pending`** invite partners. Everything else is a SOFT penalty summing into `priorityBand` (ascending). Seen-memory is now SERVER-SIDE in `discovery_exposures` — refresh diversity survives app restarts and new sessions, not just the current screen.
+
+Penalties: `deletedRoomPenalty` (8 if left ≤30 d, else 0); `exposurePenalty` (24 ≤10 min / 16 ≤1 h / 8 ≤24 h / else 0, from most recent `shown_at`); `repeatPenalty` ((24h-count − 1)×4, cap 16); `clientSeenPenalty` (10 for `exclude_ids` session hint). `seenPenalty = max(clientSeen, exposure) + repeat`; `priorityBand = deletedRoom + seenPenalty`. Representative ordering (lower = better): fresh-unseen `0` < left-chat `8` < client-hint-only `10` < shown-recently `24+`.
 
 - A and B have an **active** chat room → B does NOT appear in A's Discovery (hard exclusion preserved).
-- A deletes the chat with B yesterday → B is in band 20. B ranks below every fresh (band-0) candidate regardless of tag overlap or fit score. B only appears once the fresh band is exhausted on the page.
-- A deleted the chat with B 10 days ago → B is in band 8. Still ranks below every fresh candidate; above band-20 candidates.
-- A deleted the chat with B 40 days ago → band 0; B ranks normally.
-- A blocked B → B remains hard-excluded regardless of chat history.
-- A has a `live_pending` invite with B → B remains hard-excluded.
-- When A's Discovery pool of fresh candidates is thin (fewer than `limit`), previously deleted partners surface to fill the page rather than returning an empty feed.
-- Within a band, the existing `overlap → fitScore → jitter` tie-break still applies; only the band itself is the new primary key.
-- No iOS UI change required for any of the above — the soft-penalty logic is entirely server-side.
+- A blocks B → B remains hard-excluded.
+- A has a live (un-expired) `live_pending` invite with B → B remains hard-excluded.
+- A fetches Discovery → the 10 returned profiles each get a `discovery_exposures` row (`viewer_id=A`, `source='discovery'`).
+- A refreshes seconds later → those 10 are now `exposurePenalty=24` and drop to the bottom; fresh unseen profiles (band 0) rise to the top.
+- A profile shown on several refreshes accrues `repeatPenalty` (capped 16) and sinks further, but **still appears** when the pool is thin (never hard-excluded).
+- A deletes the chat with B yesterday, never having been re-shown B → **B appears at band 8, ABOVE any recently-shown card (band ≥24) and above the client-hint-only cards (band 10).** This is the regression-fix bullet (the old strong-20 band buried B).
+- A deleted the chat with B 40 days ago → band 0; B ranks identically to a fresh stranger.
+- A refreshes 5 times with no new strangers entering the pool → previously-shown cards keep filling the page rather than the feed going empty.
+- A seen profile naturally returns to band 0 once its exposures age past 24 h (and out of the table entirely after 14 d).
+- `cleanup_old_discovery_exposures()` removes rows older than 14 days (daily cron `getalong_cleanup_old_discovery_exposures_daily`).
+- **Fail-open:** if the exposure SELECT or INSERT fails, the feed still returns (exposure penalties default to 0). Exposure never empties the feed.
+- Within a band, the existing `overlap → fitScore → jitter` tie-break still applies; the band itself is the primary key.
+- No iOS UI change — exposure logic is entirely server-side. iOS still sends `exclude_ids` (now a session hint only) and does NOT persist seen history.
 
 ## 15-Second Live Invites
 

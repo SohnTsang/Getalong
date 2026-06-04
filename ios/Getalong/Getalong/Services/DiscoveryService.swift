@@ -128,10 +128,15 @@ final class DiscoveryService {
         let ok: Bool; let error_code: String?; let message: String?
     }
 
-    /// Fetch a single 10-card Discovery batch. `excludeIds` (typically the
-    /// IDs the user is currently looking at) is forwarded so the backend
-    /// can prefer fresh candidates on refresh; the server falls back to
-    /// repeats if there aren't enough alternatives.
+    /// Fetch a single 10-card Discovery batch. `excludeIds` (the IDs the
+    /// user is currently looking at) is forwarded as a best-effort SESSION
+    /// HINT only — it lets the backend nudge the on-screen cards down on an
+    /// immediate refresh. It is NOT the primary diversity mechanism: the
+    /// server keeps authoritative seen-memory in `discovery_exposures`
+    /// (recorded server-side per returned card, short retention) and that
+    /// drives ranking across refreshes, restarts, and sessions. We do not
+    /// persist seen history on the client. Nothing is hard-excluded by this
+    /// list — the server only soft-penalizes, so a thin pool still fills.
     func fetchFeed(limit: Int = 10,
                    tags: [String]? = nil,
                    excludeIds: [UUID] = []) async throws -> DiscoveryFeedResponse {
