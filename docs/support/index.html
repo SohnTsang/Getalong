@@ -4,91 +4,83 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Getalong — Support</title>
-  <meta name="description" content="Contact Getalong support. Help with your account, reports, or general questions." />
-  <meta name="theme-color" content="#FAFAF7" />
+  <meta name="description" content="Need help with Getalong? Contact support for help with sign in, reporting and blocking, deleting your account or data, or TestFlight feedback." />
+  <meta name="theme-color" content="#FAF7F1" />
+  <link rel="icon" type="image/png" href="../assets/getalong-icon.png" />
+  <link rel="apple-touch-icon" href="../assets/getalong-icon.png" />
   <link rel="stylesheet" href="../assets/styles.css" />
 </head>
 <body>
-  <header class="container site-nav" role="banner">
+  <header class="site-nav" role="banner">
     <div class="nav-inner">
       <a class="wordmark" href="../" aria-label="Getalong home">
-        <span class="mark-dot" aria-hidden="true"></span>
-        <span class="name">GETALONG</span>
+        <img class="brand-img" src="../assets/getalong-brandmark.png" alt="" width="32" height="32" />
+        <span class="name">Getalong</span>
       </a>
-      <nav aria-label="Primary">
-        <ul class="nav-links">
-          <li><a href="../#product">Product</a></li>
-          <li><a href="../#safety">Safety</a></li>
-          <li><a href="../privacy/">Privacy</a></li>
-          <li><a href="../terms/">Terms</a></li>
-          <li><a href="../support/">Support</a></li>
-        </ul>
-      </nav>
-      <ul class="nav-langs" aria-label="Languages">
-        <li><a class="is-current" href="../">EN</a></li>
-        <li><a href="../privacy/ja/">JA</a></li>
-        <li><a href="../privacy/zh-Hant/">繁體中文</a></li>
+      <ul class="nav-links">
+        <li class="nav-desk"><a href="../#how">How it works</a></li>
+        <li class="nav-desk"><a href="../#inside">The app</a></li>
+        <li class="nav-desk"><a href="../#safety">Safety</a></li>
+        <li><a href="../support/">Support</a></li>
       </ul>
     </div>
   </header>
 
-  <main class="prose support-page">
-    <article class="support-doc">
-      <h1>How can we help?</h1>
-      <p>
-        If you need help, want to report a problem, or have a question about your account, send us an email. We read every message from a real person on the team and reply as quickly as we can.
-      </p>
+  <main class="support-page">
+    <div class="container">
+      <article class="support-doc">
+        <h1>Need help with Getalong?</h1>
+        <p>If something does not feel right or you need help with your account, contact us. A real person on the team reads every message and replies as soon as we can.</p>
 
-      <div class="support-card">
-        <h2>Contact</h2>
-        <a class="email" href="mailto:support@getalong.app">support@getalong.app</a>
-        <p class="hours">English · 日本語 · 繁體中文 — please write in whichever you’re most comfortable with.</p>
-      </div>
+        <div class="support-card">
+          <h2>Contact</h2>
+          <a class="email" href="mailto:support@getalong.app">support@getalong.app</a>
+          <p class="hours">English · 日本語 · 繁體中文 — write in whichever you're most comfortable with.</p>
+        </div>
 
-      <div class="support-links">
-        <a href="../privacy/">Privacy Policy</a>
-        <a href="../terms/">Terms of Service</a>
-        <a href="../">Back to home</a>
-      </div>
-    </article>
+        <section class="faq" aria-labelledby="faq-title">
+          <h2 id="faq-title">Common questions</h2>
+          <dl>
+            <dt>Sign in</dt>
+            <dd>Getalong signs you in with Apple, Google, or X. Use the same provider you started with. If it still won't connect, email us the provider you use and we'll look into it.</dd>
+
+            <dt>Report or block someone</dt>
+            <dd>You can block any user and report content from inside the app — on a card or inside a chat. Blocking takes effect immediately. If you're in danger, contact your local authorities first.</dd>
+
+            <dt>Delete account or data</dt>
+            <dd>Open <strong>Profile → Delete account</strong> to remove your account and associated data, or email <a href="mailto:support@getalong.app">support@getalong.app</a> and we'll handle it for you.</dd>
+
+            <dt>TestFlight feedback</dt>
+            <dd>Testing an early build? We'd love your notes. Reply in TestFlight or email us what you saw, the device you're on, and what you expected to happen.</dd>
+          </dl>
+        </section>
+
+        <div class="support-links">
+          <a href="../privacy/">Privacy Policy</a>
+          <a href="../terms/">Terms of Service</a>
+          <a href="../">Back to home</a>
+        </div>
+      </article>
+    </div>
   </main>
 
   <footer class="site-footer">
-    <div class="container foot-grid">
-      <div>
+    <div class="container">
+      <div class="foot-row">
         <a class="wordmark" href="../" aria-label="Getalong home">
-          <span class="mark-dot" aria-hidden="true"></span>
-          <span class="name">GETALONG</span>
+          <img class="brand-img" src="../assets/getalong-brandmark.png" alt="" width="28" height="28" />
+          <span class="name">Getalong</span>
         </a>
-        <p class="foot-blurb">A calmer way to notice people you might get along with.</p>
+        <nav class="foot-nav" aria-label="Footer">
+          <a href="../privacy/">Privacy</a>
+          <a href="../terms/">Terms</a>
+          <a href="../support/">Support</a>
+        </nav>
       </div>
-      <div>
-        <h4>Product</h4>
-        <ul>
-          <li><a href="../#product">How it works</a></li>
-          <li><a href="../#safety">Safety</a></li>
-          <li><a href="../support/">Support</a></li>
-        </ul>
+      <div class="foot-copy">
+        <span>© Getalong. All rights reserved.</span>
+        <span>iOS first · Coming soon</span>
       </div>
-      <div>
-        <h4>Legal</h4>
-        <ul>
-          <li><a href="../privacy/">Privacy</a></li>
-          <li><a href="../terms/">Terms</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4>Contact</h4>
-        <ul>
-          <li><a href="mailto:support@getalong.app">support@getalong.app</a></li>
-          <li><a href="../privacy/ja/">日本語</a></li>
-          <li><a href="../privacy/zh-Hant/">繁體中文</a></li>
-        </ul>
-      </div>
-    </div>
-    <div class="container foot-bottom">
-      <span>© Getalong. All rights reserved.</span>
-      <span>iOS first · Coming soon</span>
     </div>
   </footer>
 </body>

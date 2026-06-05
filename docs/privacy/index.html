@@ -5,39 +5,37 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Getalong — Privacy Policy</title>
   <meta name="description" content="Getalong privacy policy: what we collect, how we use it, your rights." />
-  <meta name="theme-color" content="#FAFAF7" />
+  <meta name="theme-color" content="#FAF7F1" />
+  <link rel="icon" type="image/png" href="../assets/getalong-icon.png" />
+  <link rel="apple-touch-icon" href="../assets/getalong-icon.png" />
+  <link rel="alternate" hreflang="en" href="./" />
+  <link rel="alternate" hreflang="ja" href="ja/" />
+  <link rel="alternate" hreflang="zh-Hant" href="zh-Hant/" />
+  <link rel="alternate" hreflang="x-default" href="./" />
   <link rel="stylesheet" href="../assets/styles.css" />
 </head>
 <body>
-  <header class="container site-nav" role="banner">
+  <header class="site-nav" role="banner">
     <div class="nav-inner">
       <a class="wordmark" href="../" aria-label="Getalong home">
-        <span class="mark-dot" aria-hidden="true"></span>
-        <span class="name">GETALONG</span>
+        <img class="brand-img" src="../assets/getalong-brandmark.png" alt="" width="26" height="26" />
+        <span class="name">Getalong</span>
       </a>
-      <nav aria-label="Primary">
-        <ul class="nav-links">
-          <li><a href="../#product">Product</a></li>
-          <li><a href="../#safety">Safety</a></li>
-          <li><a href="../privacy/">Privacy</a></li>
-          <li><a href="../terms/">Terms</a></li>
-          <li><a href="../support/">Support</a></li>
-        </ul>
-      </nav>
-      <ul class="nav-langs" aria-label="Languages">
-        <li><a class="is-current" href="../privacy/">EN</a></li>
-        <li><a href="../privacy/ja/">JA</a></li>
-        <li><a href="../privacy/zh-Hant/">繁體中文</a></li>
+      <ul class="nav-links">
+        <li class="nav-desk"><a href="../#how">How it works</a></li>
+        <li class="nav-desk"><a href="../#inside">The app</a></li>
+        <li class="nav-desk"><a href="../#safety">Safety</a></li>
+        <li><a href="../support/">Support</a></li>
       </ul>
+      <select class="nav-language-select" aria-label="Language" onchange="if(this.value)location.href=this.value">
+        <option value="" selected>English</option>
+        <option value="ja/">日本語</option>
+        <option value="zh-Hant/">繁體中文</option>
+      </select>
     </div>
   </header>
 
   <main class="prose legal-page">
-    <nav class="lang-switch" aria-label="Languages">
-      <a class="is-current" href="../privacy/">English</a>
-      <a href="../privacy/ja/">日本語</a>
-      <a href="../privacy/zh-Hant/">繁體中文</a>
-    </nav>
 
     <article class="legal-doc">
       <header class="legal-head">
@@ -118,41 +116,22 @@
   </main>
 
   <footer class="site-footer">
-    <div class="container foot-grid">
-      <div>
+    <div class="container">
+      <div class="foot-row">
         <a class="wordmark" href="../" aria-label="Getalong home">
-          <span class="mark-dot" aria-hidden="true"></span>
-          <span class="name">GETALONG</span>
+          <img class="brand-img" src="../assets/getalong-brandmark.png" alt="" width="28" height="28" />
+          <span class="name">Getalong</span>
         </a>
-        <p class="foot-blurb">A calmer way to notice people you might get along with.</p>
+        <nav class="foot-nav" aria-label="Footer">
+          <a href="../privacy/">Privacy</a>
+          <a href="../terms/">Terms</a>
+          <a href="../support/">Support</a>
+        </nav>
       </div>
-      <div>
-        <h4>Product</h4>
-        <ul>
-          <li><a href="../#product">How it works</a></li>
-          <li><a href="../#safety">Safety</a></li>
-          <li><a href="../support/">Support</a></li>
-        </ul>
+      <div class="foot-copy">
+        <span>© Getalong. All rights reserved.</span>
+        <span>iOS first · Coming soon</span>
       </div>
-      <div>
-        <h4>Legal</h4>
-        <ul>
-          <li><a href="../privacy/">Privacy</a></li>
-          <li><a href="../terms/">Terms</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4>Contact</h4>
-        <ul>
-          <li><a href="mailto:support@getalong.app">support@getalong.app</a></li>
-          <li><a href="../privacy/ja/">日本語</a></li>
-          <li><a href="../privacy/zh-Hant/">繁體中文</a></li>
-        </ul>
-      </div>
-    </div>
-    <div class="container foot-bottom">
-      <span>© Getalong. All rights reserved.</span>
-      <span>iOS first · Coming soon</span>
     </div>
   </footer>
 </body>

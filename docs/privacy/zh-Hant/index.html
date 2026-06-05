@@ -5,39 +5,37 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Getalong — 私隱政策</title>
   <meta name="description" content="Getalong 私隱政策：我們收集甚麼資料、如何使用，以及你的權利。" />
-  <meta name="theme-color" content="#FAFAF7" />
+  <meta name="theme-color" content="#FAF7F1" />
+  <link rel="icon" type="image/png" href="../../assets/getalong-icon.png" />
+  <link rel="apple-touch-icon" href="../../assets/getalong-icon.png" />
+  <link rel="alternate" hreflang="en" href="../" />
+  <link rel="alternate" hreflang="ja" href="../ja/" />
+  <link rel="alternate" hreflang="zh-Hant" href="./" />
+  <link rel="alternate" hreflang="x-default" href="../" />
   <link rel="stylesheet" href="../../assets/styles.css" />
 </head>
 <body>
-  <header class="container site-nav" role="banner">
+  <header class="site-nav" role="banner">
     <div class="nav-inner">
       <a class="wordmark" href="../../" aria-label="Getalong home">
-        <span class="mark-dot" aria-hidden="true"></span>
-        <span class="name">GETALONG</span>
+        <img class="brand-img" src="../../assets/getalong-brandmark.png" alt="" width="26" height="26" />
+        <span class="name">Getalong</span>
       </a>
-      <nav aria-label="Primary">
-        <ul class="nav-links">
-          <li><a href="../../#product">產品</a></li>
-          <li><a href="../../#safety">安全</a></li>
-          <li><a href="../../privacy/zh-Hant/">私隱</a></li>
-          <li><a href="../../terms/zh-Hant/">條款</a></li>
-          <li><a href="../../support/">支援</a></li>
-        </ul>
-      </nav>
-      <ul class="nav-langs" aria-label="Languages">
-        <li><a href="../../privacy/">EN</a></li>
-        <li><a href="../../privacy/ja/">JA</a></li>
-        <li><a class="is-current" href="../../privacy/zh-Hant/">繁體中文</a></li>
+      <ul class="nav-links">
+        <li class="nav-desk"><a href="../../#how">運作方式</a></li>
+        <li class="nav-desk"><a href="../../#inside">應用程式</a></li>
+        <li class="nav-desk"><a href="../../#safety">安全</a></li>
+        <li><a href="../../support/">支援</a></li>
       </ul>
+      <select class="nav-language-select" aria-label="Language" onchange="if(this.value)location.href=this.value">
+        <option value="../">English</option>
+        <option value="../ja/">日本語</option>
+        <option value="" selected>繁體中文</option>
+      </select>
     </div>
   </header>
 
   <main class="prose legal-page">
-    <nav class="lang-switch" aria-label="Languages">
-      <a href="../../privacy/">English</a>
-      <a href="../../privacy/ja/">日本語</a>
-      <a class="is-current" href="../../privacy/zh-Hant/">繁體中文</a>
-    </nav>
 
     <article class="legal-doc">
       <header class="legal-head">
@@ -118,41 +116,22 @@
   </main>
 
   <footer class="site-footer">
-    <div class="container foot-grid">
-      <div>
+    <div class="container">
+      <div class="foot-row">
         <a class="wordmark" href="../../" aria-label="Getalong home">
-          <span class="mark-dot" aria-hidden="true"></span>
-          <span class="name">GETALONG</span>
+          <img class="brand-img" src="../../assets/getalong-brandmark.png" alt="" width="28" height="28" />
+          <span class="name">Getalong</span>
         </a>
-        <p class="foot-blurb">以平靜的方式，遇見你會自然合得來的人。</p>
+        <nav class="foot-nav" aria-label="Footer">
+          <a href="../../privacy/">Privacy</a>
+          <a href="../../terms/">Terms</a>
+          <a href="../../support/">Support</a>
+        </nav>
       </div>
-      <div>
-        <h4>產品</h4>
-        <ul>
-          <li><a href="../../#product">理念</a></li>
-          <li><a href="../../#safety">安全</a></li>
-          <li><a href="../../support/">支援</a></li>
-        </ul>
+      <div class="foot-copy">
+        <span>© Getalong. All rights reserved.</span>
+        <span>iOS first · Coming soon</span>
       </div>
-      <div>
-        <h4>條款</h4>
-        <ul>
-          <li><a href="../../privacy/zh-Hant/">私隱政策</a></li>
-          <li><a href="../../terms/zh-Hant/">服務條款</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4>聯絡</h4>
-        <ul>
-          <li><a href="mailto:support@getalong.app">support@getalong.app</a></li>
-          <li><a href="../../privacy/">English</a></li>
-          <li><a href="../../privacy/ja/">日本語</a></li>
-        </ul>
-      </div>
-    </div>
-    <div class="container foot-bottom">
-      <span>© Getalong. 保留一切權利。</span>
-      <span>iOS 版本籌備中</span>
     </div>
   </footer>
 </body>

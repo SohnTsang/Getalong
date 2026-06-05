@@ -3,208 +3,211 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Getalong — Find someone you just get along with</title>
-  <meta name="description" content="Chat first. Click naturally." />
-  <meta name="theme-color" content="#FAFAF7" />
-  <meta property="og:title" content="Getalong — Find someone you just get along with" />
-  <meta property="og:description" content="Chat first. Click naturally." />
+  <title>Getalong — Meet people through one honest line</title>
+  <meta name="description" content="Getalong is text-first social discovery. You start with one real line about your life, then decide if someone feels easy to talk to." />
+  <meta name="theme-color" content="#FAF7F1" />
+  <link rel="icon" type="image/png" href="./assets/getalong-icon.png" />
+  <link rel="apple-touch-icon" href="./assets/getalong-icon.png" />
+  <meta property="og:title" content="Getalong — Meet people through one honest line" />
+  <meta property="og:description" content="Text-first social discovery. Start with one real line about your life." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://getalong.app/" />
+  <meta property="og:image" content="./assets/getalong-icon.png" />
   <meta name="twitter:card" content="summary" />
+  <link rel="alternate" hreflang="en" href="./" />
+  <link rel="alternate" hreflang="ja" href="ja/" />
+  <link rel="alternate" hreflang="zh-Hant" href="zh-Hant/" />
+  <link rel="alternate" hreflang="x-default" href="./" />
   <link rel="stylesheet" href="./assets/styles.css" />
 </head>
 <body>
 
-  <header class="container site-nav" role="banner">
+  <!-- Header -->
+  <header class="site-nav" role="banner">
     <div class="nav-inner">
       <a class="wordmark" href="./" aria-label="Getalong home">
-        <span class="mark-dot" aria-hidden="true"></span>
-        <span class="name">GETALONG</span>
+        <img class="brand-img" src="./assets/getalong-brandmark.png" alt="" width="32" height="32" />
+        <span class="name">Getalong</span>
       </a>
-      <nav aria-label="Primary">
-        <ul class="nav-links">
-          <li><a href="#product">Product</a></li>
-          <li><a href="#safety">Safety</a></li>
-        </ul>
-      </nav>
-      <ul class="nav-langs" aria-label="Languages">
-        <li><a class="is-current" href="./">EN</a></li>
-        <li><a href="./privacy/ja/">JA</a></li>
-        <li><a href="./privacy/zh-Hant/">繁</a></li>
+      <ul class="nav-links">
+        <li class="nav-desk"><a href="#how">How it works</a></li>
+        <li class="nav-desk"><a href="#inside">The app</a></li>
+        <li class="nav-desk"><a href="#safety">Safety</a></li>
+        <li><a href="./support/">Support</a></li>
       </ul>
+      <select class="nav-language-select" aria-label="Language" onchange="if(this.value)location.href=this.value">
+        <option value="" selected>English</option>
+        <option value="ja/">日本語</option>
+        <option value="zh-Hant/">繁體中文</option>
+      </select>
     </div>
   </header>
 
   <main>
 
-    <!-- HERO -->
+    <!-- Hero -->
     <section class="container hero" aria-labelledby="hero-title">
       <div class="hero-grid">
-        <div class="hero-text">
-          <h1 id="hero-title" class="hero-title">
-            Find someone you<br />
-            <span class="accent">just get along with.</span>
+        <div class="hero-copy">
+          <h1 id="hero-title" class="h-serif hero-title">
+            Meet people through <span class="u-one">one</span> honest line.
           </h1>
-          <p class="hero-second">Chat first. Click naturally.</p>
-          <a class="hero-cta" href="mailto:support@getalong.app?subject=Getalong%20%E2%80%94%20keep%20me%20posted">
-            Coming soon on iPhone
-            <span aria-hidden="true">→</span>
-          </a>
-        </div>
-
-        <div class="orbit hero-orbit" aria-hidden="false">
-          <span class="orbit-circle"></span>
-          <span class="orbit-ring"></span>
-          <span class="orbit-dot orbit-dot-tr" aria-hidden="true"></span>
-          <article class="orbit-card hero-quote-card" aria-label="Example Getalong card">
-            <p class="quote-text">“Late-night coffee somehow makes better conversations.”</p>
-            <span class="invite-badge">
-              <span class="ring" aria-hidden="true"></span>
-              Live invite · 15s
-            </span>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <!-- SECTION 1 -->
-    <section class="container value" id="product">
-      <div class="value-grid">
-        <div class="value-text">
-          <h2 class="value-title">Start with a line.</h2>
-          <p class="value-copy">
-            No long profile. No pressure to perform. Just one line that gives someone something real to notice.
+          <p class="hero-sub">
+            Getalong is text-first social discovery. You start with one real line about
+            your life. Then you decide if someone feels easy to talk to.
           </p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="mailto:support@getalong.app?subject=Getalong%20waitlist">Join the waitlist</a>
+          </div>
         </div>
 
-        <div class="orbit orbit-lg orbit-shift-r" aria-hidden="true">
-          <span class="orbit-circle"></span>
-          <span class="orbit-ring"></span>
-          <article class="orbit-card line-card">
-            <span class="line-label">Your line</span>
-            <p class="line-text">Quiet streets and one good thought.<span class="cursor"></span></p>
-          </article>
-        </div>
-      </div>
-    </section>
+        <div class="hero-visual">
+          <!-- Replace ./assets/hero-branch.png with tree/branch artwork.
+               Larger, covers the right edge, sits behind the screenshot,
+               never over the text. Empty (clean) until the PNG is added. -->
+          <div class="hero-branch" style="background-image:url(./assets/hero-branch.png)" aria-hidden="true"></div>
 
-    <!-- SECTION 2 (flipped) -->
-    <section class="container value flip">
-      <div class="value-grid">
-        <div class="value-text">
-          <h2 class="value-title">A smaller way to discover.</h2>
-          <p class="value-copy">
-            Getalong shows 10 people at a time, so discovery feels calmer than endless scrolling.
-          </p>
-        </div>
-
-        <div class="orbit orbit-lg orbit-shift-l alt-tone" aria-hidden="true">
-          <span class="orbit-circle"></span>
-          <span class="orbit-ring"></span>
-          <article class="orbit-card discover-card">
-            <div class="discover-head">
-              <div class="avatar" aria-hidden="true">M</div>
-              <span class="batch-pill">1 of 10</span>
+          <!-- Hero screenshot placeholder. Add ./assets/screenshot-discovery.png
+               (iPhone simulator screenshot, no device frame) and it fills this slot. -->
+          <div class="shot" role="img" aria-label="Discovery screenshot placeholder">
+            <div class="shot-ph">
+              <span class="t">Discovery screenshot</span>
+              <span class="h">Replace with iPhone simulator screenshot</span>
             </div>
-            <p class="quote-text">“Quiet streets, one good thought.”</p>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <!-- SECTION 3 -->
-    <section class="container value">
-      <div class="value-grid">
-        <div class="value-text">
-          <h2 class="value-title">Live invite. Real conversation.</h2>
-          <p class="value-copy">
-            If something clicks, send a live invite. If they respond, the chat starts.
-          </p>
-        </div>
-
-        <div class="orbit orbit-lg orbit-shift-r" aria-hidden="true">
-          <span class="orbit-circle"></span>
-          <span class="orbit-ring"></span>
-          <article class="orbit-card invite-card">
-            <p class="quote-text">“Late-night coffee somehow makes better conversations.”</p>
-            <div class="invite-actions">
-              <button class="invite-btn" type="button">Not now</button>
-              <button class="invite-btn primary" type="button">Accept</button>
-            </div>
-          </article>
-          <div class="invite-countdown">
-            <span class="ring" aria-hidden="true"></span>
-            <span class="num">15</span>
+            <div class="shot-img" style="background-image:url(./assets/screenshot-discovery.png)"></div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- CTA PANEL -->
-    <section class="container" id="safety">
-      <aside class="cta-panel" aria-labelledby="cta-title">
-        <div class="cta-panel-text">
-          <h2 id="cta-title">Getalong is being built for iPhone.</h2>
-          <p>A calmer way to meet people through short lines and live invites.</p>
-          <a class="cta-button" href="mailto:support@getalong.app?subject=Getalong%20%E2%80%94%20keep%20me%20posted">
-            Coming soon on iPhone
-          </a>
+    <!-- Value strip -->
+    <section class="strip" aria-label="What Getalong is">
+      <div class="container strip-inner">
+        <div class="strip-cols">
+          <div><p>No endless profile performance</p></div>
+          <div><p>No pressure to open perfectly</p></div>
+          <div><p>Just enough context to say hello.</p></div>
         </div>
-        <div class="cta-panel-visual" aria-hidden="true">
-          <span class="orbit-circle big"></span>
-          <span class="orbit-ring big"></span>
-          <span class="orbit-dot d1"></span>
-          <span class="orbit-dot d2 outline"></span>
-          <div class="orbit-card cta-card">
-            <span class="invite-badge">
-              <span class="ring" aria-hidden="true"></span>
-              Live invite · 15s
-            </span>
+      </div>
+    </section>
+
+    <!-- How it works -->
+    <section class="container section" id="how" aria-labelledby="how-title">
+      <div class="how-head">
+        <h2 id="how-title" class="h-serif">How it works</h2>
+      </div>
+      <ol class="steps">
+        <li><span class="num">01</span><h3>Write one line</h3><p>Share a real line that sounds like you.</p></li>
+        <li><span class="num">02</span><h3>Add a few clues</h3><p>Signals like how you chat, your rhythm, and what you want to talk about.</p></li>
+        <li><span class="num">03</span><h3>Discover people you can get along with</h3><p>See people through their one line and clues, and notice who feels like a natural fit.</p></li>
+        <li><span class="num">04</span><h3>Send a live invite</h3><p>Invite someone to chat while both of you are open in the moment.</p></li>
+        <li><span class="num">05</span><h3>Chat when both sides are interested</h3><p>Conversations begin only when the interest goes both ways.</p></li>
+      </ol>
+    </section>
+
+    <!-- Inside the app -->
+    <section class="inside" id="inside" aria-labelledby="inside-title">
+      <div class="container section">
+        <div class="inside-grid">
+          <div class="inside-head">
+            <p class="eyebrow">Inside the app</p>
+            <h2 id="inside-title" class="h-serif">Inside the app</h2>
+            <p>Simple moments, real connection.</p>
+          </div>
+
+          <div class="app-pair">
+            <!-- Add ./assets/screenshot-live-invite.png to fill this slot. -->
+            <div>
+              <div class="shot" role="img" aria-label="Live invite screenshot placeholder">
+                <div class="shot-ph">
+                  <span class="t">Live invite screenshot</span>
+                  <span class="h">Replace with iPhone simulator screenshot</span>
+                </div>
+                <div class="shot-img" style="background-image:url(./assets/screenshot-live-invite.png)"></div>
+              </div>
+              <p class="shot-cap">Live invite flow.</p>
+            </div>
+            <!-- Add ./assets/screenshot-chat.png to fill this slot. -->
+            <div>
+              <div class="shot" role="img" aria-label="Chat screenshot placeholder">
+                <div class="shot-ph">
+                  <span class="t">Chat screenshot</span>
+                  <span class="h">Replace with iPhone simulator screenshot</span>
+                </div>
+                <div class="shot-img" style="background-image:url(./assets/screenshot-chat.png)"></div>
+              </div>
+              <p class="shot-cap">Chat experience.</p>
+            </div>
           </div>
         </div>
-      </aside>
+      </div>
+    </section>
+
+    <!-- Safety -->
+    <section class="container section" id="safety" aria-labelledby="safety-title">
+      <div class="safety-panel">
+        <div class="safety-grid">
+          <div class="safety-intro">
+            <!-- Replace ./assets/safety-visual.png. Soft sage circle until added. -->
+            <span class="safety-mark" style="background-image:url(./assets/safety-visual.png)" aria-hidden="true"></span>
+            <div>
+              <h2 id="safety-title" class="h-serif">Safety comes first.<br /><span class="sub">So real connections can happen.</span></h2>
+              <p class="safety-note">Getalong is for adults only.</p>
+            </div>
+          </div>
+          <div class="safety-cols">
+            <div>
+              <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.4 2.7-6 6-6s6 2.6 6 6"/><path d="M17 7h4M19 5v4"/></svg>
+              <h3>18+ community</h3>
+              <p>Getalong is for adults only, so the space stays respectful.</p>
+            </div>
+            <div>
+              <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V6z"/></svg>
+              <h3>You're in control</h3>
+              <p>Block or report anytime. Set the pace and choose what feels comfortable.</p>
+            </div>
+            <div>
+              <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h13l-3-3M20 15H7l3 3"/></svg>
+              <h3>Mutual interest first</h3>
+              <p>Chats begin only when both people are interested. No one-sided pressure.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Closing -->
+    <section class="container closing">
+      <div class="closing-panel">
+        <!-- Replace ./assets/closing-visual.png with closing artwork (right side).
+             Empty (clean) until the PNG is added. -->
+        <div class="closing-visual" style="background-image:url(./assets/closing-visual.png)" aria-hidden="true"></div>
+        <div class="closing-spark" aria-hidden="true">✦</div>
+        <h2 class="h-serif">Start small.<br />See who feels <em>easy to talk to</em>.</h2>
+        <a class="btn btn-primary" href="mailto:support@getalong.app?subject=Getalong%20waitlist">Join the waitlist</a>
+      </div>
     </section>
 
   </main>
 
+  <!-- Footer (shared structure across all pages) -->
   <footer class="site-footer">
-    <p class="container safety-line">
-      View-once media can only be opened once. For safety, it may be retained privately for up to 24 hours.
-    </p>
-    <div class="container foot-grid">
-      <div>
+    <div class="container">
+      <div class="foot-row">
         <a class="wordmark" href="./" aria-label="Getalong home">
-          <span class="mark-dot" aria-hidden="true"></span>
-          <span class="name">GETALONG</span>
+          <img class="brand-img" src="./assets/getalong-brandmark.png" alt="" width="28" height="28" />
+          <span class="name">Getalong</span>
         </a>
-        <p class="foot-blurb">A calmer way to notice people you might get along with.</p>
+        <nav class="foot-nav" aria-label="Footer">
+          <a href="./privacy/">Privacy</a>
+          <a href="./terms/">Terms</a>
+          <a href="./support/">Support</a>
+        </nav>
       </div>
-      <div>
-        <h4>Legal</h4>
-        <ul>
-          <li><a href="./privacy/">Privacy</a></li>
-          <li><a href="./terms/">Terms</a></li>
-        </ul>
+      <div class="foot-copy">
+        <span>© Getalong. All rights reserved.</span>
+        <span>iOS first · Coming soon</span>
       </div>
-      <div>
-        <h4>Support</h4>
-        <ul>
-          <li><a href="./support/">Support</a></li>
-          <li><a href="mailto:support@getalong.app">support@getalong.app</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4>Languages</h4>
-        <ul>
-          <li><a href="./">English</a></li>
-          <li><a href="./privacy/ja/">日本語</a></li>
-          <li><a href="./privacy/zh-Hant/">繁體中文</a></li>
-        </ul>
-      </div>
-    </div>
-    <div class="container foot-bottom">
-      <span>© Getalong. All rights reserved.</span>
-      <span>iOS first · Coming soon</span>
     </div>
   </footer>
 
