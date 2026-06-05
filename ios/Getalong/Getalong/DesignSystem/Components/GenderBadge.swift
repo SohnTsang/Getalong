@@ -6,9 +6,10 @@ import SwiftUI
 /// stereotypes — male picks up the slate-blue secondary, female picks
 /// up a muted rose that complements (but doesn't mirror) the brand red.
 ///
-/// Visual rhythm matches `GAStatusPill`: small dot + uppercased caption,
-/// 12pt height. Designed to be quiet on a surface card; never the
-/// dominant element.
+/// Icon-only by design: the glyph (open ring / solid bar) is the
+/// signal, the label would just repeat what's in the surrounding
+/// profile copy. VoiceOver still announces "Female" / "Male" via the
+/// accessibility label.
 struct GenderBadge: View {
     enum Kind {
         case male
@@ -40,21 +41,19 @@ struct GenderBadge: View {
     let kind: Kind
 
     var body: some View {
-        HStack(spacing: 6) {
-            mark
-            Text(label)
-                .font(GATypography.caption.weight(.semibold))
-                .tracking(0.6)
-                .foregroundStyle(foreground)
-        }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
-        .background(background)
-        .clipShape(Capsule(style: .continuous))
-        .overlay(
-            Capsule(style: .continuous)
-                .strokeBorder(stroke, lineWidth: 0.75)
-        )
+        // Fixed compact capsule so male's solid bar and female's open
+        // ring render the same outer footprint regardless of glyph
+        // shape; this is what makes the icon-only badge feel
+        // intentional next to the card's one-line signal.
+        mark
+            .frame(width: 22, height: 16)
+            .background(background)
+            .clipShape(Capsule(style: .continuous))
+            .overlay(
+                Capsule(style: .continuous)
+                    .strokeBorder(stroke, lineWidth: 0.75)
+            )
+            .accessibilityLabel(label)
     }
 
     // MARK: - Glyph
