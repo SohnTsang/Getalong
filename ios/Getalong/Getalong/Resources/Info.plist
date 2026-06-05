@@ -18,11 +18,8 @@
 	<string>1.0</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
-	<key>UILaunchScreen</key>
-	<dict>
-		<key>UIColorName</key>
-		<string></string>
-	</dict>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Getalong uses your location to set your region (city / country) so people on your wavelength can find you. You can turn this off any time.</string>
 	<key>NSCameraUsageDescription</key>

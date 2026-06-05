@@ -8,7 +8,7 @@ struct AppRouter: View {
         Group {
             switch session.state {
             case .loading:
-                GALoadingView(label: "Getalong")
+                bootstrapScreen
             case .unauthenticated:
                 SignInView()
             case .profileSetupRequired(let userId):
@@ -46,6 +46,18 @@ struct AppRouter: View {
             default:
                 break
             }
+        }
+    }
+
+    /// Shown only while the session resolves on launch. Mirrors the static
+    /// LaunchScreen — centered BrandMark on the app background — so the
+    /// hand-off reads as one continuous screen. No text, slogan, or spinner.
+    private var bootstrapScreen: some View {
+        ZStack {
+            GAColors.background.ignoresSafeArea()
+            BrandMark(size: 96)
+                .offset(y: -14)   // higher = more negative; try -80 … -200
+
         }
     }
 
